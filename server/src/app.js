@@ -15,6 +15,8 @@ app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
 app.use(['/auth/login', '/auth/register'], authLimiter);
 
+app.use('/api/game', gameLimiter);
+
 app.use(
     session({
         name: 'sid',
@@ -70,6 +72,8 @@ app.get('/health', (req, res) => {
         timestamp: new Date().toISOString(),
     });
 });
+
+app.use('/api/game', gameRoutes);
 
 // Error handling
 app.use(notFound);

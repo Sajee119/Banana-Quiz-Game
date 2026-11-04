@@ -1,7 +1,11 @@
 import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { MotionConfig } from 'framer-motion';
+import LandingPage from './pages/LandingPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
+import GamePage from './pages/GamePage.jsx';
+import DashboardPage from './pages/DashboardPage.jsx';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
 import { useAuth } from './context/auth-context.js';
 
 export default function App() {
@@ -15,7 +19,11 @@ export default function App() {
   return (
     <MotionConfig reducedMotion={reducedMotion ? 'always' : 'never'}>
       <Routes>
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/play" element={<ProtectedRoute><GamePage /></ProtectedRoute>} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </MotionConfig>
   );

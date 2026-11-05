@@ -10,7 +10,7 @@ const env = require('./config/env');
 const passport = require('./config/passport');
 const gameRoutes = require('./routes/game.routes');
 const authRoutes = require('./routes/auth.routes');
-const passport = require('./config/passport');
+const { notFound, errorHandler } = require('./middleware/error.middleware');
 const userRoutes = require('./routes/user.routes');
 
 const app = express();

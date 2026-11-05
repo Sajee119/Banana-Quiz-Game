@@ -12,6 +12,14 @@ async function connectWithRetry(attempts = 1) {
             maxPoolSize: 10,
             autoIndex: env.NODE_ENV !== 'production',
         });
+        // Older deployments used a TTL index on expiresAt. Completed rounds
+        // are now retained for the player's game history.
+        const indexes = await mongoose.connection.collection('gamesessions').indexes();
+        const expiryIndex = indexes.find((index) => index.key?.expiresAt === 1 && index.expireAfterSeconds != null);
+        if (expiryIndex) {
+            await mongoose.connection.collection('gamesessions').dropIndex(expiryIndex.name);
+            logger.info('Removed the game-session TTL index for history retention.');
+        }
         logger.info('MongoDB connection established successfully.');
 
         mongoose.connection.on('error', (err) => logger.error('MongoDB error:', err));

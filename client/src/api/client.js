@@ -50,6 +50,8 @@ export const gameApi = {
         api.post('/api/game/answer', { sessionId, answer }).then((r) => r.data),
     expire: (sessionId) => api.post('/api/game/expire', { sessionId }).then((r) => r.data),
     stats: () => api.get('/api/game/stats').then((r) => r.data),
+    history: (limit = 50) => api.get(`/api/game/history?limit=${limit}`).then((r) => r.data),
+    historyEntry: (sessionId) => api.get(`/api/game/history/${sessionId}`).then((r) => r.data),
     modes: () => api.get('/api/game/modes').then((r) => r.data),
 };
 

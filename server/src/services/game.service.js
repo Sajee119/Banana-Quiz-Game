@@ -121,6 +121,7 @@ async function submitAnswer(userId, sessionId, answer) {
   session.isCorrect = isCorrect;
   session.pointsAwarded = points;
   session.timeToAnswerMs = answerMs;
+  session.completedAt = now;
   await session.save();
 
   const score = await Score.recordResult(userId, {
@@ -153,7 +154,7 @@ async function expireSession(userId, sessionId) {
   const now = new Date();
   const session = await GameSession.findOneAndUpdate(
     { _id: sessionId, user: userId, status: 'active', expiresAt: { $lte: now } },
-    { $set: { status: 'expired' } },
+    { $set: { status: 'expired', completedAt: now } },
     { new: true }
   ).select('+solution');
 
@@ -169,6 +170,7 @@ async function expireSession(userId, sessionId) {
       timedOut: true,
       solution: session.solution,
       mode: session.mode,
+      completedAt: session.completedAt,
       stats: statsPayload(score),
     };
   }
@@ -199,6 +201,47 @@ async function expireSession(userId, sessionId) {
   };
 }
 
+function historyPayload(session) {
+  return {
+    id: session._id,
+    mode: session.mode,
+    imageUrl: session.imageUrl,
+    status: session.status,
+    playerAnswer: session.playerAnswer,
+    solution: session.solution,
+    isCorrect: session.isCorrect,
+    pointsAwarded: session.pointsAwarded,
+    timeToAnswerMs: session.timeToAnswerMs,
+    completedAt: session.completedAt || session.updatedAt || session.createdAt,
+    createdAt: session.createdAt,
+  };
+}
+
+async function getGameHistory(userId, limit = 50) {
+  const sessions = await GameSession.find({
+    user: userId,
+    status: { $in: ['answered', 'expired'] },
+  })
+    .select('+solution')
+    .sort({ completedAt: -1, createdAt: -1 })
+    .limit(Math.min(Math.max(Number(limit) || 50, 1), 100))
+    .lean();
+
+  return sessions.map(historyPayload);
+}
+
+async function getGameHistoryEntry(userId, sessionId) {
+  const session = await GameSession.findOne({
+    _id: sessionId,
+    user: userId,
+    status: { $in: ['answered', 'expired'] },
+  })
+    .select('+solution')
+    .lean();
+
+  return session ? historyPayload(session) : null;
+}
+
 /**
  * Get a user's scoreboard entry.
  */
@@ -217,4 +260,11 @@ async function getUserStats(userId) {
   return score;
 }
 
-module.exports = { startSession, submitAnswer, expireSession, getUserStats };
+module.exports = {
+  startSession,
+  submitAnswer,
+  expireSession,
+  getUserStats,
+  getGameHistory,
+  getGameHistoryEntry,
+};

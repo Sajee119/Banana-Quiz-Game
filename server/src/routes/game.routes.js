@@ -25,6 +25,9 @@ const answerSchema = Joi.object({
 const expireSchema = Joi.object({
     sessionId: Joi.string().hex().length(24).required(),
 });
+const historyEntrySchema = Joi.object({
+    sessionId: Joi.string().hex().length(24).required(),
+});
 
 router.post('/start', asyncHandler(async (req, res) => {
     const { value, error } = startSchema.validate(req.body || {});
@@ -73,6 +76,22 @@ router.post('/expire', asyncHandler(async (req, res) => {
 router.get('/stats', asyncHandler(async (req, res) => {
     const stats = await gameService.getUserStats(req.user.id);
     res.json({ success: true, data: stats });
+}));
+
+router.get('/history', asyncHandler(async (req, res) => {
+    const history = await gameService.getGameHistory(req.user.id, req.query.limit);
+    res.json({ success: true, data: history });
+}));
+
+router.get('/history/:sessionId', asyncHandler(async (req, res) => {
+    const { value, error } = historyEntrySchema.validate(req.params);
+    if (error) return res.status(400).json({ success: false, message: error.message });
+
+    const session = await gameService.getGameHistoryEntry(req.user.id, value.sessionId);
+    if (!session) {
+        return res.status(404).json({ success: false, message: 'Game history entry not found' });
+    }
+    res.json({ success: true, data: session });
 }));
 
 module.exports = router;

@@ -72,8 +72,19 @@ export function AuthProvider({ children }) {
         setStats(null);
     };
 
+    const logoutAllDevices = async () => {
+        await userApi.logoutOthers();
+        await logout();
+    };
+
+    const logoutOtherDevices = async () => {
+        const data = await userApi.logoutOthers();
+        if (data.user) setUser(data.user);
+        return data;
+    };
+
     return (
-        <AuthContext.Provider value={{ user, stats, setUser, setStats, loading, refresh, signIn, logout }}>
+        <AuthContext.Provider value={{ user, stats, setUser, setStats, loading, refresh, signIn, logout, logoutAllDevices, logoutOtherDevices }}>
             {children}
         </AuthContext.Provider>
     );

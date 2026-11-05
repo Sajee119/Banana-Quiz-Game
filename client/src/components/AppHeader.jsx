@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard,
@@ -7,9 +8,11 @@ import {
     User,
     LogOut,
     History,
+    X,
 } from 'lucide-react';
 import BananaLogo from './BananaLogo.jsx';
 import AudioControls from './AudioControls.jsx';
+import Button from './Button.jsx';
 import { useAuth } from '../context/auth-context.js';
 import { initials } from '../lib/format.js';
 
@@ -23,12 +26,40 @@ const NAV = [
 ];
 
 export default function AppHeader({ className = '' }) {
-    const { user, logout } = useAuth();
+    const { user, logout, logoutAllDevices, logoutOtherDevices } = useAuth();
     const navigate = useNavigate();
+    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+    const [loggingOut, setLoggingOut] = useState(false);
+    const [logoutError, setLogoutError] = useState('');
 
-    const handleLogout = async () => {
-        await logout();
-        navigate('/', { replace: true });
+    const handleLogout = async (allDevices = false) => {
+        if (loggingOut) return;
+        setLoggingOut(true);
+        setLogoutError('');
+
+        try {
+            if (allDevices) await logoutAllDevices();
+            else await logout();
+            navigate('/', { replace: true });
+        } catch (err) {
+            setLogoutError(err.friendlyMessage || 'Could not log out. Please try again.');
+            setLoggingOut(false);
+        }
+    };
+
+    const handleLogoutOtherDevices = async () => {
+        if (loggingOut) return;
+        setLoggingOut(true);
+        setLogoutError('');
+
+        try {
+            await logoutOtherDevices();
+            setShowLogoutDialog(false);
+        } catch (err) {
+            setLogoutError(err.friendlyMessage || 'Could not sign out other devices. Please try again.');
+        } finally {
+            setLoggingOut(false);
+        }
     };
 
     const items = NAV.filter((item) => user || !item.authOnly);
@@ -80,7 +111,10 @@ export default function AppHeader({ className = '' }) {
                             </Link>
                             <button
                                 type="button"
-                                onClick={handleLogout}
+                                onClick={() => {
+                                    setLogoutError('');
+                                    setShowLogoutDialog(true);
+                                }}
                                 title="Log out"
                                 aria-label="Log out"
                                 className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-banana-700 transition hover:bg-banana-200/60"
@@ -98,6 +132,78 @@ export default function AppHeader({ className = '' }) {
                     )}
                 </div>
             </div>
+            {showLogoutDialog && (
+                <LogoutDialog
+                    loading={loggingOut}
+                    error={logoutError}
+                    onClose={() => {
+                        if (!loggingOut) setShowLogoutDialog(false);
+                    }}
+                    onLogout={() => handleLogout(false)}
+                    onLogoutOtherDevices={handleLogoutOtherDevices}
+                    onLogoutAll={() => handleLogout(true)}
+                />
+            )}
         </header>
+    );
+}
+
+function LogoutDialog({ loading, error, onClose, onLogout, onLogoutOtherDevices, onLogoutAll }) {
+    return (
+        <div
+            className="absolute right-3 top-full z-50 w-[min(calc(100vw-1.5rem),24rem)] pt-2 md:right-6"
+            role="presentation"
+            onMouseDown={(event) => {
+                if (event.target === event.currentTarget) onClose();
+            }}
+        >
+            <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="logout-dialog-title"
+                className="rounded-3xl border-4 border-banana-300 bg-banana-50 p-5 shadow-game"
+            >
+                <div className="mb-4 flex items-start justify-between gap-4">
+                    <div>
+                        <h2 id="logout-dialog-title" className="font-display text-2xl font-extrabold text-banana-900">
+                            Log out?
+                        </h2>
+                        <p className="mt-1 text-sm font-semibold text-banana-700">
+                            Choose whether to end this session or sign out everywhere.
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        disabled={loading}
+                        aria-label="Close logout dialog"
+                        className="rounded-xl p-2 text-banana-700 hover:bg-banana-200 disabled:opacity-50"
+                    >
+                        <X size={20} />
+                    </button>
+                </div>
+
+                {error && (
+                    <p className="mb-4 rounded-xl bg-red-50 px-3 py-2 text-sm font-bold text-red-700" role="alert">
+                        {error}
+                    </p>
+                )}
+
+                <div className="grid gap-3">
+                    <Button onClick={onLogout} disabled={loading}>
+                        <LogOut size={18} /> {loading ? 'Logging out…' : 'Log out'}
+                    </Button>
+                    <Button variant="secondary" onClick={onLogoutOtherDevices} disabled={loading}>
+                        <LogOut size={18} /> Sign out other devices
+                    </Button>
+                    <Button variant="danger" onClick={onLogoutAll} disabled={loading}>
+                        <LogOut size={18} /> Log out all devices
+                    </Button>
+                    <Button variant="ghost" onClick={onClose} disabled={loading}>
+                        Cancel
+                    </Button>
+                </div>
+            </div>
+        </div>
     );
 }

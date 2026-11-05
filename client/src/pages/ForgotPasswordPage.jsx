@@ -61,7 +61,7 @@ export default function ForgotPasswordPage() {
                     The link expires in 30 minutes and can only be used once. Check your spam or
                     junk folder if you do not see it within a few minutes.
                 </p>
-
+{/* 
                 {devResetUrl && (
                     <div className="mb-5 rounded-2xl border-2 border-dashed border-banana-300 bg-banana-50 p-3 text-left">
                         <p className="mb-1 flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wide text-banana-600">
@@ -77,7 +77,7 @@ export default function ForgotPasswordPage() {
                             Open reset link
                         </Link>
                     </div>
-                )}
+                )} */}
 
                 <div className="space-y-3">
                     <Link to="/login" className="block">

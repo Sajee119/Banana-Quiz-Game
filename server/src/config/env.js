@@ -20,6 +20,13 @@ const schema = Joi.object({
     SMTP_USER: Joi.string().allow('').default(''),
     SMTP_PASS: Joi.string().allow('').default(''),
     MAIL_FROM: Joi.string().default('Banana Quiz <no-reply@bananaquiz.local>'),
+
+    GAME_BASE_POINTS: Joi.number().default(100),
+    GAME_FAST_BONUS_MAX: Joi.number().default(50),
+    GAME_FAST_THRESHOLD_MS: Joi.number().default(10000),
+    GAME_MAX_STREAK_MULTIPLIER: Joi.number().default(2.0),
+    BANANA_API_TIMEOUT_MS: Joi.number().default(8000),
+    BANANA_API_MAX_RETRIES: Joi.number().default(3),
 }).unknown();
 
 const { error, value: envVars } = schema.validate(process.env);

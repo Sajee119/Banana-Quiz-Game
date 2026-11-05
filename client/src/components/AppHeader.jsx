@@ -6,6 +6,7 @@ import {
     Trophy,
     User,
     LogOut,
+    History,
 } from 'lucide-react';
 import BananaLogo from './BananaLogo.jsx';
 import AudioControls from './AudioControls.jsx';
@@ -15,6 +16,7 @@ import { initials } from '../lib/format.js';
 const NAV = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, authOnly: true },
     { to: '/play', label: 'Play', icon: Gamepad2, authOnly: true },
+    { to: '/history', label: 'History', icon: History, authOnly: true },
     { to: '/achievements', label: 'Achievements', icon: Award, authOnly: true },
     { to: '/leaderboard', label: 'Leaderboard', icon: Trophy },
     { to: '/profile', label: 'Account', icon: User, authOnly: true },

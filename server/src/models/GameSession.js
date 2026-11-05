@@ -21,11 +21,12 @@ const gameSessionSchema = new mongoose.Schema(
         isCorrect: { type: Boolean, default: null },
         pointsAwarded: { type: Number, default: 0 },
         timeToAnswerMs: { type: Number, default: null },
+        completedAt: { type: Date, default: null, index: true },
         expiresAt: { type: Date, required: true },
     },
     { timestamps: true }
 );
 
-gameSessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+gameSessionSchema.index({ user: 1, status: 1, completedAt: -1 });
 
 module.exports = mongoose.model('GameSession', gameSessionSchema);

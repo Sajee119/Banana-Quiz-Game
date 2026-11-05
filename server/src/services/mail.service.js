@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
-const env = require('../../../../../Banana-Quiz-Game/server/src/config/env');
-const logger = require('../../../../../Banana-Quiz-Game/server/src/utils/logger');
+const env = require('../config/env');
+const logger = require('../utils/logger');
 
 let transporter = null;
 

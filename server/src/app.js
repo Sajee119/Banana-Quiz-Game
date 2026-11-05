@@ -1,5 +1,16 @@
 const express = require('express');
+const session = require('express-session');
+const { MongoStore } = require('connect-mongo');
+const helmet = require('helmet');
+const cors = require('cors');
+const compression = require('compression');
+const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
+const env = require('./config/env');
 const passport = require('./config/passport');
+const gameRoutes = require('./routes/game.routes');
+const authRoutes = require('./routes/auth.routes');
+const { notFound, errorHandler } = require('./middleware/error.middleware');
 const userRoutes = require('./routes/user.routes');
 
 const app = express();
@@ -13,7 +24,26 @@ app.use(compression());
 app.use(express.json({ limit: '10kb' }));
 app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
+// Rate limiting for auth endpoints
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 min
+    max: 30,
+    message: { success: false, message: 'Too many attempts, try again later' },
+});
+const gameLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { success: false, message: 'Slow down! Too many game requests.' },
+});
+const passwordResetLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 15,
+    message: { success: false, message: 'Too many password reset attempts, try again later.' },
+});
+
 app.use(['/auth/login', '/auth/register'], authLimiter);
+
+app.post(['/auth/forgot-password', '/auth/reset-password'], passwordResetLimiter);
 
 app.use('/api/game', gameLimiter);
 

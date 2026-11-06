@@ -69,29 +69,29 @@ export function initials(name = '') {
 }
 
 export const MODE_INFO = {
-    classic: {
-        id: 'classic',
-        label: 'Classic',
-        tagline: 'The original banana count',
-        description: 'Two minutes per puzzle with speed bonuses and streak multipliers.',
-        time: '2 min',
-        multiplier: '1×',
-    },
-    blitz: {
-        id: 'blitz',
-        label: 'Blitz',
-        tagline: 'Thirty seconds of chaos',
-        description: 'Only 30 seconds per puzzle, but every point is worth 50% more.',
+    easy: {
+        id: 'easy',
+        label: 'Standard · Easy',
+        tagline: '10 quizzes · 30 seconds each',
+        description: 'A steady pace for building your banana-counting streak.',
         time: '30 sec',
-        multiplier: '1.5×',
+        multiplier: '50+',
     },
-    zen: {
-        id: 'zen',
-        label: 'Zen',
-        tagline: 'Slow down and count',
-        description: 'Five relaxed minutes per puzzle. No speed bonus — just accuracy.',
-        time: '5 min',
-        multiplier: '1×',
+    hard: {
+        id: 'hard',
+        label: 'Standard · Hard',
+        tagline: '10 quizzes · 15 seconds each',
+        description: 'Fast eyes and faster answers. Every quiz has only 15 seconds.',
+        time: '15 sec',
+        multiplier: '50+',
+    },
+    custom: {
+        id: 'custom',
+        label: 'Custom',
+        tagline: 'Choose quizzes and time',
+        description: 'Build a practice game with your own quiz count and timer.',
+        time: '10–60 sec',
+        multiplier: 'Practice',
     },
 };
 

@@ -40,7 +40,9 @@ export default function DashboardPage() {
     const navigate = useNavigate();
     const { play } = useSound();
 
-    const [selectedMode, setSelectedMode] = useState(user?.favoriteMode || 'classic');
+    const [selectedMode, setSelectedMode] = useState(
+        ['easy', 'hard', 'custom'].includes(user?.favoriteMode) ? user.favoriteMode : 'easy'
+    );
     const [achievements, setAchievements] = useState(null);
     const [summary, setSummary] = useState(null);
 

@@ -1,24 +1,25 @@
+import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+<<<<<<< Updated upstream
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Clock3, Eye, History, XCircle } from 'lucide-react';
+=======
+import { Eye, History as HistoryIcon, Play } from 'lucide-react';
+>>>>>>> Stashed changes
 import AppHeader from '../components/AppHeader.jsx';
 import Button from '../components/Button.jsx';
 import Card from '../components/Card.jsx';
-import { gameApi } from '../api/client.js';
-import { MODE_INFO, formatDateTime, formatDuration } from '../lib/format.js';
+import { formatDateTime } from '../lib/format.js';
 import { usePageTitle } from '../hooks/usePageTitle.js';
+import { gameApi } from '../api/client.js';
 
 export default function HistoryPage() {
-    const { sessionId } = useParams();
-    const navigate = useNavigate();
-    const [history, setHistory] = useState([]);
-    const [entry, setEntry] = useState(null);
+    const [games, setGames] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-
-    usePageTitle(sessionId ? 'Game details' : 'Game history');
-
+    usePageTitle('Game history');
     useEffect(() => {
+<<<<<<< Updated upstream
         let cancelled = false;
 
         const request = sessionId ? gameApi.historyEntry(sessionId) : gameApi.history();
@@ -148,4 +149,21 @@ function ResultBadge({ entry, large = false }) {
     const timedOut = entry.status === 'expired';
     const Icon = correct ? CheckCircle2 : timedOut ? Clock3 : XCircle;
     return <span className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 text-xs font-extrabold ${large ? 'px-3 py-2 text-sm' : ''} ${correct ? 'bg-emerald-100 text-emerald-700' : timedOut ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700'}`}><Icon size={large ? 17 : 14} /> {correct ? 'Correct' : timedOut ? 'Time up' : 'Incorrect'}</span>;
+=======
+        gameApi.games()
+            .then((data) => setGames(Array.isArray(data) ? data : []))
+            .catch((err) => setError(err.friendlyMessage || 'Could not load game history.'))
+            .finally(() => setLoading(false));
+    }, []);
+    return <div className="min-h-screen"><AppHeader /><main className="mx-auto max-w-5xl px-4 py-8 md:px-6">
+        <div className="mb-7 flex flex-wrap items-center justify-between gap-3"><div><p className="flex items-center gap-2 font-extrabold uppercase tracking-widest text-banana-600"><HistoryIcon size={18} /> All games</p><h1 className="font-display text-4xl font-extrabold text-banana-900">Game history</h1><p className="mt-1 text-banana-700">Open any game to review every quiz and response.</p></div><Link to="/play"><Button><Play size={18} /> New game</Button></Link></div>
+        {error && <p className="mb-4 text-center font-bold text-red-600">{error}</p>}
+        {loading ? <p className="py-16 text-center font-display text-xl text-banana-700">Loading game history…</p> : games.length === 0 ? <Card className="py-16 text-center"><HistoryIcon size={48} className="mx-auto text-banana-400" /><h2 className="mt-3 font-display text-2xl font-extrabold text-banana-800">No games yet</h2><p className="mt-1 text-banana-700">Your completed games will appear here.</p></Card> : <div className="space-y-4">{games.map((game) => <GameRow key={game.id} game={game} />)}</div>}
+    </main></div>;
+}
+
+function GameRow({ game }) {
+    const points = game.totalPoints || 0;
+    return <Card className="flex flex-col gap-4 !p-5 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-display text-2xl font-extrabold text-banana-900">{game.mode === 'custom' ? 'Custom game' : game.mode === 'hard' ? 'Standard · Hard' : 'Standard · Easy'}</p><p className="text-sm font-semibold text-banana-600">{formatDateTime(game.completedAt)} · {game.quizCount} quizzes · {game.correctCount} correct · {game.status}</p><p className={`mt-2 font-extrabold ${points > 0 ? 'text-emerald-600' : 'text-banana-700'}`}>{points >= 0 ? '+' : ''}{points} points {game.leaderboardEligible ? '· added to leaderboard' : '· practice only'}</p></div><Link to={`/game-overview/${game.id}`}><Button variant="secondary"><Eye size={18} /> View analysis</Button></Link></Card>;
+>>>>>>> Stashed changes
 }

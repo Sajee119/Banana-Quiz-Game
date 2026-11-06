@@ -1,5 +1,7 @@
 // src/services/game.service.js
 const GameSession = require('../models/GameSession');
+const Game = require('../models/Game');
+const mongoose = require('mongoose');
 const Score = require('../models/Score');
 const { fetchPuzzle } = require('./banana.service');
 const { getMode, DEFAULT_MODE } = require('../config/gameModes');
@@ -27,11 +29,29 @@ function statsPayload(score) {
  * `serverNow` and `remainingMs` let the client run its countdown against the
  * server clock instead of assuming the device clock is correct.
  */
-async function startSession(userId, modeId = DEFAULT_MODE) {
+async function startSession(userId, modeId = DEFAULT_MODE, options = {}) {
   const mode = getMode(modeId);
   const { imageUrl, solution } = await fetchPuzzle();
-  const timeLimitMs = mode.timeLimitMs;
+  const timeLimitMs = modeId === 'custom'
+      ? Number(options.quizTimeSeconds || 30) * 1000
+      : mode.timeLimitMs;
   const expiresAt = new Date(Date.now() + timeLimitMs);
+  const gameId = options.gameId;
+  await Game.findOneAndUpdate(
+    { user: userId, gameId },
+    {
+      $setOnInsert: {
+        user: userId,
+        gameId,
+        mode: mode.id,
+        quizCount: Number(options.quizCount || (mode.id === 'custom' ? 10 : 10)),
+        quizTimeSeconds: Math.round(timeLimitMs / 1000),
+        leaderboardEligible: options.leaderboardEligible !== false,
+        startedAt: new Date(),
+      },
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
 
   const session = await GameSession.create({
     user: userId,
@@ -39,6 +59,9 @@ async function startSession(userId, modeId = DEFAULT_MODE) {
     imageUrl,
     solution,
     expiresAt,
+    gameId,
+    quizTimeSeconds: Math.round(timeLimitMs / 1000),
+    leaderboardEligible: options.leaderboardEligible !== false,
   });
 
   const serverNow = new Date();
@@ -56,8 +79,28 @@ async function startSession(userId, modeId = DEFAULT_MODE) {
       tagline: mode.tagline,
       pointsMultiplier: mode.pointsMultiplier,
       speedBonus: mode.speedBonus,
+      gameId: session.gameId,
+      quizTimeSeconds: session.quizTimeSeconds,
+      leaderboardEligible: session.leaderboardEligible,
     },
+    gameId: session.gameId,
   };
+}
+
+async function updateGameProgress(session) {
+  if (!session.gameId) return;
+  const completed = await GameSession.countDocuments({
+    user: session.user,
+    gameId: session.gameId,
+    status: { $in: ['answered', 'expired'] },
+  });
+  const game = await Game.findOne({ user: session.user, gameId: session.gameId });
+  if (!game) return;
+  const complete = completed >= game.quizCount;
+  await Game.updateOne(
+    { _id: game._id },
+    { $set: { status: complete ? 'completed' : 'active', completedAt: complete ? new Date() : null } }
+  );
 }
 
 /**
@@ -123,13 +166,11 @@ async function submitAnswer(userId, sessionId, answer) {
   session.timeToAnswerMs = answerMs;
   session.completedAt = now;
   await session.save();
+  await updateGameProgress(session);
 
-  const score = await Score.recordResult(userId, {
-    isCorrect,
-    points,
-    answerMs,
-    mode: mode.id,
-  });
+  const score = session.leaderboardEligible
+    ? await Score.recordResult(userId, { isCorrect, points, answerMs, mode: mode.id })
+    : await getUserStats(userId);
 
   return {
     isCorrect,
@@ -159,12 +200,15 @@ async function expireSession(userId, sessionId) {
   ).select('+solution');
 
   if (session) {
-    const score = await Score.recordResult(userId, {
-      isCorrect: false,
-      points: 0,
-      answerMs: Math.max(0, session.expiresAt.getTime() - session.createdAt.getTime()),
-      mode: session.mode,
-    });
+    await updateGameProgress(session);
+    const score = session.leaderboardEligible
+      ? await Score.recordResult(userId, {
+          isCorrect: false,
+          points: 0,
+          answerMs: Math.max(0, session.expiresAt.getTime() - session.createdAt.getTime()),
+          mode: session.mode,
+        })
+      : await getUserStats(userId);
 
     return {
       timedOut: true,
@@ -201,6 +245,33 @@ async function expireSession(userId, sessionId) {
   };
 }
 
+async function skipSession(userId, sessionId) {
+  const now = new Date();
+  const session = await GameSession.findOneAndUpdate(
+    { _id: sessionId, user: userId, status: 'active' },
+    { $set: { status: 'answered', completedAt: now, playerAnswer: null, isCorrect: false, pointsAwarded: 0 } },
+    { new: true }
+  ).select('+solution');
+
+  if (!session) return { error: 'SESSION_NOT_FOUND_OR_ALREADY_COMPLETE', status: 409 };
+  session.timeToAnswerMs = Math.max(0, now.getTime() - session.createdAt.getTime());
+  await session.save();
+  await updateGameProgress(session);
+  const score = session.leaderboardEligible
+    ? await Score.recordResult(userId, { isCorrect: false, points: 0, answerMs: session.timeToAnswerMs, mode: session.mode })
+    : await getUserStats(userId);
+  return { skipped: true, solution: session.solution, pointsAwarded: 0, stats: statsPayload(score) };
+}
+
+async function quitGame(userId, gameId) {
+  const score = await Score.recordQuitPenalty(userId);
+  await Game.updateOne(
+    { user: userId, gameId },
+    { $set: { status: 'quit', completedAt: new Date(), quitPenalty: -10 } }
+  );
+  return { penalty: -10, stats: statsPayload(score) };
+}
+
 function historyPayload(session) {
   return {
     id: session._id,
@@ -214,6 +285,9 @@ function historyPayload(session) {
     timeToAnswerMs: session.timeToAnswerMs,
     completedAt: session.completedAt || session.updatedAt || session.createdAt,
     createdAt: session.createdAt,
+    gameId: session.gameId,
+    quizTimeSeconds: session.quizTimeSeconds,
+    leaderboardEligible: session.leaderboardEligible,
   };
 }
 
@@ -228,6 +302,130 @@ async function getGameHistory(userId, limit = 50) {
     .lean();
 
   return sessions.map(historyPayload);
+}
+
+function gamePayload(game, sessions) {
+  const quizzes = sessions.map(historyPayload);
+  return {
+    id: game.gameId,
+    mode: game.mode,
+    quizCount: game.quizCount,
+    time: game.quizTimeSeconds,
+    startedAt: game.startedAt,
+    completedAt: game.completedAt || game.updatedAt,
+    status: game.status,
+    leaderboardEligible: game.leaderboardEligible,
+    quitPenalty: game.quitPenalty,
+    quizzes,
+    totalPoints: quizzes.reduce((sum, quiz) => sum + (quiz.pointsAwarded || 0), 0) + game.quitPenalty,
+    correctCount: quizzes.filter((quiz) => quiz.isCorrect).length,
+  };
+}
+
+async function getAllGames(userId, limit = 50) {
+  const games = await Game.find({ user: userId })
+    .sort({ startedAt: -1 })
+    .limit(Math.min(Math.max(Number(limit) || 50, 1), 100))
+    .lean();
+  const result = [];
+  for (const game of games) {
+    const sessions = await GameSession.find({ user: userId, gameId: game.gameId })
+      .select('+solution')
+      .sort({ createdAt: 1 })
+      .lean();
+    result.push(gamePayload(game, sessions));
+  }
+  const legacySessions = await GameSession.find({ user: userId, gameId: null })
+    .select('+solution')
+    .sort({ createdAt: -1 })
+    .limit(Math.min(Math.max(Number(limit) || 50, 1), 100))
+    .lean();
+  for (const session of legacySessions) {
+    result.push(gamePayload({
+      gameId: String(session._id),
+      mode: session.mode,
+      quizCount: 1,
+      quizTimeSeconds: session.quizTimeSeconds || 30,
+      startedAt: session.createdAt,
+      completedAt: session.completedAt,
+      status: session.status === 'active' ? 'active' : 'completed',
+      leaderboardEligible: session.leaderboardEligible !== false,
+      quitPenalty: 0,
+    }, [session]));
+  }
+  const groupedSessions = await GameSession.find({
+    user: userId,
+    gameId: { $ne: null, $nin: games.map((game) => game.gameId) },
+  })
+    .select('+solution')
+    .sort({ createdAt: 1 })
+    .lean();
+  const orphanGroups = new Map();
+  for (const session of groupedSessions) {
+    const group = orphanGroups.get(session.gameId) || [];
+    group.push(session);
+    orphanGroups.set(session.gameId, group);
+  }
+  for (const [gameId, sessions] of orphanGroups) {
+    const first = sessions[0];
+    result.push(gamePayload({
+      gameId,
+      mode: first.mode,
+      quizCount: sessions.length,
+      quizTimeSeconds: first.quizTimeSeconds || 30,
+      startedAt: first.createdAt,
+      completedAt: sessions[sessions.length - 1].completedAt,
+      status: sessions.some((session) => session.status === 'active') ? 'active' : 'completed',
+      leaderboardEligible: sessions.every((session) => session.leaderboardEligible !== false),
+      quitPenalty: 0,
+    }, sessions));
+  }
+  result.sort((a, b) => new Date(b.startedAt) - new Date(a.startedAt));
+  return result;
+}
+
+async function getGameEntry(userId, gameId) {
+  const game = await Game.findOne({ user: userId, gameId }).lean();
+  if (!game) {
+    if (mongoose.Types.ObjectId.isValid(gameId)) {
+      const legacy = await GameSession.findOne({ _id: gameId, user: userId, gameId: null })
+        .select('+solution')
+        .lean();
+      if (legacy) return gamePayload({
+        gameId,
+        mode: legacy.mode,
+        quizCount: 1,
+        quizTimeSeconds: legacy.quizTimeSeconds || 30,
+        startedAt: legacy.createdAt,
+        completedAt: legacy.completedAt,
+        status: legacy.status === 'active' ? 'active' : 'completed',
+        leaderboardEligible: legacy.leaderboardEligible !== false,
+        quitPenalty: 0,
+      }, [legacy]);
+    }
+    const grouped = await GameSession.find({ user: userId, gameId })
+      .select('+solution')
+      .sort({ createdAt: 1 })
+      .lean();
+    if (!grouped.length) return null;
+    const first = grouped[0];
+    return gamePayload({
+      gameId,
+      mode: first.mode,
+      quizCount: grouped.length,
+      quizTimeSeconds: first.quizTimeSeconds || 30,
+      startedAt: first.createdAt,
+      completedAt: grouped[grouped.length - 1].completedAt,
+      status: grouped.some((session) => session.status === 'active') ? 'active' : 'completed',
+      leaderboardEligible: grouped.every((session) => session.leaderboardEligible !== false),
+      quitPenalty: 0,
+    }, grouped);
+  }
+  const sessions = await GameSession.find({ user: userId, gameId })
+    .select('+solution')
+    .sort({ createdAt: 1 })
+    .lean();
+  return gamePayload(game, sessions);
 }
 
 async function getGameHistoryEntry(userId, sessionId) {
@@ -264,7 +462,11 @@ module.exports = {
   startSession,
   submitAnswer,
   expireSession,
+  skipSession,
+  quitGame,
   getUserStats,
   getGameHistory,
   getGameHistoryEntry,
+  getAllGames,
+  getGameEntry,
 };

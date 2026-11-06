@@ -1,5 +1,9 @@
 # Banana Quiz
 
+<p align="center">
+  <img src="./client/src/assets/banana-logo.jpg" alt="Banana Quiz logo" width="180">
+</p>
+
 Banana Quiz is a free browser counting game. A bunch of bananas appears, you type
 how many you can see, and correct answers earn points, streaks and achievements.
 It is built with a React/Vite client and an Express/MongoDB server.

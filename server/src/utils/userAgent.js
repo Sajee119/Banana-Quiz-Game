@@ -27,7 +27,8 @@ function parseUserAgent(userAgent = '') {
 
     let deviceType = 'desktop';
     if (/iPad|Tablet/i.test(ua)) deviceType = 'tablet';
-    else if (/Mobi|iPhone|Android.*Mobile/i.test(ua)) deviceType = 'mobile';
+    else if (/Mobi|iPhone/i.test(ua) || (/Android/i.test(ua) && /Mobile/i.test(ua)))
+        deviceType = 'mobile';
     else if (!ua) deviceType = 'unknown';
 
     return {

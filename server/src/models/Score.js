@@ -63,4 +63,13 @@ scoreSchema.statics.recordResult = async function (userId, { isCorrect, points, 
     return score;
 };
 
+scoreSchema.statics.recordQuitPenalty = async function (userId) {
+    const score = await this.findOneAndUpdate(
+        { user: userId },
+        { $setOnInsert: { user: userId }, $inc: { totalPoints: -10 } },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+    return score;
+};
+
 module.exports = mongoose.model('Score', scoreSchema);

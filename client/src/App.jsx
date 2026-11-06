@@ -6,6 +6,8 @@ import LoginPage from './pages/LoginPage.jsx';
 import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx';
 import ResetPasswordPage from './pages/ResetPasswordPage.jsx';
 import GamePage from './pages/GamePage.jsx';
+import ModeSelectPage from './pages/ModeSelectPage.jsx';
+import GameOverviewPage from './pages/GameOverviewPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import AchievementsPage from './pages/AchievementsPage.jsx';
@@ -30,7 +32,9 @@ export default function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-        <Route path="/play" element={<ProtectedRoute><GamePage /></ProtectedRoute>} />
+        <Route path="/play" element={<ProtectedRoute><ModeSelectPage /></ProtectedRoute>} />
+        <Route path="/play/game" element={<ProtectedRoute><GamePage /></ProtectedRoute>} />
+        <Route path="/game-overview/:gameId" element={<ProtectedRoute><GameOverviewPage /></ProtectedRoute>} />
         <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
         <Route path="/history/:sessionId" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />

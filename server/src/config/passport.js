@@ -23,6 +23,7 @@ async function handleOAuth(providerName, providerId, profileData, done) {
     try {
         const { user, isNew } = await User.findOrCreateByProvider(providerName, providerId, profileData);
         logger.info(`OAuth ${providerName}: ${isNew ? 'new' : 'existing'} user ${user.id}`);
+        user._isNewAccount = isNew;
         done(null, user);
     } catch (err) {
         logger.error(`OAuth ${providerName} error:`, err);

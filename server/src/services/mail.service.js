@@ -2,7 +2,27 @@ const nodemailer = require('nodemailer');
 const env = require('../config/env');
 const logger = require('../utils/logger');
 
+const LOGO_URL = 'https://i.pinimg.com/736x/94/26/e6/9426e649f2bada8f0f582d9263205a93.jpg';
+const BANANA_ACCENT = '#F5A800';
+const INDIA_TIME_ZONE = 'Asia/Kolkata';
 let transporter = null;
+
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function formatIndiaTime(value) {
+    return new Intl.DateTimeFormat('en-IN', {
+        timeZone: INDIA_TIME_ZONE,
+        dateStyle: 'medium',
+        timeStyle: 'short',
+    }).format(new Date(value || Date.now())) + ' IST';
+}
 
 function isConfigured() {
     return Boolean(env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS);
@@ -45,19 +65,23 @@ async function sendMail({ to, subject, text, html }) {
     }
 }
 
-function layout({ title, body, footer }) {
+function layout({ title, body, footer, preheader = 'A message from Banana Quiz' }) {
     return `<!doctype html>
 <html>
-  <body style="margin:0;background:#FFFCEB;padding:24px;font-family:Arial,Helvetica,sans-serif;color:#6B3200;">
+  <body style="margin:0;background:#FFF8D6;padding:24px;font-family:Arial,Helvetica,sans-serif;color:#542900;">
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;">${escapeHtml(preheader)}</div>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
       <tr>
         <td align="center">
-          <table role="presentation" width="100%" style="max-width:520px;background:#ffffff;border:2px solid #FFEC85;border-radius:20px;padding:28px;">
-            <tr><td>
-              <p style="margin:0 0 4px;font-size:12px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:#F5A800;">Banana Quiz</p>
-              <h1 style="margin:0 0 16px;font-size:26px;line-height:1.2;color:#6B3200;">${title}</h1>
+          <table role="presentation" width="100%" style="max-width:560px;background:#ffffff;border:1px solid #F3D568;border-radius:24px;overflow:hidden;">
+            <tr><td style="padding:24px 28px 16px;background:#FFF1A8;text-align:center;">
+              <img src="${LOGO_URL}" width="96" height="96" alt="Banana Quiz" style="display:block;width:96px;height:96px;object-fit:cover;border-radius:50%;margin:0 auto 12px;border:4px solid #ffffff;">
+              <p style="margin:0;font-size:12px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:#9B5700;">Banana Quiz</p>
+            </td></tr>
+            <tr><td style="padding:28px;">
+              <h1 style="margin:0 0 16px;font-size:28px;line-height:1.2;color:#542900;">${title}</h1>
               ${body}
-              <p style="margin:24px 0 0;font-size:12px;color:#B56000;">${footer}</p>
+              <p style="margin:28px 0 0;padding-top:16px;border-top:1px solid #F5E5A0;font-size:12px;line-height:1.5;color:#9B5700;">${footer}</p>
             </td></tr>
           </table>
         </td>
@@ -68,7 +92,8 @@ function layout({ title, body, footer }) {
 }
 
 async function sendPasswordResetEmail({ to, name, resetUrl, expiresInMinutes }) {
-    const greeting = name ? `Hi ${name},` : 'Hi,';
+    const safeName = escapeHtml(name);
+    const greeting = name ? `Hi ${safeName},` : 'Hi,';
     const subject = 'Reset your Banana Quiz password';
     const text = `${greeting}
 
@@ -85,7 +110,7 @@ If you did not request this, you can safely ignore this email — your password 
           <p style="margin:0 0 14px;font-size:15px;line-height:1.6;">${greeting}</p>
           <p style="margin:0 0 18px;font-size:15px;line-height:1.6;">We received a request to reset your Banana Quiz password. Click the button below to choose a new one.</p>
           <p style="margin:0 0 18px;">
-            <a href="${resetUrl}" style="display:inline-block;background:#F5A800;color:#ffffff;text-decoration:none;font-weight:bold;padding:12px 22px;border-radius:12px;">Reset password</a>
+            <a href="${escapeHtml(resetUrl)}" style="display:inline-block;background:${BANANA_ACCENT};color:#ffffff;text-decoration:none;font-weight:bold;padding:12px 22px;border-radius:12px;">Reset password</a>
           </p>
           <p style="margin:0 0 10px;font-size:13px;line-height:1.6;color:#8F4500;">This link expires in ${expiresInMinutes} minutes and can only be used once.</p>
           <p style="margin:0;font-size:13px;line-height:1.6;color:#8F4500;">If you did not request this, you can safely ignore this email — your password will not change.</p>`,
@@ -96,8 +121,9 @@ If you did not request this, you can safely ignore this email — your password 
 }
 
 async function sendPasswordChangedEmail({ to, name, changedAt }) {
-    const greeting = name ? `Hi ${name},` : 'Hi,';
-    const when = new Date(changedAt || Date.now()).toUTCString();
+    const safeName = escapeHtml(name);
+    const greeting = name ? `Hi ${safeName},` : 'Hi,';
+    const when = formatIndiaTime(changedAt);
     const subject = 'Your Banana Quiz password was changed';
     const text = `${greeting}
 
@@ -117,8 +143,98 @@ If this was you, no action is needed. If you did not change it, reset your passw
     return sendMail({ to, subject, text, html });
 }
 
+async function sendWelcomeEmail({ to, name, createdAt, provider = 'email', loginUrl }) {
+    const displayName = name || 'Quiz player';
+    const safeName = escapeHtml(displayName);
+    const created = formatIndiaTime(createdAt);
+    const providerLabel = provider === 'email' ? 'email and password' : `${provider} sign-in`;
+    const subject = 'Welcome to Banana Quiz 🍌';
+    const text = `Hi ${displayName},
+
+Welcome to Banana Quiz! Your account was created with ${providerLabel} on ${created}.
+
+Your account email: ${to}
+You can now play quizzes, build streaks, and track your scores.
+
+Open Banana Quiz: ${loginUrl}`;
+
+    const html = layout({
+        title: 'Welcome to the banana bunch!',
+        preheader: 'Your Banana Quiz account is ready for its first quiz.',
+        body: `
+          <p style="margin:0 0 14px;font-size:16px;line-height:1.6;">Hi <strong>${safeName}</strong>,</p>
+          <p style="margin:0 0 20px;font-size:15px;line-height:1.6;">Your Banana Quiz account is ready. Sharpen your knowledge, chase high scores, and keep your streak alive!</p>
+          <table role="presentation" width="100%" style="background:#FFF8D6;border-radius:16px;padding:16px;">
+            <tr><td style="font-size:14px;line-height:1.7;">
+              <strong>Account details</strong><br>
+              Email: ${escapeHtml(to)}<br>
+              Sign-in: ${escapeHtml(providerLabel)}<br>
+              Created: ${escapeHtml(created)}
+            </td></tr>
+          </table>
+          <p style="margin:22px 0 0;text-align:center;">
+            <a href="${escapeHtml(loginUrl)}" style="display:inline-block;background:${BANANA_ACCENT};color:#ffffff;text-decoration:none;font-weight:bold;padding:13px 24px;border-radius:12px;">Play your first quiz</a>
+          </p>`,
+        footer: 'Keep this email for your account details. We will never ask for your password.',
+    });
+
+    return sendMail({ to, subject, text, html });
+}
+
+async function sendLoginConfirmationEmail({
+    to,
+    name,
+    loginAt,
+    ipAddress = 'Unavailable',
+    device = 'Unknown device',
+    method = 'password',
+    dashboardUrl,
+}) {
+    const displayName = name || 'Quiz player';
+    const when = formatIndiaTime(loginAt);
+    const methodLabel = method === 'password' ? 'Email and password' : `${method.charAt(0).toUpperCase()}${method.slice(1)} sign-in`;
+    const subject = 'New sign-in to your Banana Quiz account';
+    const text = `Hi ${displayName},
+
+Your Banana Quiz account was just signed in to.
+
+Time: ${when}
+Method: ${methodLabel}
+Device: ${device}
+IP address: ${ipAddress}
+
+If this was not you, reset your password immediately and review your recent sign-ins.
+Open your dashboard: ${dashboardUrl}`;
+
+    const html = layout({
+        title: 'You are signed in!',
+        preheader: 'A new sign-in was detected on your Banana Quiz account.',
+        body: `
+          <p style="margin:0 0 14px;font-size:16px;line-height:1.6;">Hi <strong>${escapeHtml(displayName)}</strong>,</p>
+          <p style="margin:0 0 20px;font-size:15px;line-height:1.6;">Your account was just signed in to. Here are the details:</p>
+          <table role="presentation" width="100%" style="background:#FFF8D6;border-radius:16px;padding:16px;">
+            <tr><td style="font-size:14px;line-height:1.8;">
+              <strong>Sign-in details</strong><br>
+              Time: ${escapeHtml(when)}<br>
+              Method: ${escapeHtml(methodLabel)}<br>
+              Device: ${escapeHtml(device)}<br>
+              IP address: ${escapeHtml(ipAddress)}
+            </td></tr>
+          </table>
+          <p style="margin:20px 0 0;font-size:14px;line-height:1.6;color:#8F4500;">Wasn't you? Reset your password immediately and review your recent sign-ins.</p>
+          <p style="margin:20px 0 0;text-align:center;">
+            <a href="${escapeHtml(dashboardUrl)}" style="display:inline-block;background:${BANANA_ACCENT};color:#ffffff;text-decoration:none;font-weight:bold;padding:13px 24px;border-radius:12px;">Open dashboard</a>
+          </p>`,
+        footer: 'This security notification was sent automatically after a successful sign-in.',
+    });
+
+    return sendMail({ to, subject, text, html });
+}
+
 module.exports = {
     isConfigured,
     sendPasswordResetEmail,
     sendPasswordChangedEmail,
+    sendWelcomeEmail,
+    sendLoginConfirmationEmail,
 };

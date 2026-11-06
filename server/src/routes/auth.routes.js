@@ -6,9 +6,14 @@ const User = require('../models/User');
 const PasswordResetToken = require('../models/PasswordResetToken');
 const asyncHandler = require('../utils/asyncHandler');
 const { recordLogin } = require('../services/loginHistory.service');
-const { sendPasswordResetEmail, sendPasswordChangedEmail } = require('../services/mail.service');
+const {
+    sendPasswordResetEmail,
+    sendPasswordChangedEmail,
+    sendWelcomeEmail,
+    sendLoginConfirmationEmail,
+} = require('../services/mail.service');
 const { evaluatePassword } = require('../utils/passwordPolicy');
-const { getClientIp } = require('../utils/userAgent');
+const { getClientIp, parseUserAgent } = require('../utils/userAgent');
 const logger = require('../utils/logger');
 const { ensureGuest } = require('../middleware/auth.middleware');
 
@@ -56,6 +61,33 @@ function syncSessionVersion(req) {
     }
 }
 
+function notifySuccessfulLogin(req, user, method) {
+    const device = parseUserAgent(req.headers?.['user-agent']);
+    return sendLoginConfirmationEmail({
+        to: user.email,
+        name: user.displayName,
+        loginAt: new Date(),
+        ipAddress: getClientIp(req),
+        device: device.label,
+        method,
+        dashboardUrl: successRedirect,
+    }).catch((err) => {
+        logger.warn(`Could not send login confirmation for ${user.email}: ${err.message}`);
+    });
+}
+
+function notifyWelcome(user, provider) {
+    return sendWelcomeEmail({
+        to: user.email,
+        name: user.displayName,
+        createdAt: user.createdAt,
+        provider,
+        loginUrl: `${env.CLIENT_URL.replace(/\/$/, '')}/login`,
+    }).catch((err) => {
+        logger.warn(`Could not send welcome email for ${user.email}: ${err.message}`);
+    });
+}
+
 // email + password signup
 router.post('/register', asyncHandler(async (req, res) => {
     const { name = '', email = '', password = '' } = req.body || {};
@@ -90,6 +122,8 @@ router.post('/register', asyncHandler(async (req, res) => {
         method: 'register',
         success: true,
     });
+    void notifyWelcome(user, 'email');
+    void notifySuccessfulLogin(req, user, 'password');
 
     return res.status(201).json({ success: true, user });
 }));
@@ -151,6 +185,7 @@ router.post('/login', asyncHandler(async (req, res) => {
         method: 'password',
         success: true,
     });
+    void notifySuccessfulLogin(req, user, 'password');
 
     return res.json({ success: true, user });
 }));
@@ -325,6 +360,11 @@ router.get(
             method: 'google',
             success: true,
         });
+        if (req.user._isNewAccount) {
+            void notifyWelcome(req.user, req.user.primaryProvider);
+            delete req.user._isNewAccount;
+        }
+        void notifySuccessfulLogin(req, req.user, 'google');
         res.redirect(successRedirect);
     })
 );
@@ -347,6 +387,11 @@ router.get(
             method: 'facebook',
             success: true,
         });
+        if (req.user._isNewAccount) {
+            void notifyWelcome(req.user, req.user.primaryProvider);
+            delete req.user._isNewAccount;
+        }
+        void notifySuccessfulLogin(req, req.user, 'facebook');
         res.redirect(successRedirect);
     })
 );

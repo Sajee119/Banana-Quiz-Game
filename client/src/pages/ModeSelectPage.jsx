@@ -58,7 +58,7 @@ export default function ModeSelectPage() {
                     <h2 className="font-display text-2xl font-extrabold text-banana-900">How a game works</h2>
                     <div className="mt-4 grid gap-3 md:grid-cols-3">
                         <WorkflowStep number="1" title="Choose a challenge" text="Pick Easy, Hard, or Custom settings for your session." />
-                        <WorkflowStep number="2" title="Answer instantly" text="Count the bananas, then select a number. Your answer submits immediately." />
+                        <WorkflowStep number="2" title="Calculate the value" text="Study the banana puzzle, select its value, and submit your answer immediately." />
                         <WorkflowStep number="3" title="Review your results" text="See correctness, response time, points, and the full game analysis when finished." />
                     </div>
                     <p className="mt-4 flex items-start gap-2 rounded-2xl bg-banana-100 p-3 text-sm font-bold text-banana-700"><CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-emerald-500" /> Standard scores can appear on the leaderboard. Custom games are saved for practice but do not change leaderboard points.</p>

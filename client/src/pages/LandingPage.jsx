@@ -38,7 +38,7 @@ const FEATURES = [
     {
         icon: MousePointerClick,
         title: 'Instant rounds',
-        text: 'No downloads, no tutorials. Open the page, pick a mode and start counting in seconds.',
+        text: 'No downloads, no tutorials. Open the page, pick a mode and start calculating banana values in seconds.',
         color: 'from-banana-300 to-banana-500',
     },
     {
@@ -56,7 +56,7 @@ const FEATURES = [
     {
         icon: Zap,
         title: 'Speed bonuses',
-        text: 'The faster you count, the more bonus points you earn on top of the base score.',
+        text: 'The faster you calculate the banana value, the more bonus points you earn on top of the base score.',
         color: 'from-pink-300 to-pink-500',
     },
     {
@@ -89,12 +89,12 @@ const STEPS = [
     {
         icon: Gamepad2,
         title: 'Pick a play mode',
-        text: 'Classic, Blitz or Zen. Each mode changes the timer and how many points a round is worth.',
+        text: 'Standard Easy, Standard Hard or Custom. Each mode changes the timer and challenge settings.',
     },
     {
         icon: Trophy,
-        title: 'Count and climb',
-        text: 'Beat the clock, build streaks, unlock achievements and rise up the global leaderboard.',
+        title: 'Calculate and climb',
+        text: 'Calculate each banana value, beat the clock, build streaks, unlock achievements and rise up the global leaderboard.',
     },
 ];
 
@@ -213,7 +213,7 @@ export default function LandingPage() {
                             transition={{ delay: 0.05 }}
                             className="mt-4 font-display text-5xl font-extrabold leading-[1.05] text-banana-800 md:text-6xl"
                         >
-                            Count bananas.
+                            Calculate banana values.
                             <br />
                             <span className="text-banana-500">Beat the clock.</span>
                             <br />
@@ -226,7 +226,7 @@ export default function LandingPage() {
                             transition={{ delay: 0.12 }}
                             className="mt-5 max-w-xl text-lg text-banana-700"
                         >
-                            Banana Quiz is a fast, free counting game. Spot the bunch, type the number,
+                            Banana Quiz is a fast, free calculation game. Study the banana puzzle, enter its value,
                             and chain correct answers for streak multipliers. Three modes, fourteen
                             achievements and a global leaderboard are waiting.
                         </motion.p>
@@ -423,7 +423,7 @@ export default function LandingPage() {
                         <SectionIntro
                             eyebrow="Getting started"
                             title="From zero to banana hero in three steps"
-                            text="No installs, no setup screens. You can be counting within a minute."
+                            text="No installs, no setup screens. You can be calculating banana values within a minute."
                         />
                         <div className="grid gap-4 md:grid-cols-3">
                             {STEPS.map((step, i) => (
@@ -528,7 +528,7 @@ export default function LandingPage() {
                         </div>
                         <div className="relative">
                             <h2 className="font-display text-4xl font-extrabold text-white drop-shadow md:text-5xl">
-                                Ready to count?
+                                Ready to calculate?
                             </h2>
                             <p className="mx-auto mt-2 max-w-xl text-banana-50">
                                 Your first bunch is one click away. Play free, earn badges and see how high you can climb.
@@ -559,7 +559,7 @@ export default function LandingPage() {
                             <span className="font-display text-xl font-extrabold text-banana-800">Banana Quiz</span>
                         </div>
                         <p className="mt-2 max-w-sm text-sm text-banana-600">
-                            A free counting game for quick breaks and long leaderboard climbs. Count the bunch, beat the clock.
+                            A free banana-value calculation game for quick breaks and long leaderboard climbs. Solve the puzzle, beat the clock.
                         </p>
                         <div className="mt-3 flex flex-wrap gap-3 text-xs font-bold text-banana-500">
                             <span className="flex items-center gap-1"><Volume2 size={14} /> Synthesised audio</span>

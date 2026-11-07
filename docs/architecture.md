@@ -29,10 +29,11 @@ JSON over HTTP with a server-side session cookie.
 ## Client layer
 
 The React application defines routes and pages for landing, authentication,
-dashboard, game play, achievements, leaderboard, history, and profile
-management. Shared components provide buttons, cards, audio controls, and
-authentication guards. `AuthProvider` restores the session on startup and
-shares the current user and statistics with protected pages.
+dashboard, mode selection, banana-value calculation, game overview,
+achievements, leaderboard, history, and profile management. Shared components
+provide buttons, cards, audio controls, and authentication guards.
+`AuthProvider` restores the session on startup and shares the current user and
+statistics with protected pages.
 
 ## Server layer
 
@@ -51,10 +52,11 @@ user ID when reading or changing private data.
 
 ## Main request path
 
-For a game answer, the client calls `POST /api/game/answer`. The protected
-route validates the session ID and numeric answer, the game service evaluates
-the result and updates persistence, and the response returns the result and
-updated statistics. The client then renders feedback and advances the game.
+For a banana-value answer, the client calls `POST /api/game/answer`. The
+protected route validates the session ID and numeric answer, the game service
+evaluates the result and updates persistence, and the response returns the
+solution, points, feedback data, and updated statistics. The client then
+renders feedback and advances to the next puzzle.
 
 ## Final folder tree
 

@@ -23,7 +23,7 @@ The client uses a shared Axios instance in
 
 ## Example contract
 
-Starting a quiz is a client-to-server contract:
+Starting a banana-value calculation game is a client-to-server contract:
 
 ```http
 POST /api/game/start
@@ -39,8 +39,24 @@ Content-Type: application/json
 ```
 
 The route validates the payload with Joi and returns a session containing the
-question data and a server-controlled session identifier. The client never
-needs to know the database schema.
+puzzle image, timer metadata, and a server-controlled session identifier. The
+solution remains on the server until the answer is submitted or the timer
+expires; the client never needs to know the database schema.
+
+The answer contract is deliberately small:
+
+```http
+POST /api/game/answer
+Content-Type: application/json
+
+{
+  "sessionId": "24-character-mongodb-id",
+  "answer": 42
+}
+```
+
+The server validates the integer range, evaluates the banana value, calculates
+points, and returns the solution only after evaluation.
 
 ## Compatibility and failure handling
 
@@ -55,4 +71,3 @@ needs to know the database schema.
 
 These boundaries allow the frontend and backend to evolve independently as
 long as the documented JSON contracts remain compatible.
-

@@ -65,7 +65,7 @@ export default function AchievementsPage() {
                                 </p>
                                 <h1 className="font-display text-4xl font-extrabold text-banana-800">Achievements</h1>
                                 <p className="mt-1 max-w-xl text-banana-700">
-                                    Every badge is earned from your real stats. Keep counting to fill the cabinet.
+                                    Every badge is earned from your real stats. Keep solving banana-value puzzles to fill the cabinet.
                                 </p>
                             </div>
                             <div className="flex items-center gap-4">

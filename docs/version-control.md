@@ -24,6 +24,12 @@ The history includes feature branches and merge commits, including separate
 authentication and game-play work. This demonstrates distributed development
 while preserving the final integration point on `main`.
 
+The current source also keeps client text, server mode configuration, API
+contracts, and assignment documentation aligned. Documentation changes should
+be reviewed alongside behavior changes so that the README and supporting pages
+describe the implemented banana-value calculation game rather than an older
+prototype concept.
+
 ## Why Git is useful here
 
 Git provides:
@@ -41,4 +47,3 @@ Secrets are not part of the repository. Runtime values belong in
 
 The latest history can be inspected with `git log --oneline`. The root
 [README](../README.md) documents the setup commands and project structure.
-

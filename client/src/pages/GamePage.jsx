@@ -199,7 +199,7 @@ export default function GamePage() {
 
                 <div className="grid flex-1 gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
                     <Card className="flex min-h-[520px] items-center justify-center !p-5 md:!p-10">
-                        {session && <img src={session.imageUrl} alt="Count the bananas in this quiz" className="max-h-[560px] max-w-full rounded-2xl border-4 border-banana-300 object-contain shadow-game-sm" />}
+                        {session && <img src={session.imageUrl} alt="Calculate the banana value in this puzzle" className="max-h-[560px] max-w-full rounded-2xl border-4 border-banana-300 object-contain shadow-game-sm" />}
                         {feedback && <ResultFeedback result={feedback} />}
                     </Card>
 

@@ -2,7 +2,8 @@
 
 Virtual identity is the representation of a player in a networked application.
 Banana Quiz creates an identity from a local account or an external OAuth
-identity, then uses a server-side session to authorize requests.
+identity, then uses a server-side session to authorize private calculation
+games, saved scores, and profile data.
 
 ## Identity lifecycle
 
@@ -38,7 +39,7 @@ success/failure, reason, browser, operating system, coarse device type, and a
 masked IP address for the account security page. The raw session ID is never
 stored; a SHA-256 session hash is used to identify the current device.
 
-Players can update their profile, control leaderboard visibility, inspect
-login history, and sign out other devices. This makes identity both a security
-boundary and a visible part of the player experience.
-
+Players can update their profile, choose reduced motion, control leaderboard
+visibility, inspect login history, and sign out other devices. This makes
+identity both a security boundary and a visible part of the calculation-game
+experience.

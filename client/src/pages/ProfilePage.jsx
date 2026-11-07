@@ -437,7 +437,7 @@ export default function ProfilePage() {
                                             maxLength={160}
                                             rows={3}
                                             className={`${inputClass} resize-none`}
-                                            placeholder="Tell other players about your banana-counting skills…"
+                                            placeholder="Tell other players about your banana-value calculation skills…"
                                         />
                                     </Field>
 

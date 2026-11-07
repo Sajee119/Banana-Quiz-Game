@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-const HOME_TITLE = 'Banana Quiz — Count bananas. Beat the clock.';
+const HOME_TITLE = 'Banana Quiz — Calculate banana values. Beat the clock.';
 const BRAND = 'Banana Quiz';
 
 /**

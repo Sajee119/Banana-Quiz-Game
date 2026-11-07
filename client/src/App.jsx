@@ -14,6 +14,8 @@ import AchievementsPage from './pages/AchievementsPage.jsx';
 import LeaderboardPage from './pages/LeaderboardPage.jsx';
 import HistoryPage from './pages/HistoryPage.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import CookieConsent from './components/CookieConsent.jsx';
+import ScrollActivity from './components/ScrollActivity.jsx';
 import { useAuth } from './context/auth-context.js';
 
 export default function App() {
@@ -26,6 +28,8 @@ export default function App() {
 
   return (
     <MotionConfig reducedMotion={reducedMotion ? 'always' : 'never'}>
+      <ScrollActivity />
+      <CookieConsent />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />

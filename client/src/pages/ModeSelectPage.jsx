@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Banana, Settings2, Timer, Play } from 'lucide-react';
+import { Banana, Settings2, Timer, Play, CheckCircle2 } from 'lucide-react';
 import AppHeader from '../components/AppHeader.jsx';
 import Button from '../components/Button.jsx';
 import Card from '../components/Card.jsx';
@@ -54,9 +54,22 @@ export default function ModeSelectPage() {
                 <div className="mt-8 flex justify-center">
                     <Button onClick={begin} className="!px-10 !py-4 !text-xl"><Play size={22} /> Start game</Button>
                 </div>
+                <Card className="mx-auto mt-8 max-w-3xl !p-6">
+                    <h2 className="font-display text-2xl font-extrabold text-banana-900">How a game works</h2>
+                    <div className="mt-4 grid gap-3 md:grid-cols-3">
+                        <WorkflowStep number="1" title="Choose a challenge" text="Pick Easy, Hard, or Custom settings for your session." />
+                        <WorkflowStep number="2" title="Answer instantly" text="Count the bananas, then select a number. Your answer submits immediately." />
+                        <WorkflowStep number="3" title="Review your results" text="See correctness, response time, points, and the full game analysis when finished." />
+                    </div>
+                    <p className="mt-4 flex items-start gap-2 rounded-2xl bg-banana-100 p-3 text-sm font-bold text-banana-700"><CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-emerald-500" /> Standard scores can appear on the leaderboard. Custom games are saved for practice but do not change leaderboard points.</p>
+                </Card>
             </main>
         </div>
     );
+}
+
+function WorkflowStep({ number, title, text }) {
+    return <div className="rounded-2xl border-2 border-banana-200 bg-white/80 p-4"><span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-banana-300 font-display font-extrabold text-banana-900">{number}</span><h3 className="mt-3 font-display text-lg font-extrabold text-banana-800">{title}</h3><p className="mt-1 text-sm font-semibold leading-5 text-banana-600">{text}</p></div>;
 }
 
 function ModeCard({ selected, onClick, icon, title, detail }) {

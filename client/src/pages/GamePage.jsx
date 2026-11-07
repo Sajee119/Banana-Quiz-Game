@@ -208,6 +208,12 @@ export default function GamePage() {
                             <p className="text-sm font-extrabold uppercase tracking-widest text-banana-600">Select your answer</p>
                             <p className="mt-1 flex items-center justify-center gap-2 font-bold text-banana-700"><Clock3 size={17} /> Pick a number to submit instantly</p>
                         </div>
+                    )}
+                </Card>
+
+                <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-xs font-semibold text-banana-500">
+                    <Sparkles size={13} /> Tip: type your count and press Enter to submit.
+                </p>
                         <div className="grid grid-cols-3 gap-3">
                             {KEYS.map((key) => (
                                 <button key={key} type="button" onClick={() => submit(key)} disabled={busy || Boolean(feedback)} className="rounded-2xl border-2 border-banana-200 bg-banana-100 py-5 font-display text-3xl font-extrabold text-banana-800 shadow-game-sm transition hover:bg-banana-300 active:translate-y-1 disabled:opacity-50">{key}</button>
@@ -216,6 +222,14 @@ export default function GamePage() {
                         {error && <p className="mt-4 text-center font-bold text-red-600" role="alert">{error}</p>}
                     </Card>
                 </div>
+                <Card className="mt-5 !p-5">
+                    <h2 className="font-display text-2xl font-extrabold text-banana-800">How scoring works</h2>
+                    <div className="mt-3 grid gap-3 text-sm font-semibold text-banana-700 sm:grid-cols-3">
+                        <div className="rounded-2xl bg-banana-100 p-3"><strong className="text-banana-900">Quick response:</strong> a correct answer starts at 50 points, with speed and streak bonuses added when earned.</div>
+                        <div className="rounded-2xl bg-banana-100 p-3"><strong className="text-banana-900">Keep your streak:</strong> each continued correct answer can add 5 points to your run.</div>
+                        <div className="rounded-2xl bg-banana-100 p-3"><strong className="text-banana-900">No time-out points:</strong> wrong, skipped and timed-out quizzes earn 0 points; custom scores stay off the leaderboard.</div>
+                    </div>
+                </Card>
             </main>
         </div>
     );

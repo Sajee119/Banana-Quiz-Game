@@ -14,7 +14,11 @@ router.get('/modes', (req, res) => {
 router.use(ensureAuthenticated);
 
 const startSchema = Joi.object({
-    mode: Joi.string().valid('classic', 'blitz', 'zen').default('classic'),
+    mode: Joi.string().valid('classic', 'blitz', 'zen', 'easy', 'hard', 'custom').default('easy'),
+    quizTimeSeconds: Joi.number().integer().valid(10, 15, 20, 30, 45, 60).default(30),
+    gameId: Joi.string().max(80).required(),
+    quizCount: Joi.number().integer().min(1).max(30).default(10),
+    leaderboardEligible: Joi.boolean().default(true),
 });
 
 const answerSchema = Joi.object({
@@ -25,16 +29,35 @@ const answerSchema = Joi.object({
 const expireSchema = Joi.object({
     sessionId: Joi.string().hex().length(24).required(),
 });
+const skipSchema = Joi.object({
+    sessionId: Joi.string().hex().length(24).required(),
+});
 const historyEntrySchema = Joi.object({
     sessionId: Joi.string().hex().length(24).required(),
+});
+const gameHistorySchema = Joi.object({
+    gameId: Joi.string().max(80).required(),
 });
 
 router.post('/start', asyncHandler(async (req, res) => {
     const { value, error } = startSchema.validate(req.body || {});
     if (error) return res.status(400).json({ success: false, message: error.message });
 
-    const session = await gameService.startSession(req.user.id, value.mode);
+    const session = await gameService.startSession(req.user.id, value.mode, value);
     res.status(201).json({ success: true, data: session });
+}));
+
+router.get('/games', asyncHandler(async (req, res) => {
+    const history = await gameService.getAllGames(req.user.id, req.query.limit);
+    res.json({ success: true, data: history });
+}));
+
+router.get('/games/:gameId', asyncHandler(async (req, res) => {
+    const { value, error } = gameHistorySchema.validate(req.params);
+    if (error) return res.status(400).json({ success: false, message: error.message });
+    const game = await gameService.getGameEntry(req.user.id, value.gameId);
+    if (!game) return res.status(404).json({ success: false, message: 'Game history entry not found' });
+    res.json({ success: true, data: game });
 }));
 
 router.post('/answer', asyncHandler(async (req, res) => {
@@ -70,6 +93,22 @@ router.post('/expire', asyncHandler(async (req, res) => {
         });
     }
 
+    res.json({ success: true, data: result });
+}));
+
+router.post('/skip', asyncHandler(async (req, res) => {
+    const { value, error } = skipSchema.validate(req.body);
+    if (error) return res.status(400).json({ success: false, message: error.message });
+
+    const result = await gameService.skipSession(req.user.id, value.sessionId);
+    if (result.error) return res.status(result.status).json({ success: false, message: result.error });
+    res.json({ success: true, data: result });
+}));
+
+router.post('/quit', asyncHandler(async (req, res) => {
+    const { value, error } = Joi.object({ gameId: Joi.string().max(80).required() }).validate(req.body);
+    if (error) return res.status(400).json({ success: false, message: error.message });
+    const result = await gameService.quitGame(req.user.id, value.gameId);
     res.json({ success: true, data: result });
 }));
 

@@ -5,7 +5,7 @@ const gameSessionSchema = new mongoose.Schema(
         user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
         mode: {
             type: String,
-            enum: ['classic', 'blitz', 'zen'],
+            enum: ['classic', 'blitz', 'zen', 'easy', 'hard', 'custom'],
             default: 'classic',
             index: true,
         },
@@ -23,6 +23,9 @@ const gameSessionSchema = new mongoose.Schema(
         timeToAnswerMs: { type: Number, default: null },
         completedAt: { type: Date, default: null, index: true },
         expiresAt: { type: Date, required: true },
+        gameId: { type: String, default: null, index: true },
+        quizTimeSeconds: { type: Number, default: null },
+        leaderboardEligible: { type: Boolean, default: true },
     },
     { timestamps: true }
 );

@@ -45,13 +45,18 @@ export const userApi = {
 };
 
 export const gameApi = {
-    start: (mode = 'classic') => api.post('/api/game/start', { mode }).then((r) => r.data),
+    start: (mode = 'easy', options = {}) =>
+        api.post('/api/game/start', { mode, ...options }).then((r) => r.data),
     answer: (sessionId, answer) =>
         api.post('/api/game/answer', { sessionId, answer }).then((r) => r.data),
     expire: (sessionId) => api.post('/api/game/expire', { sessionId }).then((r) => r.data),
+    skip: (sessionId) => api.post('/api/game/skip', { sessionId }).then((r) => r.data),
+    quit: (gameId) => api.post('/api/game/quit', { gameId }).then((r) => r.data),
     stats: () => api.get('/api/game/stats').then((r) => r.data),
     history: (limit = 50) => api.get(`/api/game/history?limit=${limit}`).then((r) => r.data),
     historyEntry: (sessionId) => api.get(`/api/game/history/${sessionId}`).then((r) => r.data),
+    games: (limit = 50) => api.get(`/api/game/games?limit=${limit}`).then((r) => r.data.data || []),
+    game: (gameId) => api.get(`/api/game/games/${gameId}`).then((r) => r.data.data || null),
     modes: () => api.get('/api/game/modes').then((r) => r.data),
 };
 

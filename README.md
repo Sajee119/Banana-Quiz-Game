@@ -1,6 +1,6 @@
 # Banana Quiz
 
-<p align="center">
+<p align="left">
   <img src="./client/src/assets/banana-logo.jpg" alt="Banana Quiz logo" width="180">
 </p>
 

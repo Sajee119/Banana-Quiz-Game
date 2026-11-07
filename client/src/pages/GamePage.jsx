@@ -208,12 +208,6 @@ export default function GamePage() {
                             <p className="text-sm font-extrabold uppercase tracking-widest text-banana-600">Select your answer</p>
                             <p className="mt-1 flex items-center justify-center gap-2 font-bold text-banana-700"><Clock3 size={17} /> Pick a number to submit instantly</p>
                         </div>
-                    )}
-                </Card>
-
-                <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-xs font-semibold text-banana-500">
-                    <Sparkles size={13} /> Tip: type your count and press Enter to submit.
-                </p>
                         <div className="grid grid-cols-3 gap-3">
                             {KEYS.map((key) => (
                                 <button key={key} type="button" onClick={() => submit(key)} disabled={busy || Boolean(feedback)} className="rounded-2xl border-2 border-banana-200 bg-banana-100 py-5 font-display text-3xl font-extrabold text-banana-800 shadow-game-sm transition hover:bg-banana-300 active:translate-y-1 disabled:opacity-50">{key}</button>

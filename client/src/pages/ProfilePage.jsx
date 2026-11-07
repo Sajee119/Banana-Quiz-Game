@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     ArrowLeft,
@@ -71,8 +71,12 @@ const REASON_LABELS = {
 };
 
 export default function ProfilePage() {
-    usePageTitle('Account settings');
+    usePageTitle('Profile & settings');
     const { user, stats, setUser } = useAuth();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const requestedTab = searchParams.get('tab') || 'profile';
+    const tabs = ['profile', 'controls', 'privacy', 'security', 'activity', 'danger-zone'];
+    const activeTab = tabs.includes(requestedTab) ? requestedTab : 'profile';
 
     const [profile, setProfile] = useState({
         name: user?.displayName || '',
@@ -278,6 +282,11 @@ export default function ProfilePage() {
             <AppHeader />
 
             <main className="mx-auto max-w-5xl px-4 py-6 md:px-6 md:py-8">
+                <div className="mb-5">
+                    <p className="text-sm font-extrabold uppercase tracking-widest text-banana-600">Account centre</p>
+                    <h1 className="font-display text-4xl font-extrabold text-banana-900">Profile &amp; settings</h1>
+                    <p className="mt-1 text-banana-700">Manage your public identity, custom controls, privacy choices, security and data.</p>
+                </div>
                 <div className="mb-4 flex items-center justify-between gap-3">
                     <Link to="/dashboard" className="flex items-center gap-1.5 text-sm font-bold text-banana-700 hover:underline">
                         <ArrowLeft size={17} /> Back to dashboard
@@ -347,7 +356,22 @@ export default function ProfilePage() {
                         ))}
                     </div>
 
-                    <div className="grid gap-5 lg:grid-cols-3">
+                    <div className="grid gap-5 lg:grid-cols-[220px_1fr]">
+                        <aside className="h-fit rounded-3xl border-4 border-banana-300 bg-white/90 p-3 shadow-game" aria-label="Profile settings navigation">
+                            {[
+                                ['profile', 'Profile'],
+                                ['controls', 'Controls'],
+                                ['privacy', 'Privacy'],
+                                ['security', 'Security'],
+                                ['activity', 'Activity'],
+                                ['danger-zone', 'Danger zone'],
+                            ].map(([value, label]) => (
+                                <button key={value} type="button" onClick={() => setSearchParams({ tab: value })} className={`mb-1 w-full rounded-xl px-3 py-2.5 text-left text-sm font-extrabold transition ${activeTab === value ? 'bg-banana-300 text-banana-900' : 'text-banana-700 hover:bg-banana-100'}`}>{label}</button>
+                            ))}
+                        </aside>
+                        <div>
+                        {activeTab !== 'profile' && <ProfileTabPanel tab={activeTab} preferences={preferences} updatePreference={updatePreference} security={security} loadingSecurity={loadingSecurity} loginData={loginData} user={user} stats={stats} />}
+                    <div className={activeTab === 'profile' ? '' : 'hidden'}>
                         <div className="space-y-5 lg:col-span-2">
                             {/* Account details */}
                             <Card className="!p-5 md:!p-6">
@@ -434,6 +458,13 @@ export default function ProfilePage() {
                                                 checked={preferences.showOnLeaderboard}
                                                 onChange={updatePreference('showOnLeaderboard')}
                                             />
+                                            <div className="flex items-center justify-between gap-3 border-t border-banana-200 pt-3">
+                                                <div>
+                                                    <p className="font-bold text-banana-800">Cookie preferences</p>
+                                                    <p className="text-xs font-semibold text-banana-600">Choose allow or decline again next time.</p>
+                                                </div>
+                                                <button type="button" onClick={() => { localStorage.removeItem('banana-cookie-choice'); window.location.reload(); }} className="rounded-xl border-2 border-banana-300 bg-white px-3 py-2 text-xs font-extrabold text-banana-700 hover:bg-banana-100">Review</button>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -831,10 +862,47 @@ export default function ProfilePage() {
                             </Card>
                         </div>
                     </div>
+                    </div>
+                    </div>
                 </motion.div>
             </main>
         </div>
     );
+}
+
+function ProfileTabPanel({ tab, preferences, updatePreference, security, loadingSecurity, loginData, user, stats }) {
+    if (tab === 'controls') {
+        return <Card className="mb-5 !p-6"><SectionHeading icon={<Settings size={20} />} title="Controls" subtitle="Tune the game experience to your preferences." /><PreferenceToggle label="Reduce motion" description="Turn off decorative animations." checked={preferences.reducedMotion} onChange={updatePreference('reducedMotion')} /><div className="mt-4"><AudioControls /></div></Card>;
+    }
+    if (tab === 'privacy') {
+        return <Card className="mb-5 !p-6"><SectionHeading icon={<ShieldCheck size={20} />} title="Privacy" subtitle="Choose what other players and the service can see." /><PreferenceToggle label="Public profile and leaderboard" description="Show your display name and scores in public rankings." checked={preferences.showOnLeaderboard} onChange={updatePreference('showOnLeaderboard')} /><div className="mt-5 grid gap-3 sm:grid-cols-3"><InfoTile title="Activity tracking" text="Used to calculate streaks, accuracy and trends." /><InfoTile title="Marketing emails" text="No marketing emails are sent by default." /><InfoTile title="Data retention" text="Your game history stays linked to your account." /></div></Card>;
+    }
+    if (tab === 'security') {
+        return <Card className="mb-5 !p-6"><SectionHeading icon={<KeyRound size={20} />} title="Security" subtitle="Review account protection and linked sign-in methods." />{loadingSecurity ? <AnalyticsLoader /> : security ? <div className="grid gap-3 sm:grid-cols-3"><InfoTile title="Security score" text={`${security.score}% · ${security.level}`} /><InfoTile title="Active devices" text={`${security.activeDevices} recent device(s)`} /><InfoTile title="Failed sign-ins" text={`${security.failedLogins} recent attempt(s)`} /></div> : <p className="font-semibold text-red-600">Security data unavailable.</p>}<p className="mt-5 text-sm font-semibold text-banana-700">Password changes and linked accounts remain available in the Profile tab.</p></Card>;
+    }
+    if (tab === 'activity') {
+        const entries = loginData?.history || [];
+        return <Card className="mb-5 !p-6"><SectionHeading icon={<Activity size={20} />} title="Activity" subtitle="Recent sessions and identity activity." /><div className="grid gap-3 sm:grid-cols-3"><InfoTile title="Games played" text={`${stats?.gamesPlayed || 0}`} /><InfoTile title="Total points" text={`${stats?.totalPoints || 0}`} /><InfoTile title="Account" text={user.email} /></div><h3 className="mt-6 font-display text-xl font-extrabold text-banana-800">Login history</h3><div className="mt-3 space-y-2">{entries.length ? entries.slice(0, 10).map((entry) => <p key={entry.id} className="rounded-xl bg-banana-50 p-3 text-sm font-semibold text-banana-700">{entry.method || 'Sign-in'} · {entry.email || user.email} · {formatDateTime(entry.at)}</p>) : <p className="text-sm font-semibold text-banana-600">No recent login activity.</p>}</div></Card>;
+    }
+    return <Card className="mb-5 !p-6"><SectionHeading icon={<ShieldAlert size={20} />} title="Danger zone" subtitle="Export your data or permanently close your account." /><div className="flex flex-wrap gap-3"><Button variant="secondary" onClick={() => downloadDataExport(user, stats)}><Save size={17} /> Download JSON export</Button><Button variant="danger" onClick={() => window.alert('Account deletion requires password confirmation and is not enabled in this environment.')}>Delete account</Button></div><p className="mt-4 text-sm font-semibold text-banana-600">Deletion is designed as a soft delete with a 30-day recovery window.</p></Card>;
+}
+
+function InfoTile({ title, text }) {
+    return <div className="rounded-2xl border-2 border-banana-200 bg-banana-50 p-4"><p className="text-xs font-extrabold uppercase tracking-wide text-banana-600">{title}</p><p className="mt-1 font-bold text-banana-800">{text}</p></div>;
+}
+
+function AnalyticsLoader() {
+    return <div className="grid gap-3 sm:grid-cols-3">{[1, 2, 3].map((item) => <div key={item} className="h-20 animate-pulse rounded-2xl bg-banana-100" />)}</div>;
+}
+
+function downloadDataExport(user, stats) {
+    const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), user, stats }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'banana-quiz-data.json';
+    link.click();
+    URL.revokeObjectURL(url);
 }
 
 function SectionHeading({ icon, title, subtitle, noMargin = false }) {

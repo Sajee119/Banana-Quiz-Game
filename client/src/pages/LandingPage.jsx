@@ -32,7 +32,7 @@ import { userApi } from '../api/client.js';
 import { MODE_LIST } from '../lib/format.js';
 import { usePageTitle } from '../hooks/usePageTitle.js';
 
-const MODE_ICONS = { classic: Banana, blitz: Timer, zen: Leaf };
+const MODE_ICONS = { easy: Banana, hard: Timer, custom: Leaf };
 
 const FEATURES = [
     {
@@ -44,13 +44,13 @@ const FEATURES = [
     {
         icon: Timer,
         title: 'Three play modes',
-        text: 'Classic for the full experience, Blitz for adrenaline, Zen for a relaxed count.',
+        text: 'Standard Easy, Standard Hard and Custom practice give every player a comfortable challenge.',
         color: 'from-sky-300 to-sky-500',
     },
     {
         icon: Flame,
         title: 'Streak multipliers',
-        text: 'Every correct answer in a row raises your multiplier — up to double points.',
+        text: 'Every correct answer in a row raises your multiplier, while quick responses earn extra points.',
         color: 'from-orange-300 to-orange-500',
     },
     {
@@ -68,7 +68,7 @@ const FEATURES = [
     {
         icon: Globe,
         title: 'Global leaderboard',
-        text: 'Compare your points, wins and best streak with banana counters around the world.',
+        text: 'Standard scores join the leaderboard; Custom games stay private practice.',
         color: 'from-emerald-300 to-emerald-500',
     },
 ];
@@ -109,11 +109,11 @@ const FAQS = [
     },
     {
         q: 'How does scoring work?',
-        a: 'Each correct answer earns base points plus a speed bonus. Your current streak raises a multiplier (up to 2×), and Blitz mode adds another 50% on top.',
+        a: 'Each correct answer earns base points plus a speed bonus. Your current streak raises a multiplier. Wrong, skipped and timed-out quizzes earn zero points.',
     },
     {
         q: 'What is the difference between the modes?',
-        a: 'Classic gives you two minutes per puzzle. Blitz gives you 30 seconds but 1.5× points. Zen gives you five relaxed minutes with no speed bonus.',
+        a: 'Standard Easy has 10 quizzes with 30 seconds each, Standard Hard has 10 quizzes with 15 seconds each, and Custom lets you choose the quiz count and timer.',
     },
     {
         q: 'Does it work on phones?',
@@ -572,9 +572,9 @@ export default function LandingPage() {
                         <p className="mb-2 font-display text-sm font-extrabold uppercase tracking-wide text-banana-700">Play</p>
                         <ul className="space-y-1.5 text-sm text-banana-600">
                             <li><Link to={user ? '/dashboard' : '/login'} className="hover:text-banana-900">Dashboard</Link></li>
-                            <li><Link to="/play?mode=classic" className="hover:text-banana-900">Classic mode</Link></li>
-                            <li><Link to="/play?mode=blitz" className="hover:text-banana-900">Blitz mode</Link></li>
-                            <li><Link to="/play?mode=zen" className="hover:text-banana-900">Zen mode</Link></li>
+                            <li><Link to="/play" className="hover:text-banana-900">Standard Easy</Link></li>
+                            <li><Link to="/play" className="hover:text-banana-900">Standard Hard</Link></li>
+                            <li><Link to="/play" className="hover:text-banana-900">Custom practice</Link></li>
                         </ul>
                     </div>
 

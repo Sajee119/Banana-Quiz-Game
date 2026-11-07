@@ -18,14 +18,33 @@ import {
     Leaf,
     Banana,
     Sparkles,
+    BarChart3,
+    Brain,
+    TrendingUp,
 } from 'lucide-react';
+import {
+    Area,
+    AreaChart,
+    Bar,
+    BarChart,
+    CartesianGrid,
+    Cell,
+    Legend,
+    Line,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+} from 'recharts';
 import AppHeader from '../components/AppHeader.jsx';
 import Card from '../components/Card.jsx';
 import Button from '../components/Button.jsx';
 import AudioControls from '../components/AudioControls.jsx';
 import StatCard from '../components/StatCard.jsx';
 import { useAuth } from '../context/auth-context.js';
-import { userApi } from '../api/client.js';
+import { gameApi, userApi } from '../api/client.js';
 import { useSound } from '../hooks/useSound.js';
 import { AchievementIcon } from '../lib/achievementIcons.jsx';
 import { TIER_STYLES } from '../lib/tiers.js';
@@ -43,6 +62,8 @@ export default function DashboardPage() {
     const [selectedMode, setSelectedMode] = useState(user?.favoriteMode || 'classic');
     const [achievements, setAchievements] = useState(null);
     const [summary, setSummary] = useState(null);
+    const [games, setGames] = useState([]);
+    const [loadingAnalytics, setLoadingAnalytics] = useState(true);
 
     useEffect(() => {
         let active = true;
@@ -55,6 +76,23 @@ export default function DashboardPage() {
             })
             .catch(() => {
                 if (active) setAchievements([]);
+            });
+        return () => {
+            active = false;
+        };
+    }, []);
+
+    useEffect(() => {
+        let active = true;
+        gameApi.games(100)
+            .then((data) => {
+                if (active) setGames(Array.isArray(data) ? data : []);
+            })
+            .catch(() => {
+                if (active) setGames([]);
+            })
+            .finally(() => {
+                if (active) setLoadingAnalytics(false);
             });
         return () => {
             active = false;
@@ -177,6 +215,29 @@ export default function DashboardPage() {
                             value={stats?.fastestAnswerMs ? `${(stats.fastestAnswerMs / 1000).toFixed(1)}s` : '—'}
                             color="from-pink-300 to-pink-500"
                         />
+                    </div>
+                </section>
+
+                <section className="mb-8 space-y-5">
+                    <Card className="!p-5">
+                        <SectionTitle icon={<TrendingUp size={18} />} title="Score and accuracy trend" hint="The last 14 days. The line tracks accuracy." />
+                        <LazySection loading={loadingAnalytics} loaderLabel="Loading 14-day trend" skeletonHeight={310}>
+                            <AccuracyChart games={games} />
+                        </LazySection>
+                    </Card>
+                    <div className="grid gap-5 lg:grid-cols-2">
+                        <Card className="!p-5">
+                            <SectionTitle icon={<BarChart3 size={18} />} title="Mode mix" hint="Games by mode" />
+                            <LazySection loading={loadingAnalytics} loaderLabel="Loading mode breakdown" skeletonHeight={300}>
+                                <ModeChart games={games} />
+                            </LazySection>
+                        </Card>
+                        <Card className="!p-5">
+                            <SectionTitle icon={<Brain size={18} />} title="Thinking time" hint="Answer-time profile" />
+                            <LazySection loading={loadingAnalytics} loaderLabel="Bucketing response times" skeletonHeight={300}>
+                                <ThinkingChart games={games} />
+                            </LazySection>
+                        </Card>
                     </div>
                 </section>
 
@@ -352,4 +413,62 @@ function SectionTitle({ icon, title, hint }) {
             {hint && <p className="hidden text-xs font-semibold text-banana-500 sm:block">{hint}</p>}
         </div>
     );
+}
+
+const chartTooltipStyle = { background: '#fffceb', border: '2px solid #ffec85', borderRadius: 12, boxShadow: '0 10px 24px rgba(107,50,0,.12)' };
+const chartColors = ['#facc15', '#34d399', '#60a5fa', '#fb7185', '#a78bfa'];
+
+function LazySection({ loading, loaderLabel, skeletonHeight, children }) {
+    if (loading) return <div style={{ minHeight: skeletonHeight }} className="flex flex-col items-center justify-center"><div className="w-full animate-pulse rounded-2xl bg-banana-100" style={{ height: skeletonHeight - 35 }} /><p className="mt-3 text-xs font-bold text-banana-500">{loaderLabel}</p></div>;
+    return children;
+}
+
+function AccuracyChart({ games }) {
+    const rows = trendRows(games);
+    if (!rows.some((row) => row.games > 0)) return <EmptyState text="No games in this window" />;
+    return <ChartFrame label="Score and accuracy over the last 14 days"><AreaChart data={rows}><defs><linearGradient id="scoreFill" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#facc15" stopOpacity=".5" /><stop offset="95%" stopColor="#facc15" stopOpacity=".02" /></linearGradient></defs><CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f5d875" /><XAxis dataKey="label" tick={{ fontSize: 12, fill: '#b56000' }} axisLine={false} tickLine={false} /><YAxis yAxisId="score" tick={{ fontSize: 12, fill: '#b56000' }} axisLine={false} tickLine={false} /><YAxis yAxisId="accuracy" orientation="right" domain={[0, 100]} tick={{ fontSize: 12, fill: '#b56000' }} axisLine={false} tickLine={false} /><Tooltip content={<TrendTooltip />} /><Legend wrapperStyle={{ fontSize: 12, color: '#b56000' }} /><Area yAxisId="score" type="monotone" dataKey="score" stroke="#facc15" fill="url(#scoreFill)" name="Score" activeDot={{ r: 5 }} /><Line yAxisId="accuracy" type="monotone" dataKey="accuracy" stroke="#34d399" dot={false} activeDot={{ r: 5 }} name="Accuracy %" /></AreaChart></ChartFrame>;
+}
+
+function TrendTooltip({ active, payload, label }) {
+    if (!active || !payload?.length) return null;
+    const values = Object.fromEntries(payload.map((entry) => [entry.dataKey, entry.value]));
+    return <div style={chartTooltipStyle} className="min-w-[150px] px-3 py-2 text-sm font-bold text-banana-800">
+        <p className="mb-1 text-xs font-extrabold uppercase tracking-wide text-banana-500">{label}</p>
+        <p className="flex items-center justify-between gap-5"><span className="text-yellow-600">Score</span><span>{Number(values.score || 0)} pts</span></p>
+        <p className="flex items-center justify-between gap-5"><span className="text-emerald-600">Accuracy %</span><span>{Number(values.accuracy || 0)}%</span></p>
+    </div>;
+}
+
+function ModeChart({ games }) {
+    const rows = Object.entries(games.reduce((result, game) => { result[game.mode] = (result[game.mode] || 0) + 1; return result; }, {})).map(([mode, count]) => ({ label: mode, games: count }));
+    if (!rows.some((row) => row.games > 0)) return <EmptyState text="No completed games by mode yet." />;
+    return <ChartFrame label="Games by mode" height={290}><BarChart data={rows}><CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f5d875" /><XAxis dataKey="label" tick={{ fontSize: 12, fill: '#b56000' }} axisLine={false} tickLine={false} /><YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#b56000' }} axisLine={false} tickLine={false} /><Tooltip contentStyle={chartTooltipStyle} /><Bar dataKey="games" radius={[8, 8, 0, 0]}>{rows.map((row, index) => <Cell key={row.label} fill={chartColors[index % chartColors.length]} />)}</Bar></BarChart></ChartFrame>;
+}
+
+function ThinkingChart({ games }) {
+    const buckets = [{ name: '<5s', value: 0 }, { name: '5–10s', value: 0 }, { name: '10–20s', value: 0 }, { name: '20s+', value: 0 }];
+    games.flatMap((game) => game.quizzes || []).forEach((quiz) => { const seconds = (quiz.timeToAnswerMs || 0) / 1000; buckets[seconds < 5 ? 0 : seconds < 10 ? 1 : seconds < 20 ? 2 : 3].value += 1; });
+    const rows = buckets.filter((row) => row.value > 0);
+    if (!rows.length) return <EmptyState text="Answer a few puzzles to see your time profile." />;
+    return <ChartFrame label="Answer-time profile" height={290}><PieChart><Pie data={rows} dataKey="value" nameKey="name" innerRadius={58} outerRadius={96} paddingAngle={3}>{rows.map((row, index) => <Cell key={row.name} fill={chartColors[index % chartColors.length]} stroke="transparent" />)}</Pie><Tooltip contentStyle={chartTooltipStyle} /><Legend wrapperStyle={{ fontSize: 12, color: '#b56000' }} /></PieChart></ChartFrame>;
+}
+
+function ChartFrame({ label, height = 280, children }) {
+    return <div role="img" aria-label={label} style={{ height }}><ResponsiveContainer width="100%" height="100%">{children}</ResponsiveContainer></div>;
+}
+
+function EmptyState({ text }) { return <p className="flex min-h-[220px] items-center justify-center text-sm font-bold text-banana-500">{text}</p>; }
+
+function trendRows(games) {
+    return Array.from({ length: 14 }, (_, index) => {
+        const date = new Date();
+        date.setHours(0, 0, 0, 0);
+        date.setDate(date.getDate() - (13 - index));
+        const next = new Date(date);
+        next.setDate(next.getDate() + 1);
+        const daily = games.filter((game) => { const value = new Date(game.completedAt || game.startedAt); return value >= date && value < next; });
+        const quizzes = daily.reduce((sum, game) => sum + (game.quizCount || game.quizzes?.length || 0), 0);
+        const correct = daily.reduce((sum, game) => sum + (game.correctCount || 0), 0);
+        return { label: date.toLocaleDateString(undefined, { weekday: 'short' }), score: daily.reduce((sum, game) => sum + (game.totalPoints || 0), 0), accuracy: quizzes ? Math.round((correct / quizzes) * 100) : 0, games: daily.length };
+    });
 }

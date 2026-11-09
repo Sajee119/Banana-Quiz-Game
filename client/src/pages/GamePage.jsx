@@ -46,7 +46,7 @@ export default function GamePage() {
         sessionStorage.removeItem('banana-game-config');
         sessionStorage.removeItem('banana-game-id');
         navigate(`/game-overview/${gameId}`, { replace: true });
-    }, [config, navigate, setStats]);
+    }, [navigate, setStats]);
 
     const startQuiz = useCallback(async () => {
         if (!config || answers.length >= config.quizCount || feedback) return;

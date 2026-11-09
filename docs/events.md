@@ -8,12 +8,16 @@ running as one linear procedure.
 
 Examples in the React client include:
 
-- form submission for login, registration, and answers;
-- button clicks for starting, skipping, quitting, and logging out;
-- `useEffect` lifecycle events for restoring the session and starting a quiz;
-- `setInterval` timer events for the per-question countdown;
+- form submission for login, registration, OTP verification, and answers;
+- button clicks for starting, skipping, quitting, resending a code, and logging
+  out;
+- `useEffect` lifecycle events for restoring the session, checking verification
+  status, and starting a quiz;
+- `setInterval` timer events for the per-question countdown and the OTP expiry
+  and resend countdown;
 - `setTimeout` feedback events before the next question or game summary;
 - `popstate` handling while a game is active;
+- keyboard and paste events in the six-digit OTP input;
 - keyboard input for selecting numeric values.
 
 In [GamePage](../client/src/pages/GamePage.jsx), an answer event submits the
@@ -33,6 +37,14 @@ user, and game handlers. A game request can cause several state changes:
 4. The score, streak, achievements, and game history are updated.
 5. A JSON response containing the result, solution, points, and statistics is
    emitted to the client.
+
+Email verification is also event-driven. A registration request creates a
+challenge and emits an SMTP send; the verification page reacts to status,
+countdown, resend, wrong-code, and expiry events. Wrong codes increment an
+attempt counter, a resend rotates the OTP and resets attempts, and a successful
+verification deletes the challenge and creates the `User`. Each handler returns
+a small status (`ok`, `invalid`, `expired`, `locked`) so the client can render
+the correct feedback.
 
 Authentication attempts are recorded as `LoginEvent` documents for both
 successful and failed attempts. The login history service also derives device

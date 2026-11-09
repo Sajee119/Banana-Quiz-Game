@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, MailCheck, Send, ShieldCheck, TriangleAlert } from 'lucide-react';
+import { ArrowLeft, MailCheck, Send, ShieldCheck } from 'lucide-react';
 import AuthShell from '../components/AuthShell.jsx';
 import Button from '../components/Button.jsx';
 import { authApi } from '../api/client.js';
@@ -16,17 +16,6 @@ export default function ForgotPasswordPage() {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [sent, setSent] = useState(false);
-    const [devResetUrl, setDevResetUrl] = useState('');
-
-    const devResetPath = (() => {
-        if (!devResetUrl) return '';
-        try {
-            const url = new URL(devResetUrl);
-            return `${url.pathname}${url.search}`;
-        } catch {
-            return devResetUrl;
-        }
-    })();
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -35,8 +24,7 @@ export default function ForgotPasswordPage() {
         setSubmitting(true);
         setError('');
         try {
-            const data = await authApi.forgotPassword(email.trim());
-            setDevResetUrl(data.devResetUrl || '');
+            await authApi.forgotPassword(email.trim());
             setSent(true);
         } catch (err) {
             setError(err.friendlyMessage || 'Could not request a reset link. Please try again.');
@@ -89,7 +77,6 @@ export default function ForgotPasswordPage() {
                         type="button"
                         onClick={() => {
                             setSent(false);
-                            setDevResetUrl('');
                         }}
                         className="text-xs font-bold text-banana-600 underline hover:text-banana-800"
                     >

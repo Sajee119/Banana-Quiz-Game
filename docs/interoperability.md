@@ -13,7 +13,7 @@ external Banana question service.
 | Express and MongoDB | Mongoose models | users, games, scores, sessions, login events |
 | Express and Banana API | HTTP request with timeout/retry handling | banana question image and solution |
 | Express and Google/Facebook | Passport OAuth callbacks | provider identity and profile information |
-| Express and SMTP | Nodemailer | password reset, welcome, and login notifications |
+| Express and SMTP | Nodemailer | email OTPs, password reset, welcome, and login notifications |
 
 The client uses a shared Axios instance in
 [client.js](../client/src/api/client.js). It sends cookies with
@@ -22,6 +22,38 @@ The client uses a shared Axios instance in
 `success`, `message`, and/or `data` shape.
 
 ## Example contract
+
+Email/password sign-up uses a two-request JSON exchange. The first request
+starts a verification challenge and never creates an account:
+
+```http
+POST /auth/register
+Content-Type: application/json
+
+{
+  "name": "Banana Player",
+  "email": "player@example.com",
+  "password": "correct-horse-battery"
+}
+```
+
+The server responds with `202 Accepted`, a `verificationId` challenge token,
+the masked email, expiry and resend metadata, and `otpLength: 6`. The OTP is
+delivered by SMTP. The client then submits:
+
+```http
+POST /auth/register/verify
+Content-Type: application/json
+
+{
+  "verificationId": "64-character-hex-challenge-token",
+  "otp": "123456"
+}
+```
+
+Only a matching, unexpired code creates the `User` and session. `410` means the
+challenge expired or is missing, `429` means it is locked or the resend limit
+was reached, and `400` reports invalid input with the remaining attempts.
 
 Starting a banana-value calculation game is a client-to-server contract:
 
@@ -65,7 +97,8 @@ points, and returns the solution only after evaluation.
   messages.
 - External question requests have configurable timeout and retry settings.
 - OAuth and SMTP integrations are optional deployment concerns controlled by
-  environment variables.
+  environment variables. Email/password sign-up requires SMTP in production
+  because the account is only created after the emailed OTP is verified.
 - Validation at the API boundary prevents malformed client data from reaching
   services or the database.
 

@@ -84,7 +84,7 @@ const STEPS = [
     {
         icon: Users,
         title: 'Create your account',
-        text: 'Sign up with email or one tap using Google or Facebook. Your progress is saved automatically.',
+        text: 'Sign up with email or one tap using Google or Facebook. Email accounts confirm a 6-digit code before the account is created.',
     },
     {
         icon: Gamepad2,
@@ -106,6 +106,10 @@ const FAQS = [
     {
         q: 'Do I need an account to play?',
         a: 'You need an account to save scores, streaks and achievements. Sign up with email, Google or Facebook — it takes a few seconds.',
+    },
+    {
+        q: 'Why do I need to verify my email?',
+        a: 'New email accounts receive a 6-digit code. Entering it proves you own the address and activates the account. Google and Facebook sign-ins are already verified by the provider.',
     },
     {
         q: 'How does scoring work?',
@@ -148,7 +152,8 @@ export default function LandingPage() {
         };
     }, []);
 
-    const primaryTarget = user ? '/dashboard' : '/login';
+    const primaryTarget = user ? '/dashboard' : '/login?mode=register';
+    const headerTarget = user ? '/dashboard' : '/login';
 
     return (
         <div className="min-h-screen">
@@ -186,7 +191,7 @@ export default function LandingPage() {
                                 <Trophy size={17} /> Leaderboard
                             </Button>
                         </Link>
-                        <Link to={primaryTarget}>
+                        <Link to={headerTarget}>
                             <Button className="!px-4 !py-2 !text-base">
                                 {user ? 'Dashboard' : 'Sign In'}
                             </Button>
@@ -367,7 +372,7 @@ export default function LandingPage() {
                                         <h3 className="font-display text-2xl font-extrabold text-banana-800">{mode.label}</h3>
                                         <p className="text-xs font-bold uppercase tracking-wide text-banana-500">{mode.tagline}</p>
                                         <p className="mt-2 flex-1 text-sm text-banana-700">{mode.description}</p>
-                                        <Link to={user ? `/play?mode=${mode.id}` : '/login'} className="mt-4">
+                                        <Link to={user ? `/play?mode=${mode.id}` : '/login?mode=register'} className="mt-4">
                                             <Button className="w-full !py-2.5 !text-base">
                                                 <Play size={16} /> Play {mode.label}
                                             </Button>
@@ -389,7 +394,7 @@ export default function LandingPage() {
                                 text="Achievements unlock automatically from your real stats. Chase streaks, speed records, point milestones and mode mastery."
                                 align="left"
                             />
-                            <Link to={user ? '/achievements' : '/login'}>
+                            <Link to={user ? '/achievements' : '/login?mode=register'}>
                                 <Button variant="secondary" className="!py-3">
                                     <Award size={18} /> Explore achievements
                                 </Button>

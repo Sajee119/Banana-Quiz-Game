@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Banana, Settings2, Timer, Play, CheckCircle2 } from 'lucide-react';
 import AppHeader from '../components/AppHeader.jsx';
 import Button from '../components/Button.jsx';
 import Card from '../components/Card.jsx';
+import { useAuth } from '../context/auth-context.js';
+import { normalizeModeId } from '../lib/format.js';
 import { usePageTitle } from '../hooks/usePageTitle.js';
 
 const TIMES = [10, 15, 20, 30, 45, 60];
@@ -11,7 +13,15 @@ const TIMES = [10, 15, 20, 30, 45, 60];
 export default function ModeSelectPage() {
     usePageTitle('Choose a game');
     const navigate = useNavigate();
-    const [mode, setMode] = useState('easy');
+    const [searchParams] = useSearchParams();
+    const { user } = useAuth();
+    const [mode, setMode] = useState(() =>
+        normalizeModeId(
+            searchParams.get('mode') ||
+                user?.preferences?.defaultMode ||
+                user?.favoriteMode
+        )
+    );
     const [quizCount, setQuizCount] = useState(10);
     const [time, setTime] = useState(30);
 

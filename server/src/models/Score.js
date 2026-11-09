@@ -40,7 +40,11 @@ scoreSchema.statics.recordResult = async function (userId, { isCorrect, points, 
     score.gamesPlayed += 1;
     score.lastPlayedAt = new Date();
 
-    const modeKey = ['classic', 'blitz', 'zen'].includes(mode) ? mode : 'classic';
+    // Persist per-mode counts under the historical stat buckets so existing
+    // achievements and older score documents remain compatible.
+    const modeKey =
+        { easy: 'classic', hard: 'blitz', custom: 'zen' }[mode] ||
+        (['classic', 'blitz', 'zen'].includes(mode) ? mode : 'classic');
     if (!score.modePlays) {
         score.modePlays = { classic: 0, blitz: 0, zen: 0 };
     }

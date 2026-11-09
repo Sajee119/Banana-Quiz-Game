@@ -22,6 +22,9 @@ passport.deserializeUser(async (id, done) => {
 async function handleOAuth(providerName, providerId, profileData, done) {
     try {
         const { user, isNew } = await User.findOrCreateByProvider(providerName, providerId, profileData);
+        if (user.isActive === false) {
+            return done(null, false, { message: 'This account has been deactivated.' });
+        }
         logger.info(`OAuth ${providerName}: ${isNew ? 'new' : 'existing'} user ${user.id}`);
         user._isNewAccount = isNew;
         done(null, user);

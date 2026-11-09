@@ -15,8 +15,8 @@ import {
     ShieldCheck,
     ChevronRight,
     Timer,
-    Leaf,
     Banana,
+    Mail,
     Sparkles,
     BarChart3,
     Brain,
@@ -48,10 +48,10 @@ import { gameApi, userApi } from '../api/client.js';
 import { useSound } from '../hooks/useSound.js';
 import { AchievementIcon } from '../lib/achievementIcons.jsx';
 import { TIER_STYLES } from '../lib/tiers.js';
-import { MODE_LIST, formatDate, formatRelative, getLevel, initials } from '../lib/format.js';
+import { MODE_LIST, formatDate, formatRelative, getLevel, initials, normalizeModeId } from '../lib/format.js';
 import { usePageTitle } from '../hooks/usePageTitle.js';
 
-const MODE_ICONS = { classic: Banana, blitz: Timer, zen: Leaf };
+const MODE_ICONS = { easy: Banana, hard: Timer, custom: Settings };
 
 export default function DashboardPage() {
     usePageTitle('Dashboard');
@@ -60,7 +60,7 @@ export default function DashboardPage() {
     const { play } = useSound();
 
     const [selectedMode, setSelectedMode] = useState(
-        ['easy', 'hard', 'custom'].includes(user?.favoriteMode) ? user.favoriteMode : 'easy'
+        normalizeModeId(user?.preferences?.defaultMode || user?.favoriteMode)
     );
     const [achievements, setAchievements] = useState(null);
     const [summary, setSummary] = useState(null);
@@ -180,6 +180,27 @@ export default function DashboardPage() {
                         </div>
                     </div>
                 </motion.section>
+
+                {!user.emailVerified && (
+                    <Link
+                        to="/profile?tab=security"
+                        className="mb-6 flex items-center gap-3 rounded-2xl border-2 border-amber-300 bg-amber-50 px-4 py-3 text-left shadow-game-sm transition hover:bg-amber-100"
+                    >
+                        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-amber-200 text-amber-800">
+                            <Mail size={19} />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                            <span className="block font-display text-base font-extrabold text-amber-900">
+                                Verify your email address
+                            </span>
+                            <span className="block text-xs font-semibold text-amber-700">
+                                Confirm it from your profile to secure your account and enable
+                                recovery emails.
+                            </span>
+                        </span>
+                        <ChevronRight size={18} className="flex-shrink-0 text-amber-600" />
+                    </Link>
+                )}
 
                 {/* Player status */}
                 <section className="mb-8">
@@ -389,7 +410,11 @@ export default function DashboardPage() {
                                     <dt className="flex items-center gap-2 text-banana-600">
                                         <Banana size={15} /> Favourite mode
                                     </dt>
-                                    <dd className="font-bold capitalize text-banana-800">{user.favoriteMode || 'classic'}</dd>
+                                    <dd className="font-bold capitalize text-banana-800">
+                                        {MODE_LIST.find(
+                                            (mode) => mode.id === normalizeModeId(user.favoriteMode)
+                                        )?.label || 'Standard · Easy'}
+                                    </dd>
                                 </div>
                             </dl>
                             <Link to="/profile" className="mt-4 block">

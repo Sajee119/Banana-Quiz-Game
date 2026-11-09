@@ -96,3 +96,15 @@ export const MODE_INFO = {
 };
 
 export const MODE_LIST = Object.values(MODE_INFO);
+
+const LEGACY_MODE_ALIASES = {
+    classic: 'easy',
+    blitz: 'hard',
+    zen: 'custom',
+};
+
+export function normalizeModeId(modeId) {
+    const id = String(modeId || '').trim().toLowerCase();
+    const normalized = LEGACY_MODE_ALIASES[id] || id;
+    return Object.hasOwn(MODE_INFO, normalized) ? normalized : 'easy';
+}

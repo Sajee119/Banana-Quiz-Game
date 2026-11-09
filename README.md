@@ -17,7 +17,8 @@ The project is a distributed full-stack application:
 - **MongoDB and Mongoose** store users, sessions, game history, scores, and
   login events.
 - **Passport** supports Google and Facebook sign-in.
-- **Nodemailer** optionally sends password-reset and security notifications.
+- **Nodemailer** sends email-verification codes, password-reset links, and
+  security notifications when SMTP is configured.
 - The external **Banana API** supplies the calculation puzzles.
 
 ## Features
@@ -27,11 +28,13 @@ The project is a distributed full-stack application:
 - Countdown timers, answer feedback, skip, timeout, and quit handling.
 - Base points, speed bonuses, streak multipliers, and mode scoring.
 - Persistent scores, game history, achievements, and public leaderboard.
-- Email/password registration and login.
-- Google and Facebook OAuth login.
+- Email/password registration with a 6-digit email OTP before the account is
+  created, plus resend cooldowns and attempt limits.
+- Google and Facebook OAuth login, with provider emails treated as verified.
 - Password strength policy, reset links, and session revocation.
-- Profile settings, reduced-motion preference, audio controls, and leaderboard
-  visibility.
+- Profile tabs for identity, appearance, notifications, security, activity,
+  privacy, and account deactivation.
+- Email-verification confirmation for existing accounts created before OTP.
 - Login history with device summaries, masked IP addresses, and failed-attempt
   information.
 - Responsive layouts for desktop and mobile browsers.
@@ -56,8 +59,8 @@ Banana-Quiz-Game/
 │       ├── middleware/     # Authentication and error handling
 │       ├── models/         # Mongoose schemas
 │       ├── routes/         # HTTP endpoints
-│       ├── services/       # Game, mail, API, and history logic
-│       └── utils/          # Shared validation and logging helpers
+│       ├── services/       # Game, mail, verification, API, and history logic
+│       └── utils/          # Shared validation, serializers, and logging helpers
 ├── docs/                   # Architecture and assignment evidence
 ├── ASSIGNMENT_BRIEF.md
 └── README.md
@@ -72,7 +75,8 @@ Generated folders such as `client/node_modules`, `server/node_modules`, and
 - A MongoDB database, local or hosted.
 - A configured `server/.env` file.
 - Optional Google/Facebook application credentials for OAuth.
-- Optional SMTP credentials for real email delivery.
+- SMTP credentials for OTP and notification email. Email/password sign-up
+  cannot be completed in production without a working mail provider.
 
 ## Installation and local development
 
@@ -124,7 +128,12 @@ Important settings include:
 | `AUTH_CALLBACK_URL` | Server URL used for OAuth callbacks |
 | `COOKIE_SECURE` | Enables secure cookies when using HTTPS |
 | `GOOGLE_*`, `FACEBOOK_*` | OAuth application credentials |
-| `SMTP_*`, `MAIL_FROM` | Optional email delivery |
+| `PASSWORD_RESET_TTL_MINUTES` | Password-reset link lifetime |
+| `EMAIL_OTP_TTL_MINUTES` | Minutes an email verification code stays valid |
+| `EMAIL_OTP_MAX_ATTEMPTS` | Wrong OTP attempts allowed before the code locks |
+| `EMAIL_OTP_MAX_RESENDS` | Maximum resend requests per challenge |
+| `EMAIL_OTP_RESEND_SECONDS` | Cooldown between resend requests |
+| `SMTP_*`, `MAIL_FROM` | SMTP host, credentials, and sender address |
 | `GAME_*` | Scoring and game timing configuration |
 | `BANANA_API_*` | External question timeout and retry settings |
 
@@ -136,7 +145,8 @@ credentials.
 | Route | Access | Purpose |
 | --- | --- | --- |
 | `/` | Public | Product landing page, features, modes, FAQ, and leaderboard preview |
-| `/login` | Public | Sign in or create an account |
+| `/login` | Public | Sign in, or create an account through email OTP verification |
+| `/verify-email?verificationId=...&purpose=...` | Public | Enter a 6-digit code to finish sign-up or confirm an email |
 | `/forgot-password` | Public | Request a reset link |
 | `/reset-password?token=...` | Public | Set a new password from a valid token |
 | `/dashboard` | Signed in | Player status, game entry, audio, and achievements preview |
@@ -147,7 +157,7 @@ credentials.
 | `/history/:sessionId` | Signed in | View a specific puzzle result |
 | `/achievements` | Signed in | Review achievement progress |
 | `/leaderboard` | Public | View eligible global rankings |
-| `/profile` | Signed in | Manage identity, preferences, password, devices, and login history |
+| `/profile` | Signed in | Manage identity, email verification, preferences, password, devices, privacy, and account status |
 
 Protected routes are wrapped by `ProtectedRoute`. Authentication state is
 restored by `AuthProvider` through `/auth/status` when the client starts.
@@ -199,14 +209,36 @@ completion. The player can inspect progress on `/achievements`.
 
 ### Authentication endpoints
 
-- `POST /auth/register` creates a local account and starts a session.
+- `POST /auth/register` validates the sign-up form and starts an email OTP
+  challenge; it does **not** create a `User` yet.
+- `POST /auth/register/verify` checks the 6-digit code, creates the verified
+  account, starts a session, and returns the signed-in user.
+- `POST /auth/register/resend` rotates the code for a pending sign-up, subject
+  to the resend cooldown and limit.
+- `GET /auth/verification/status?verificationId=...&kind=...` returns the
+  masked email, expiry, attempt count, and resend state for a challenge.
 - `POST /auth/login` authenticates with email and password.
 - `GET /auth/google` and `GET /auth/facebook` start OAuth flows.
 - `POST /auth/logout` ends the current session.
 - `GET /auth/status` returns the current authentication state.
+- `POST /auth/email/verify/request` sends a code to the signed-in account.
+- `POST /auth/email/verify/confirm` confirms the signed-in account's email.
+- `POST /auth/email/verify/resend` replaces the code for that account.
 - `POST /auth/forgot-password` requests a reset link.
 - `GET /auth/reset-password/validate?token=...` validates a reset token.
 - `POST /auth/reset-password` consumes a valid token and revokes sessions.
+
+Email/password sign-up is a two-step flow. The server hashes the pending
+password with bcrypt, stores only SHA-256 hashes of the challenge token and the
+6-digit OTP in an expiring `EmailVerification` document, and emails the plain
+code once. A `User` is created only after the code matches. Codes expire after
+`EMAIL_OTP_TTL_MINUTES`, lock after `EMAIL_OTP_MAX_ATTEMPTS` wrong entries, and
+resends are limited by `EMAIL_OTP_MAX_RESENDS` and
+`EMAIL_OTP_RESEND_SECONDS`. Signing in with Google or Facebook marks the email
+as verified; accounts created before this flow can confirm their email from the
+Security tab of `/profile`. When SMTP is unavailable in development, the API
+returns a `devOtp` field so the flow can be tested locally; production never
+returns the code.
 
 Passwords are hashed with bcrypt and are never returned by the API. The
 password policy requires at least eight characters, at least three character
@@ -224,13 +256,15 @@ All private user and game endpoints require the current session.
 
 ### User endpoints
 
-- `GET /api/users/me` returns the profile and current statistics.
-- `PATCH /api/users/me` updates profile and preferences.
+- `GET /api/users/me` returns the profile, verification state, and stats.
+- `PATCH /api/users/me` updates profile, mode, and preferences.
 - `PATCH /api/users/me/password` changes or adds a password.
-- `GET /api/users/me/security` returns account security information.
+- `GET /api/users/me/security` returns verification and security checks.
 - `POST /api/users/me/logout-others` revokes other devices.
 - `GET /api/users/me/logins` returns login history and device summaries.
 - `GET /api/users/me/achievements` returns achievement progress.
+- `POST /api/users/me/deactivate` soft-deletes the account after `DELETE`
+  confirmation and a current-password check when one exists.
 - `GET /api/users/leaderboard?limit=25` returns public rankings.
 
 ### Game endpoints
@@ -256,8 +290,9 @@ JSON and normally contain `success`, `data`, and/or `message`.
   applies a timeout, retries failed requests, validates the response, and
   never sends the solution before the player submits.
 - **Google/Facebook:** Passport OAuth creates or links a user identity.
-- **SMTP:** Nodemailer sends welcome, password-reset, password-change, and
-  login-confirmation messages when configured.
+- **SMTP:** Nodemailer sends email-verification OTPs, welcome messages,
+  password-reset links, password-change notices, and login confirmations when
+  configured.
 - **MongoDB:** stores application records and Express sessions.
 
 ## Audio and accessibility
@@ -268,8 +303,10 @@ mean audio is unlocked after a user gesture. SFX, music, and volume settings
 are stored locally under `bq-audio-settings`.
 
 The application supports a reduced-motion preference through `MotionConfig`
-and responsive layouts for mobile browsers. Numeric answers can be entered
-through the on-screen controls and supported keyboard input.
+and responsive layouts for mobile browsers. The profile page groups settings
+into identity, appearance, notifications, security, activity, privacy, and
+account-management tabs. Numeric answers can be entered through the on-screen
+controls and supported keyboard input.
 
 ## Commands and validation
 

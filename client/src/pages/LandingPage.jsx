@@ -274,10 +274,10 @@ export default function LandingPage() {
                                     <BananaLogo size={44} className="animate-wiggle" />
                                     <div>
                                         <p className="font-display text-lg font-extrabold leading-none text-banana-800">Today's bunch</p>
-                                        <p className="text-xs font-bold text-banana-500">Classic mode</p>
+                                        <p className="text-xs font-bold text-banana-500">Easy mode</p>
                                     </div>
                                 </div>
-                                <span className="rounded-full bg-banana-200 px-2.5 py-1 text-xs font-extrabold text-banana-800">02:00</span>
+                                <span className="rounded-full bg-banana-200 px-2.5 py-1 text-xs font-extrabold text-banana-800">30s</span>
                             </div>
 
                             <div className="grid grid-cols-3 gap-2 rounded-2xl bg-gradient-to-br from-banana-100 to-amber-100 p-4">

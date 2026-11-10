@@ -142,7 +142,8 @@ export default function ProfilePage() {
         searchParams.get('verified') === '1'
     );
 
-    const hasPassword = Boolean(user?.providerNames?.includes('local'));
+    const hasPassword =
+        security?.hasPassword ?? Boolean(user?.providerNames?.includes('local'));
     const winRate = stats?.gamesPlayed
         ? Math.round((stats.gamesWon / stats.gamesPlayed) * 100)
         : 0;
@@ -289,6 +290,13 @@ export default function ProfilePage() {
             setPasswordNotice({
                 type: 'error',
                 text: 'New password must be at least 8 characters.',
+            });
+            return;
+        }
+        if (hasPassword && !passwordForm.currentPassword) {
+            setPasswordNotice({
+                type: 'error',
+                text: 'Enter your current password to change it.',
             });
             return;
         }
@@ -1051,6 +1059,10 @@ function SecuritySection({
     onLogoutOthers,
     deviceNotice,
 }) {
+    const checks = Array.isArray(security?.checks) ? security.checks : [];
+    const passedChecks = checks.filter((check) => check.passed).length;
+    const securityScore = Math.max(0, Math.min(100, Number(security?.score) || 0));
+
     return (
         <>
             <Card className="!p-5 md:!p-6">
@@ -1225,15 +1237,15 @@ function SecuritySection({
                         <div className="flex items-center gap-3">
                             <div
                                 className={`flex h-16 w-16 flex-shrink-0 flex-col items-center justify-center rounded-2xl ${
-                                    security.score >= 75
+                                    securityScore >= 75
                                         ? 'bg-emerald-100 text-emerald-700'
-                                        : security.score >= 50
+                                        : securityScore >= 50
                                           ? 'bg-amber-100 text-amber-700'
                                           : 'bg-red-100 text-red-700'
                                 }`}
                             >
                                 <span className="font-display text-xl font-extrabold leading-none">
-                                    {security.score}%
+                                    {securityScore}%
                                 </span>
                                 <span className="mt-0.5 text-[9px] font-bold uppercase tracking-wide">
                                     secure
@@ -1241,29 +1253,28 @@ function SecuritySection({
                             </div>
                             <div className="min-w-0 flex-1">
                                 <p className="text-sm font-extrabold text-banana-800">
-                                    {security.level}
+                                    {security.level || 'Account security'}
                                 </p>
                                 <p className="text-[11px] text-banana-500">
-                                    {security.checks.filter((check) => check.passed).length}/
-                                    {security.checks.length} checks passed
+                                    {passedChecks}/{checks.length} checks passed
                                 </p>
                                 <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-banana-200">
                                     <div
                                         className={`h-full rounded-full ${
-                                            security.score >= 75
+                                            securityScore >= 75
                                                 ? 'bg-emerald-500'
-                                                : security.score >= 50
+                                                : securityScore >= 50
                                                   ? 'bg-amber-400'
                                                   : 'bg-red-500'
                                         }`}
-                                        style={{ width: `${security.score}%` }}
+                                        style={{ width: `${securityScore}%` }}
                                     />
                                 </div>
                             </div>
                         </div>
 
                         <ul className="mt-4 space-y-2">
-                            {security.checks.map((check) => (
+                            {checks.map((check) => (
                                 <li
                                     key={check.id}
                                     title={check.hint}
@@ -1346,6 +1357,9 @@ function ActivitySection({
     onRefresh,
     loadingSecurity,
 }) {
+    const history = Array.isArray(loginData?.history) ? loginData.history : [];
+    const devices = Array.isArray(loginData?.devices) ? loginData.devices : [];
+
     return (
         <>
             <Card className="!p-5 md:!p-6">
@@ -1377,14 +1391,14 @@ function ActivitySection({
                     </p>
                 )}
 
-                {loginData && loginData.history.length === 0 && (
+                {loginData && history.length === 0 && (
                     <p className="py-6 text-center text-sm font-semibold text-banana-500">
                         No sign-ins recorded yet.
                     </p>
                 )}
 
                 <ul className="divide-y divide-banana-100">
-                    {loginData?.history.map((entry) => {
+                    {history.map((entry) => {
                         const Icon = DEVICE_ICONS[entry.deviceType] || Monitor;
                         const failed = entry.success === false;
                         return (
@@ -1433,7 +1447,7 @@ function ActivitySection({
                         noMargin
                     />
                     <div className="mt-3 space-y-2">
-                        {loginData?.devices.map((device) => {
+                        {devices.map((device) => {
                             const Icon = DEVICE_ICONS[device.deviceType] || Monitor;
                             return (
                                 <div
@@ -1461,7 +1475,7 @@ function ActivitySection({
                                 </div>
                             );
                         })}
-                        {loginData && loginData.devices.length === 0 && (
+                        {loginData && devices.length === 0 && (
                             <p className="py-3 text-center text-xs font-semibold text-banana-500">
                                 No devices yet.
                             </p>
@@ -1707,19 +1721,21 @@ function DangerZoneSection({
 function downloadDataExport({ user, stats, security, loginData }) {
     const payload = {
         exportedAt: new Date().toISOString(),
-        user,
-        stats,
-        security,
-        loginDevices: loginData?.devices || [],
-        recentSignIns: loginData?.history || [],
+        user: user || null,
+        stats: stats || null,
+        security: security || null,
+        loginDevices: Array.isArray(loginData?.devices) ? loginData.devices : [],
+        recentSignIns: Array.isArray(loginData?.history) ? loginData.history : [],
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'banana-quiz-data.json';
+    link.download = `banana-quiz-data-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
     link.click();
-    URL.revokeObjectURL(url);
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 function SectionHeading({ icon, title, subtitle, noMargin = false }) {

@@ -44,6 +44,9 @@ export function formatDuration(ms) {
     return `${(ms / 1000).toFixed(1)}s`;
 }
 
+export const QUIZ_COUNT_OPTIONS = [5, 10, 20, 30];
+export const TIME_LIMIT_OPTIONS = [10, 15, 20, 30, 45, 60];
+
 export const POINTS_PER_LEVEL = 500;
 
 export function getLevel(totalPoints = 0) {

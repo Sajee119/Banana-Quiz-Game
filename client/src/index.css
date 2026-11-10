@@ -55,13 +55,29 @@
 
 html, body, #root { height: 100%; }
 
+/* Shrinking bar that shows the auto-submit pause running out. */
+.auto-submit-bar {
+  transform-origin: left;
+  animation: auto-submit 0.9s linear forwards;
+}
+
+@keyframes auto-submit {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
 html { scroll-behavior: smooth; }
 
 /* Account preference: calm the decorative animations. */
 html[data-reduced-motion='true'] .animate-wiggle,
 html[data-reduced-motion='true'] .animate-float,
-html[data-reduced-motion='true'] .animate-shine {
+html[data-reduced-motion='true'] .animate-shine,
+html[data-reduced-motion='true'] .auto-submit-bar {
   animation: none !important;
+}
+
+html[data-reduced-motion='true'] .auto-submit-bar {
+  opacity: 0.6;
 }
 
 html[data-reduced-motion='true'] *,

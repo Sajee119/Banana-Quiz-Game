@@ -48,6 +48,20 @@ const userSchema = new mongoose.Schema(
                 enum: ['easy', 'hard', 'custom'],
                 default: 'easy'
             },
+            autoSubmit: { type: Boolean, default: true },
+            celebrations: { type: Boolean, default: true },
+            showKeyboardHints: { type: Boolean, default: true },
+            showTimer: { type: Boolean, default: true },
+            defaultQuizCount: {
+                type: Number,
+                enum: [5, 10, 20, 30],
+                default: 10
+            },
+            defaultTime: {
+                type: Number,
+                enum: [10, 15, 20, 30, 45, 60],
+                default: 30
+            },
         },
         emailVerified: {
             type: Boolean,

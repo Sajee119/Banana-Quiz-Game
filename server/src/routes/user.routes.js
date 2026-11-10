@@ -39,6 +39,12 @@ const profileSchema = Joi.object({
         loginAlerts: Joi.boolean(),
         productUpdates: Joi.boolean(),
         defaultMode: Joi.string().valid('easy', 'hard', 'custom'),
+        autoSubmit: Joi.boolean(),
+        celebrations: Joi.boolean(),
+        showKeyboardHints: Joi.boolean(),
+        showTimer: Joi.boolean(),
+        defaultQuizCount: Joi.number().valid(5, 10, 20, 30),
+        defaultTime: Joi.number().valid(10, 15, 20, 30, 45, 60),
     }).min(1),
 }).min(1);
 

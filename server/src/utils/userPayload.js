@@ -11,6 +11,12 @@ const DEFAULT_PREFERENCES = {
     loginAlerts: true,
     productUpdates: false,
     defaultMode: 'easy',
+    autoSubmit: true,
+    celebrations: true,
+    showKeyboardHints: true,
+    showTimer: true,
+    defaultQuizCount: 10,
+    defaultTime: 30,
 };
 
 const VERIFIED_PROVIDERS = new Set(['google', 'facebook']);
@@ -42,6 +48,14 @@ function buildUserPayload(user) {
             loginAlerts: preferences.loginAlerts ?? DEFAULT_PREFERENCES.loginAlerts,
             productUpdates: preferences.productUpdates ?? DEFAULT_PREFERENCES.productUpdates,
             defaultMode: preferences.defaultMode ?? DEFAULT_PREFERENCES.defaultMode,
+            autoSubmit: preferences.autoSubmit ?? DEFAULT_PREFERENCES.autoSubmit,
+            celebrations: preferences.celebrations ?? DEFAULT_PREFERENCES.celebrations,
+            showKeyboardHints:
+                preferences.showKeyboardHints ?? DEFAULT_PREFERENCES.showKeyboardHints,
+            showTimer: preferences.showTimer ?? DEFAULT_PREFERENCES.showTimer,
+            defaultQuizCount:
+                preferences.defaultQuizCount ?? DEFAULT_PREFERENCES.defaultQuizCount,
+            defaultTime: preferences.defaultTime ?? DEFAULT_PREFERENCES.defaultTime,
         },
         createdAt: user.createdAt,
         lastLoginAt: user.lastLoginAt,

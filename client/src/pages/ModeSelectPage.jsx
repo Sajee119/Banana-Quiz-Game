@@ -14,7 +14,12 @@ import AppHeader from '../components/AppHeader.jsx';
 import Button from '../components/Button.jsx';
 import Card from '../components/Card.jsx';
 import { useAuth } from '../context/auth-context.js';
-import { MODE_LIST, normalizeModeId } from '../lib/format.js';
+import {
+    MODE_LIST,
+    QUIZ_COUNT_OPTIONS,
+    TIME_LIMIT_OPTIONS,
+    normalizeModeId,
+} from '../lib/format.js';
 import { usePageTitle } from '../hooks/usePageTitle.js';
 
 const MODE_ICONS = { easy: Banana, hard: Timer, custom: Settings2 };
@@ -23,8 +28,8 @@ const MODE_ACCENTS = {
     hard: 'from-orange-300 to-orange-500',
     custom: 'from-sky-300 to-sky-500',
 };
-const QUIZ_COUNTS = [5, 10, 20, 30];
-const TIMES = [10, 15, 20, 30, 45, 60];
+const QUIZ_COUNTS = QUIZ_COUNT_OPTIONS;
+const TIMES = TIME_LIMIT_OPTIONS;
 
 function clamp(value, min, max) {
     return Math.min(max, Math.max(min, Number(value) || min));
@@ -47,8 +52,14 @@ export default function ModeSelectPage() {
     );
 
     const [mode, setMode] = useState(initialMode);
-    const [quizCount, setQuizCount] = useState(10);
-    const [time, setTime] = useState(30);
+    const [quizCount, setQuizCount] = useState(() => {
+        const stored = Number(user?.preferences?.defaultQuizCount);
+        return QUIZ_COUNTS.includes(stored) ? stored : 10;
+    });
+    const [time, setTime] = useState(() => {
+        const stored = Number(user?.preferences?.defaultTime);
+        return TIMES.includes(stored) ? stored : 30;
+    });
     const [error, setError] = useState('');
 
     const begin = () => {

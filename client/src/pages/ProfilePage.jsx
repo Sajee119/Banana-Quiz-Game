@@ -45,6 +45,8 @@ import { useAuth } from '../context/auth-context.js';
 import { authApi, userApi } from '../api/client.js';
 import {
     MODE_LIST,
+    QUIZ_COUNT_OPTIONS,
+    TIME_LIMIT_OPTIONS,
     formatDate,
     formatDateTime,
     formatRelative,
@@ -80,6 +82,7 @@ const REASON_LABELS = {
 const TABS = [
     { id: 'profile', label: 'Profile', icon: UserRound },
     { id: 'appearance', label: 'Appearance', icon: Palette },
+    { id: 'gameplay', label: 'Gameplay', icon: Gamepad2 },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'security', label: 'Security', icon: ShieldCheck },
     { id: 'activity', label: 'Activity', icon: Activity },
@@ -94,6 +97,12 @@ const DEFAULT_PREFERENCES = {
     loginAlerts: true,
     productUpdates: false,
     defaultMode: 'easy',
+    autoSubmit: true,
+    celebrations: true,
+    showKeyboardHints: true,
+    showTimer: true,
+    defaultQuizCount: 10,
+    defaultTime: 30,
 };
 
 export default function ProfilePage() {
@@ -156,6 +165,9 @@ export default function ProfilePage() {
             avatar: user.avatar || '',
             favoriteMode: normalizeModeId(user.favoriteMode),
         });
+        const storedQuizCount = Number(user.preferences?.defaultQuizCount);
+        const storedTime = Number(user.preferences?.defaultTime);
+
         setPreferences({
             reducedMotion:
                 user.preferences?.reducedMotion ?? DEFAULT_PREFERENCES.reducedMotion,
@@ -169,6 +181,17 @@ export default function ProfilePage() {
             defaultMode: normalizeModeId(
                 user.preferences?.defaultMode ?? DEFAULT_PREFERENCES.defaultMode
             ),
+            autoSubmit: user.preferences?.autoSubmit ?? DEFAULT_PREFERENCES.autoSubmit,
+            celebrations: user.preferences?.celebrations ?? DEFAULT_PREFERENCES.celebrations,
+            showKeyboardHints:
+                user.preferences?.showKeyboardHints ?? DEFAULT_PREFERENCES.showKeyboardHints,
+            showTimer: user.preferences?.showTimer ?? DEFAULT_PREFERENCES.showTimer,
+            defaultQuizCount: QUIZ_COUNT_OPTIONS.includes(storedQuizCount)
+                ? storedQuizCount
+                : DEFAULT_PREFERENCES.defaultQuizCount,
+            defaultTime: TIME_LIMIT_OPTIONS.includes(storedTime)
+                ? storedTime
+                : DEFAULT_PREFERENCES.defaultTime,
         });
     }, [user]);
 
@@ -685,6 +708,32 @@ export default function ProfilePage() {
                                 />
                             )}
 
+                            {activeTab === 'gameplay' && (
+                                <GameplaySection
+                                    preferences={preferences}
+                                    updatePreference={updatePreference}
+                                    onSubmit={() =>
+                                        savePreferences(
+                                            'gameplay',
+                                            {
+                                                autoSubmit: preferences.autoSubmit,
+                                                celebrations: preferences.celebrations,
+                                                showKeyboardHints:
+                                                    preferences.showKeyboardHints,
+                                                showTimer: preferences.showTimer,
+                                                defaultQuizCount: Number(
+                                                    preferences.defaultQuizCount
+                                                ),
+                                                defaultTime: Number(preferences.defaultTime),
+                                            },
+                                            'Gameplay settings saved.'
+                                        )
+                                    }
+                                    saving={savingSection === 'gameplay'}
+                                    notice={notices.gameplay}
+                                />
+                            )}
+
                             {activeTab === 'notifications' && (
                                 <NotificationsSection
                                     preferences={preferences}
@@ -989,6 +1038,102 @@ function AppearanceSection({ preferences, updatePreference, onSubmit, saving, no
                 <div className="flex justify-end">
                     <Button type="button" onClick={onSubmit} disabled={saving} className="!py-2.5 !text-base">
                         <Save size={17} /> {saving ? 'Saving…' : 'Save appearance'}
+                    </Button>
+                </div>
+            </div>
+        </Card>
+    );
+}
+
+function GameplaySection({ preferences, updatePreference, onSubmit, saving, notice }) {
+    return (
+        <Card className="!p-5 md:!p-6">
+            <SectionHeading
+                icon={<Gamepad2 size={20} />}
+                title="Gameplay & controls"
+                subtitle="Tune how answering, celebrations and the game screen behave."
+            />
+
+            <div className="space-y-4">
+                <PreferenceToggle
+                    label="Auto-submit answers"
+                    description="Submit automatically when you pause after typing. Turn off to use the Submit answer button."
+                    checked={preferences.autoSubmit}
+                    onChange={updatePreference('autoSubmit')}
+                />
+                <PreferenceToggle
+                    label="Celebration animations"
+                    description="Show a confetti burst when an answer is correct."
+                    checked={preferences.celebrations}
+                    onChange={updatePreference('celebrations')}
+                />
+                <PreferenceToggle
+                    label="Show keyboard hints"
+                    description="Display the digits, Backspace and Enter hint under the keypad."
+                    checked={preferences.showKeyboardHints}
+                    onChange={updatePreference('showKeyboardHints')}
+                />
+                <PreferenceToggle
+                    label="Show countdown timer"
+                    description="Display the remaining-time bar. Turn off for a calmer, timer-free view."
+                    checked={preferences.showTimer}
+                    onChange={updatePreference('showTimer')}
+                />
+
+                <div className="grid gap-4 border-t border-banana-200 pt-4 sm:grid-cols-2">
+                    <Field
+                        label="Default quiz count"
+                        htmlFor="defaultQuizCount"
+                        hint="Custom mode"
+                    >
+                        <select
+                            id="defaultQuizCount"
+                            value={preferences.defaultQuizCount}
+                            onChange={updatePreference('defaultQuizCount')}
+                            className={inputClass}
+                        >
+                            {QUIZ_COUNT_OPTIONS.map((count) => (
+                                <option key={count} value={count}>
+                                    {count} quizzes
+                                </option>
+                            ))}
+                        </select>
+                    </Field>
+                    <Field
+                        label="Default time per quiz"
+                        htmlFor="defaultTime"
+                        hint="Custom mode"
+                    >
+                        <select
+                            id="defaultTime"
+                            value={preferences.defaultTime}
+                            onChange={updatePreference('defaultTime')}
+                            className={inputClass}
+                        >
+                            {TIME_LIMIT_OPTIONS.map((seconds) => (
+                                <option key={seconds} value={seconds}>
+                                    {seconds} seconds
+                                </option>
+                            ))}
+                        </select>
+                    </Field>
+                </div>
+
+                <p className="rounded-2xl bg-banana-50 p-3 text-xs font-semibold text-banana-600">
+                    Auto-submit waits about a second after your last digit. Press Enter to submit
+                    immediately, or turn auto-submit off to bring back the Submit answer button.
+                </p>
+
+                <Notice notice={notice} />
+
+                <div className="flex justify-end">
+                    <Button
+                        type="button"
+                        onClick={onSubmit}
+                        disabled={saving}
+                        className="!py-2.5 !text-base"
+                    >
+                        <Save size={17} /> {saving ? 'Saving…' : 'Save gameplay'}
                     </Button>
                 </div>
             </div>

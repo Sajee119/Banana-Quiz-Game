@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
     ArrowLeft,
     CheckCircle2,
@@ -8,6 +9,7 @@ import {
     LogOut,
     RefreshCw,
     SkipForward,
+    Sparkles,
     XCircle,
 } from 'lucide-react';
 import BananaLogo from '../components/BananaLogo.jsx';
@@ -20,9 +22,26 @@ import { normalizeModeId } from '../lib/format.js';
 
 const KEYS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const FEEDBACK_MS = 900;
+const AUTO_SUBMIT_MS = 900;
 const MAX_ANSWER = 1000;
 const MAX_DIGITS = 4;
 const ALLOWED_TIMES = [10, 15, 20, 30, 45, 60];
+
+const CELEBRATION_COLORS = ['#facc15', '#34d399', '#60a5fa', '#fb7185', '#fb923c', '#a78bfa'];
+const CELEBRATION_PIECES = Array.from({ length: 30 }, (_, index) => {
+    const angle = (Math.PI * 2 * index) / 30;
+    const distance = 110 + ((index * 43) % 170);
+    return {
+        id: index,
+        x: Math.round(Math.cos(angle) * distance),
+        y: Math.round(Math.sin(angle) * distance - 40),
+        rotate: ((index * 67) % 360) - 180,
+        delay: (index % 6) * 0.025,
+        color: CELEBRATION_COLORS[index % CELEBRATION_COLORS.length],
+        emoji: index % 5 === 0 ? '🍌' : index % 7 === 0 ? '✨' : null,
+        size: 7 + ((index * 11) % 9),
+    };
+});
 
 function createGameId() {
     if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -51,7 +70,14 @@ function readStoredConfig() {
 
 export default function GamePage() {
     const navigate = useNavigate();
-    const { setStats } = useAuth();
+    const { setStats, user } = useAuth();
+    const preferences = user?.preferences || {};
+    const autoSubmit = preferences.autoSubmit !== false;
+    const celebrations = preferences.celebrations !== false;
+    const showKeyboardHints = preferences.showKeyboardHints !== false;
+    const showTimer = preferences.showTimer !== false;
+    const celebrate = celebrations && !preferences.reducedMotion;
+
     const [config, setConfig] = useState(null);
     const [session, setSession] = useState(null);
     const [answers, setAnswers] = useState([]);
@@ -65,6 +91,7 @@ export default function GamePage() {
     const busyRef = useRef(false);
     const finishedRef = useRef(false);
     const feedbackTimer = useRef(0);
+    const autoSubmitTimer = useRef(0);
 
     usePageTitle('Playing');
 
@@ -83,7 +110,13 @@ export default function GamePage() {
         return () => window.removeEventListener('popstate', blockBack);
     }, [navigate]);
 
-    useEffect(() => () => window.clearTimeout(feedbackTimer.current), []);
+    useEffect(
+        () => () => {
+            window.clearTimeout(feedbackTimer.current);
+            window.clearTimeout(autoSubmitTimer.current);
+        },
+        []
+    );
 
     const finishGame = useCallback(() => {
         const gameId = sessionStorage.getItem('banana-game-id');
@@ -230,6 +263,17 @@ export default function GamePage() {
         },
         [entry, feedback, record, session]
     );
+
+    // Auto-submit: wait for a short pause after the last digit. Enter still
+    // submits immediately, and turning the preference off restores the
+    // Submit answer button.
+    useEffect(() => {
+        if (!autoSubmit || !session || feedback || !entry) return undefined;
+
+        window.clearTimeout(autoSubmitTimer.current);
+        autoSubmitTimer.current = window.setTimeout(() => submit(false), AUTO_SUBMIT_MS);
+        return () => window.clearTimeout(autoSubmitTimer.current);
+    }, [autoSubmit, entry, feedback, session, submit]);
 
     useEffect(() => {
         if (!session || feedback) return undefined;
@@ -408,6 +452,9 @@ export default function GamePage() {
 
     return (
         <div className="min-h-screen bg-banana-50">
+            {celebrate && feedback?.isCorrect && (
+                <CelebrationBurst key={`celebration-${answers.length}`} />
+            )}
             <main className="mx-auto flex min-h-screen max-w-7xl flex-col px-4 py-5 md:px-8">
                 <header className="mb-4 flex items-center justify-between gap-3">
                     <div>
@@ -418,30 +465,48 @@ export default function GamePage() {
                             Quiz {quizNumber} of {config.quizCount}
                         </h1>
                     </div>
-                    <Button variant="secondary" onClick={quit} disabled={busy || Boolean(feedback)}>
-                        <LogOut size={18} /> Quit game
-                    </Button>
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                        {!showTimer && (
+                            <Button
+                                variant="secondary"
+                                className="!px-4 !py-2 !text-sm"
+                                onClick={skip}
+                                disabled={busy || Boolean(feedback)}
+                            >
+                                <SkipForward size={16} /> Skip
+                            </Button>
+                        )}
+                        <Button
+                            variant="secondary"
+                            onClick={quit}
+                            disabled={busy || Boolean(feedback)}
+                        >
+                            <LogOut size={18} /> Quit game
+                        </Button>
+                    </div>
                 </header>
 
-                <div className="mb-4 flex items-center justify-between rounded-2xl border-2 border-banana-200 bg-white/80 px-4 py-3">
-                    <span className="font-bold text-banana-700">{seconds}s remaining</span>
-                    <div className="mx-4 h-3 flex-1 overflow-hidden rounded-full bg-banana-200">
-                        <div
-                            className={`h-full rounded-full transition-all ${
-                                progress < 25 ? 'bg-red-500' : 'bg-banana-500'
-                            }`}
-                            style={{ width: `${progress}%` }}
-                        />
+                {showTimer && (
+                    <div className="mb-4 flex items-center justify-between rounded-2xl border-2 border-banana-200 bg-white/80 px-4 py-3">
+                        <span className="font-bold text-banana-700">{seconds}s remaining</span>
+                        <div className="mx-4 h-3 flex-1 overflow-hidden rounded-full bg-banana-200">
+                            <div
+                                className={`h-full rounded-full transition-all ${
+                                    progress < 25 ? 'bg-red-500' : 'bg-banana-500'
+                                }`}
+                                style={{ width: `${progress}%` }}
+                            />
+                        </div>
+                        <Button
+                            variant="secondary"
+                            className="!px-4 !py-2 !text-sm"
+                            onClick={skip}
+                            disabled={busy || Boolean(feedback)}
+                        >
+                            <SkipForward size={16} /> Skip
+                        </Button>
                     </div>
-                    <Button
-                        variant="secondary"
-                        className="!px-4 !py-2 !text-sm"
-                        onClick={skip}
-                        disabled={busy || Boolean(feedback)}
-                    >
-                        <SkipForward size={16} /> Skip
-                    </Button>
-                </div>
+                )}
 
                 <div className="grid flex-1 gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
                     <Card className="flex min-h-[520px] items-center justify-center !p-5 md:!p-10">
@@ -452,7 +517,9 @@ export default function GamePage() {
                                 className="max-h-[560px] max-w-full rounded-2xl border-4 border-banana-300 object-contain shadow-game-sm"
                             />
                         )}
-                        {feedback && <ResultFeedback result={feedback} />}
+                        {feedback && (
+                            <ResultFeedback result={feedback} celebrate={celebrate} />
+                        )}
                     </Card>
 
                     <Card className="flex flex-col justify-center !p-5 md:!p-7">
@@ -461,7 +528,16 @@ export default function GamePage() {
                                 Your answer
                             </p>
                             <p className="mt-1 flex items-center justify-center gap-2 font-bold text-banana-700">
-                                <Clock3 size={17} /> Type or tap a number, then submit
+                                {autoSubmit ? (
+                                    <>
+                                        <Sparkles size={17} className="text-emerald-500" />
+                                        Tap a number — it submits automatically
+                                    </>
+                                ) : (
+                                    <>
+                                        <Clock3 size={17} /> Type or tap a number, then submit
+                                    </>
+                                )}
                             </p>
                         </div>
 
@@ -516,17 +592,39 @@ export default function GamePage() {
                             </button>
                         </div>
 
-                        <Button
-                            onClick={() => submit(false)}
-                            disabled={busy || Boolean(feedback) || !entry}
-                            className="mt-4 w-full !py-4 !text-xl"
-                        >
-                            <CheckCircle2 size={20} /> Submit answer
-                        </Button>
+                        {autoSubmit && session && entry && !feedback && (
+                            <div className="mt-4" aria-live="polite">
+                                <div className="mb-1 flex items-center justify-between text-xs font-bold text-banana-600">
+                                    <span className="flex items-center gap-1.5">
+                                        <Sparkles size={14} className="text-emerald-500" />
+                                        Auto-submitting…
+                                    </span>
+                                    <span>Enter to send now</span>
+                                </div>
+                                <div className="h-2 overflow-hidden rounded-full bg-banana-200">
+                                    <div
+                                        key={`${session.sessionId}-${entry}`}
+                                        className="auto-submit-bar h-full rounded-full bg-emerald-400"
+                                    />
+                                </div>
+                            </div>
+                        )}
 
-                        <p className="mt-3 text-center text-xs font-semibold text-banana-500">
-                            Keyboard: digits to type, Backspace to delete, Enter to submit.
-                        </p>
+                        {!autoSubmit && (
+                            <Button
+                                onClick={() => submit(false)}
+                                disabled={busy || Boolean(feedback) || !entry}
+                                className="mt-4 w-full !py-4 !text-xl"
+                            >
+                                <CheckCircle2 size={20} /> Submit answer
+                            </Button>
+                        )}
+
+                        {showKeyboardHints && (
+                            <p className="mt-3 text-center text-xs font-semibold text-banana-500">
+                                Keyboard: digits to type, Backspace to delete, Enter to submit.
+                            </p>
+                        )}
 
                         {error && (
                             <p className="mt-3 text-center font-bold text-red-600" role="alert">
@@ -562,7 +660,7 @@ export default function GamePage() {
     );
 }
 
-function ResultFeedback({ result }) {
+function ResultFeedback({ result, celebrate = false }) {
     const correct = Boolean(result.isCorrect);
     const timedOut = Boolean(result.timedOut);
     const skipped = Boolean(result.skipped);
@@ -571,7 +669,7 @@ function ResultFeedback({ result }) {
         <div
             className={`w-full max-w-md rounded-3xl border-4 p-8 text-center ${
                 correct
-                    ? 'border-emerald-300 bg-emerald-50'
+                    ? `border-emerald-300 bg-emerald-50 ${celebrate ? 'animate-pop' : ''}`
                     : timedOut
                       ? 'border-orange-300 bg-orange-50'
                       : 'border-red-300 bg-red-50'
@@ -598,6 +696,47 @@ function ResultFeedback({ result }) {
             {result.solution != null && (
                 <p className="mt-2 font-bold text-banana-700">Correct answer: {result.solution}</p>
             )}
+        </div>
+    );
+}
+
+function CelebrationBurst() {
+    return (
+        <div
+            className="pointer-events-none fixed inset-0 z-[70] overflow-hidden"
+            aria-hidden="true"
+        >
+            <div className="absolute left-1/2 top-1/2">
+                {CELEBRATION_PIECES.map((piece) => (
+                    <motion.span
+                        key={piece.id}
+                        initial={{ x: 0, y: 0, opacity: 1, scale: 0.4, rotate: 0 }}
+                        animate={{
+                            x: piece.x,
+                            y: piece.y,
+                            opacity: 0,
+                            scale: 1,
+                            rotate: piece.rotate,
+                        }}
+                        transition={{ duration: 0.75, delay: piece.delay, ease: 'easeOut' }}
+                        className="absolute block"
+                        style={{ fontSize: 22, lineHeight: 1 }}
+                    >
+                        {piece.emoji ? (
+                            piece.emoji
+                        ) : (
+                            <span
+                                className="block rounded-sm"
+                                style={{
+                                    width: piece.size,
+                                    height: piece.size,
+                                    background: piece.color,
+                                }}
+                            />
+                        )}
+                    </motion.span>
+                ))}
+            </div>
         </div>
     );
 }

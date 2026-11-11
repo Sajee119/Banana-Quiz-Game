@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { authApi, userApi } from '../api/client';
+import { forgetRememberedLogin } from '../lib/rememberMe';
 import { AuthContext } from './auth-context';
 
 export function AuthProvider({ children }) {
@@ -68,6 +69,9 @@ export function AuthProvider({ children }) {
 
     const logout = async () => {
         await authApi.logout();
+        // An explicit sign-out should not leave the email saved by
+        // "Remember me" on a shared device.
+        forgetRememberedLogin();
         setUser(null);
         setStats(null);
     };

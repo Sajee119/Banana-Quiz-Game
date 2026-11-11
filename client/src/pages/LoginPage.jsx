@@ -17,6 +17,11 @@ import { authApi } from '../api/client.js';
 import { useAuth } from '../context/auth-context.js';
 import { usePageTitle } from '../hooks/usePageTitle.js';
 import { evaluatePassword } from '../lib/passwordStrength.js';
+import {
+    forgetRememberedLogin,
+    readRememberedLogin,
+    rememberLogin,
+} from '../lib/rememberMe.js';
 
 const inputClass =
     'w-full rounded-2xl border-2 border-banana-200 bg-white px-4 py-3 font-semibold text-banana-900 placeholder:text-banana-400 focus:border-banana-400 focus:outline-none';
@@ -49,10 +54,18 @@ export default function LoginPage() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
+<<<<<<< Updated upstream
     const [mode, setMode] = useState('login');
+=======
+    const [mode, setMode] = useState(
+        searchParams.get('mode') === 'register' ? 'register' : 'login'
+    );
+    const [rememberedLogin] = useState(readRememberedLogin);
+    const [remember, setRemember] = useState(() => Boolean(rememberedLogin));
+>>>>>>> Stashed changes
     const [form, setForm] = useState({
         name: '',
-        email: '',
+        email: rememberedLogin?.email || '',
         password: '',
         confirmPassword: '',
     });
@@ -77,6 +90,11 @@ export default function LoginPage() {
         setMode(nextMode);
         setError('');
         setForm((prev) => ({ ...prev, password: '', confirmPassword: '' }));
+    };
+
+    const persistRememberChoice = () => {
+        if (remember) rememberLogin({ email: form.email });
+        else forgetRememberedLogin();
     };
 
     const handleSubmit = async (event) => {
@@ -112,8 +130,10 @@ export default function LoginPage() {
                 );
             } else {
                 await signIn(() =>
-                    authApi.login({ email: form.email, password: form.password })
+                    authApi.login({ email: form.email, password: form.password, remember })
                 );
+
+                persistRememberChoice();
             }
             navigate('/dashboard', { replace: true });
         } catch (err) {
@@ -124,6 +144,7 @@ export default function LoginPage() {
     };
 
     const isRegister = mode === 'register';
+    const oauthRememberQuery = remember ? '?remember=1' : '';
 
     return (
         <div className="flex min-h-screen flex-col px-4 py-5 sm:px-6">
@@ -329,6 +350,31 @@ export default function LoginPage() {
                                 </>
                             )}
 
+                            {!isRegister && (
+                                <label
+                                    htmlFor="remember"
+                                    className="flex cursor-pointer items-start gap-3 rounded-2xl border-2 border-banana-100 bg-banana-50/70 px-3 py-2.5 transition hover:border-banana-200 hover:bg-banana-50"
+                                >
+                                    <input
+                                        id="remember"
+                                        name="remember"
+                                        type="checkbox"
+                                        checked={remember}
+                                        onChange={(event) => setRemember(event.target.checked)}
+                                        disabled={submitting}
+                                        className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-2 border-banana-400 accent-banana-500 focus:ring-banana-400 disabled:cursor-not-allowed"
+                                    />
+                                    <span className="min-w-0">
+                                        <span className="block text-sm font-bold text-banana-800">
+                                            Remember me
+                                        </span>
+                                        <span className="block text-xs font-semibold text-banana-600">
+                                            Keep me signed in on this device for 30 days.
+                                        </span>
+                                    </span>
+                                </label>
+                            )}
+
                             <button
                                 type="submit"
                                 disabled={submitting}
@@ -350,7 +396,8 @@ export default function LoginPage() {
 
                         <div className="space-y-3">
                             <a
-                                href={authApi.googleLoginUrl}
+                                href={`${authApi.googleLoginUrl}${oauthRememberQuery}`}
+                                onClick={persistRememberChoice}
                                 className="flex w-full items-center justify-center gap-3 rounded-2xl border-2 border-gray-200 bg-white px-4 py-3 font-bold text-gray-700 shadow-game-sm transition hover:bg-gray-50 active:translate-y-1 active:shadow-none"
                             >
                                 <svg width="22" height="22" viewBox="0 0 48 48" aria-hidden="true">
@@ -362,7 +409,8 @@ export default function LoginPage() {
                                 Continue with Google
                             </a>
                             <a
-                                href={authApi.facebookLoginUrl}
+                                href={`${authApi.facebookLoginUrl}${oauthRememberQuery}`}
+                                onClick={persistRememberChoice}
                                 className="flex w-full items-center justify-center gap-3 rounded-2xl bg-[#1877F2] px-4 py-3 font-bold text-white shadow-game-sm transition hover:bg-[#166fe0] active:translate-y-1 active:shadow-none"
                             >
                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="white" aria-hidden="true">

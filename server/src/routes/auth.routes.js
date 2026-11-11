@@ -15,7 +15,15 @@ const {
 const { evaluatePassword } = require('../utils/passwordPolicy');
 const { getClientIp, parseUserAgent } = require('../utils/userAgent');
 const logger = require('../utils/logger');
+<<<<<<< Updated upstream
 const { ensureGuest } = require('../middleware/auth.middleware');
+=======
+const { ensureGuest, ensureAuthenticated } = require('../middleware/auth.middleware');
+
+const PENDING_PASSWORD_ROUNDS = 12;
+const REMEMBER_MAX_AGE_MS = env.SESSION_REMEMBER_DAYS * 24 * 60 * 60 * 1000;
+const OAUTH_REMEMBER_COOKIE = 'bq_oauth_remember';
+>>>>>>> Stashed changes
 
 const authOptions = {
     failureRedirect: `${env.CLIENT_URL}/login?error=oauth_failed`,
@@ -43,16 +51,52 @@ function hashToken(token) {
     return crypto.createHash('sha256').update(String(token)).digest('hex');
 }
 
-function loginUser(req, user) {
+function applySessionLifetime(req, remember) {
+    if (!req.session?.cookie) return;
+    // A checked "Remember me" turns the session cookie into a persistent
+    // one. Without it, the cookie is dropped when the browser closes.
+    req.session.cookie.maxAge = remember ? REMEMBER_MAX_AGE_MS : null;
+}
+
+function loginUser(req, user, remember = false) {
     return new Promise((resolve, reject) => {
         req.login(user, (err) => {
             if (err) return reject(err);
             // Sessions carry the account's auth version so a password change
             // or "sign out other devices" can revoke them server-side.
             req.session.authVersion = user.authVersion || 0;
+            applySessionLifetime(req, remember);
             resolve();
         });
     });
+}
+
+function wantsRememberMe(value) {
+    return value === true || value === 'true' || value === 1 || value === '1';
+}
+
+function readRequestCookie(req, name) {
+    const header = req.headers?.cookie;
+    if (!header) return null;
+
+    for (const part of header.split(';')) {
+        const [key, ...rest] = part.trim().split('=');
+        if (key === name) return decodeURIComponent(rest.join('='));
+    }
+    return null;
+}
+
+// OAuth redirects leave the app, so the remember choice is parked in a
+// short-lived, HTTP-only cookie and applied when the provider calls back.
+function rememberOAuthChoice(req, res, next) {
+    res.cookie(OAUTH_REMEMBER_COOKIE, wantsRememberMe(req.query.remember) ? '1' : '0', {
+        httpOnly: true,
+        sameSite: env.COOKIE_SECURE ? 'none' : 'lax',
+        secure: env.COOKIE_SECURE,
+        maxAge: 10 * 60 * 1000,
+        path: '/auth',
+    });
+    next();
 }
 
 function syncSessionVersion(req) {
@@ -130,7 +174,7 @@ router.post('/register', asyncHandler(async (req, res) => {
 
 // email + password login
 router.post('/login', asyncHandler(async (req, res) => {
-    const { email = '', password = '' } = req.body || {};
+    const { email = '', password = '', remember = false } = req.body || {};
 
     const emailError = validateEmail(email);
     if (emailError) return res.status(400).json({ success: false, message: emailError });
@@ -178,7 +222,7 @@ router.post('/login', asyncHandler(async (req, res) => {
 
     user.lastLoginAt = new Date();
     await user.save();
-    await loginUser(req, user);
+    await loginUser(req, user, wantsRememberMe(remember));
     await recordLogin(req, {
         userId: user.id,
         email: user.email,
@@ -346,6 +390,7 @@ router.post('/reset-password', asyncHandler(async (req, res) => {
 router.get(
     '/google',
     ensureGuest,
+    rememberOAuthChoice,
     passport.authenticate('google', { scope: ['profile', 'email'], prompt: 'select_account' })
 );
 
@@ -354,6 +399,8 @@ router.get(
     passport.authenticate('google', authOptions),
     asyncHandler(async (req, res) => {
         syncSessionVersion(req);
+        applySessionLifetime(req, readRequestCookie(req, OAUTH_REMEMBER_COOKIE) === '1');
+        res.clearCookie(OAUTH_REMEMBER_COOKIE, { path: '/auth' });
         await recordLogin(req, {
             userId: req.user.id,
             email: req.user.email,
@@ -373,6 +420,7 @@ router.get(
 router.get(
     '/facebook',
     ensureGuest,
+    rememberOAuthChoice,
     passport.authenticate('facebook', { scope: ['public_profile'] })
 );
 
@@ -381,6 +429,8 @@ router.get(
     passport.authenticate('facebook', authOptions),
     asyncHandler(async (req, res) => {
         syncSessionVersion(req);
+        applySessionLifetime(req, readRequestCookie(req, OAUTH_REMEMBER_COOKIE) === '1');
+        res.clearCookie(OAUTH_REMEMBER_COOKIE, { path: '/auth' });
         await recordLogin(req, {
             userId: req.user.id,
             email: req.user.email,

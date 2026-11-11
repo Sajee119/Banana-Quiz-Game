@@ -37,7 +37,29 @@ npm run dev      # Start with nodemon
 npm start        # Start with Node
 ```
 
+<<<<<<< Updated upstream
 Create a `server/.env` file based on `server/.env.example` before starting the server.
+=======
+| Variable | Purpose |
+| --- | --- |
+| `NODE_ENV` | Development or production behavior |
+| `PORT` | Express listening port |
+| `MONGODB_URI` | MongoDB connection string |
+| `SESSION_SECRET` | Secret used to sign session cookies |
+| `CLIENT_URL` | Browser URL used for CORS and redirects |
+| `AUTH_CALLBACK_URL` | Server URL used for OAuth callbacks |
+| `COOKIE_SECURE` | Enables secure cookies when using HTTPS |
+| `SESSION_REMEMBER_DAYS` | Session lifetime when the player ticks “Remember me” |
+| `GOOGLE_*`, `FACEBOOK_*` | OAuth application credentials |
+| `PASSWORD_RESET_TTL_MINUTES` | Password-reset link lifetime |
+| `EMAIL_OTP_TTL_MINUTES` | Minutes an email verification code stays valid |
+| `EMAIL_OTP_MAX_ATTEMPTS` | Wrong OTP attempts allowed before the code locks |
+| `EMAIL_OTP_MAX_RESENDS` | Maximum resend requests per challenge |
+| `EMAIL_OTP_RESEND_SECONDS` | Cooldown between resend requests |
+| `SMTP_*`, `MAIL_FROM` | SMTP host, credentials, and sender address |
+| `GAME_*` | Scoring and game timing configuration |
+| `BANANA_API_*` | External question timeout and retry settings |
+>>>>>>> Stashed changes
 
 ## Available Server Commands
 
@@ -127,9 +149,32 @@ stored, alongside a 30-minute expiry (`PASSWORD_RESET_TTL_MINUTES`). Tokens are
 single-use, and requesting a new link invalidates any previous unused link.
 Expired token documents are removed by MongoDB's TTL monitor.
 
+<<<<<<< Updated upstream
 When SMTP is not configured, the server logs the reset URL and, in development
 only, returns it as `devResetUrl` so the flow can be tested locally. In
 production, the link is never returned by the API.
+=======
+- `POST /auth/register` validates the sign-up form and starts an email OTP
+  challenge; it does **not** create a `User` yet.
+- `POST /auth/register/verify` checks the 6-digit code, creates the verified
+  account, starts a session, and returns the signed-in user.
+- `POST /auth/register/resend` rotates the code for a pending sign-up, subject
+  to the resend cooldown and limit.
+- `GET /auth/verification/status?verificationId=...&kind=...` returns the
+  masked email, expiry, attempt count, and resend state for a challenge.
+- `POST /auth/login` authenticates with email and password. Pass
+  `remember: true` to keep the session cookie for `SESSION_REMEMBER_DAYS`
+  (30 by default); otherwise the cookie ends when the browser closes.
+- `GET /auth/google` and `GET /auth/facebook` start OAuth flows.
+- `POST /auth/logout` ends the current session.
+- `GET /auth/status` returns the current authentication state.
+- `POST /auth/email/verify/request` sends a code to the signed-in account.
+- `POST /auth/email/verify/confirm` confirms the signed-in account's email.
+- `POST /auth/email/verify/resend` replaces the code for that account.
+- `POST /auth/forgot-password` requests a reset link.
+- `GET /auth/reset-password/validate?token=...` validates a reset token.
+- `POST /auth/reset-password` consumes a valid token and revokes sessions.
+>>>>>>> Stashed changes
 
 Configure email delivery with the optional SMTP variables in
 `server/.env.example`: `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`,
@@ -137,7 +182,16 @@ Configure email delivery with the optional SMTP variables in
 
 ### Account endpoints
 
+<<<<<<< Updated upstream
 All account endpoints require an authenticated session.
+=======
+Sessions use an HTTP-only cookie and MongoDB-backed storage. The cookie is a
+browser-session cookie by default; ticking “Remember me” at sign-in keeps it
+for `SESSION_REMEMBER_DAYS`. An `authVersion` on the user and session allows
+password changes, password resets, and “sign out other devices” to invalidate
+older sessions. Login attempts are recorded as `LoginEvent` documents with a
+hashed session identifier and masked IP data.
+>>>>>>> Stashed changes
 
 - `GET /api/users/me` — profile plus current stats.
 - `PATCH /api/users/me` — update `name`, `bio` (max 160 chars), `avatar` (http(s)

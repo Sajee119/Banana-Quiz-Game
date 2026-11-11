@@ -12,7 +12,6 @@ import {
     ShieldCheck,
     Sparkles,
     MousePointerClick,
-    Clock,
     Users,
     ChevronDown,
     ArrowRight,
@@ -21,7 +20,6 @@ import {
     CircleCheck,
     Globe,
     Smartphone,
-    Volume2,
     Gamepad2,
     Crown,
 } from 'lucide-react';
@@ -126,7 +124,6 @@ const FAQS = [
 ];
 
 const MEDALS = ['🥇', '🥈', '🥉'];
-const CURRENT_YEAR = new Date().getFullYear();
 
 export default function LandingPage() {
     usePageTitle();
@@ -554,54 +551,6 @@ export default function LandingPage() {
                     </div>
                 </section>
             </main>
-
-            {/* Footer */}
-            <footer className="border-t-2 border-banana-200 bg-white/60">
-                <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 md:grid-cols-4 md:px-6">
-                    <div className="md:col-span-2">
-                        <div className="flex items-center gap-2">
-                            <BananaLogo size={40} />
-                            <span className="font-display text-xl font-extrabold text-banana-800">Banana Quiz</span>
-                        </div>
-                        <p className="mt-2 max-w-sm text-sm text-banana-600">
-                            A free banana-value calculation game for quick breaks and long leaderboard climbs. Solve the puzzle, beat the clock.
-                        </p>
-                        <div className="mt-3 flex flex-wrap gap-3 text-xs font-bold text-banana-500">
-                            <span className="flex items-center gap-1"><Volume2 size={14} /> Synthesised audio</span>
-                            <span className="flex items-center gap-1"><Smartphone size={14} /> Mobile ready</span>
-                            <span className="flex items-center gap-1"><Clock size={14} /> Timed rounds</span>
-                        </div>
-                    </div>
-
-                    <div>
-                        <p className="mb-2 font-display text-sm font-extrabold uppercase tracking-wide text-banana-700">Play</p>
-                        <ul className="space-y-1.5 text-sm text-banana-600">
-                            <li><Link to={user ? '/dashboard' : '/login'} className="hover:text-banana-900">Dashboard</Link></li>
-                            <li><Link to="/play" className="hover:text-banana-900">Standard Easy</Link></li>
-                            <li><Link to="/play" className="hover:text-banana-900">Standard Hard</Link></li>
-                            <li><Link to="/play" className="hover:text-banana-900">Custom practice</Link></li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <p className="mb-2 font-display text-sm font-extrabold uppercase tracking-wide text-banana-700">Explore</p>
-                        <ul className="space-y-1.5 text-sm text-banana-600">
-                            <li><Link to="/achievements" className="hover:text-banana-900">Achievements</Link></li>
-                            <li><Link to="/leaderboard" className="hover:text-banana-900">Leaderboard</Link></li>
-                            <li><Link to="/profile" className="hover:text-banana-900">Account settings</Link></li>
-                            <li><a href="#faq" className="hover:text-banana-900">FAQ</a></li>
-                        </ul>
-                    </div>
-                </div>
-                <div className="border-t border-banana-200 px-4 py-4 text-center text-xs text-banana-500">
-                    <p>
-                        © {CURRENT_YEAR} Banana Quiz · Powered by{' '}
-                        <a href="https://marcconrad.com/uob/banana/doc.php" className="underline hover:text-banana-700">
-                            Banana API
-                        </a>
-                    </p>
-                </div>
-            </footer>
         </div>
     );
 }

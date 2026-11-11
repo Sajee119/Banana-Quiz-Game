@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event-Driven Programming · CIS046-3 Assignment</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #f9fafc;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: #1e293b;
+      line-height: 1.6;
+      padding: 2rem 1.5rem;
+    }
+
+    .page {
+      max-width: 1150px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 2.5rem;
+      box-shadow: 0 20px 35px -10px rgba(0, 20, 50, 0.08);
+      overflow: hidden;
+      padding: 2.5rem 2.8rem;
+    }
+
+    /* breadcrumb */
+    .breadcrumb {
+      font-size: 0.85rem;
+      color: #64748b;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .breadcrumb a { color: #2563eb; text-decoration: none; font-weight: 500; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb i { font-size: 0.65rem; color: #94a3b8; }
+
+    /* header */
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 2px solid #eef2f6;
+      margin-bottom: 2rem;
+    }
+    .page-header .icon {
+      width: 64px; height: 64px;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      border-radius: 1.2rem;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 2rem;
+      flex-shrink: 0;
+      box-shadow: 0 8px 16px -6px #d9770660;
+    }
+    .page-header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #0b2b4f;
+      letter-spacing: -0.02em;
+    }
+    .page-header p { color: #475569; font-size: 0.95rem; }
+
+    /* section */
+    .section { margin-bottom: 2.5rem; }
+    .section h2 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #0b2b4f;
+      display: flex; align-items: center; gap: 0.7rem;
+      margin-bottom: 1rem;
+      letter-spacing: -0.01em;
+    }
+    .section h2 i { color: #d97706; font-size: 1.2rem; }
+    .section p { color: #334155; font-size: 0.95rem; margin-bottom: 0.8rem; }
+
+    /* callout */
+    .callout {
+      background: #fffbeb;
+      border-left: 5px solid #f59e0b;
+      border-radius: 0.9rem;
+      padding: 1.1rem 1.4rem;
+      font-size: 0.92rem;
+      color: #78350f;
+      margin: 1rem 0;
+    }
+    .callout strong { color: #451a03; }
+
+    /* code block */
+    .code-block {
+      background: #0f172a;
+      border-radius: 1rem;
+      padding: 1.3rem 1.5rem;
+      overflow-x: auto;
+      margin: 1rem 0;
+      position: relative;
+    }
+    .code-block .code-label {
+      position: absolute;
+      top: 0; right: 0;
+      background: #1e293b;
+      color: #94a3b8;
+      font-size: 0.7rem;
+      padding: 0.25rem 0.8rem;
+      border-radius: 0 1rem 0 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+    .code-block pre {
+      font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+      font-size: 0.82rem;
+      line-height: 1.65;
+      color: #e2e8f0;
+      white-space: pre;
+    }
+    .code-block .comment { color: #64748b; font-style: italic; }
+    .code-block .keyword { color: #93c5fd; }
+    .code-block .string { color: #86efac; }
+    .code-block .fn { color: #fbbf24; }
+    .code-block .type { color: #f472b6; }
+
+    /* rubric table */
+    .rubric-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin-top: 1rem;
+      border-radius: 1rem;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+    }
+    .rubric-table th {
+      background: #fef7ed;
+      padding: 0.9rem 1rem;
+      text-align: left;
+      font-weight: 600;
+      color: #78350f;
+      border-bottom: 1px solid #fde68a;
+      font-size: 0.82rem;
+    }
+    .rubric-table td {
+      padding: 0.9rem 1rem;
+      border-bottom: 1px solid #eef2f6;
+      vertical-align: top;
+      color: #334155;
+    }
+    .rubric-table tr:last-child td { border-bottom: none; }
+    .rubric-table .band {
+      font-weight: 700;
+      color: #1e3a63;
+      white-space: nowrap;
+    }
+    .rubric-table .band.first { color: #059669; }
+    .rubric-table .band.two-one { color: #d97706; }
+
+    /* checklist */
+    .checklist {
+      list-style: none;
+      display: grid;
+      gap: 0.6rem;
+      margin-top: 1rem;
+    }
+    .checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.8rem;
+      background: #f8fafc;
+      padding: 0.85rem 1.2rem;
+      border-radius: 0.8rem;
+      font-size: 0.92rem;
+      color: #1e293b;
+      border: 1px solid #eef2f6;
+    }
+    .checklist li i {
+      color: #d97706;
+      font-size: 1rem;
+      margin-top: 0.15rem;
+      flex-shrink: 0;
+    }
+
+    /* prompt cards */
+    .prompt-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .prompt-card {
+      background: #fef7ed;
+      border: 1px solid #fde68a;
+      border-radius: 1rem;
+      padding: 1.2rem 1.4rem;
+    }
+    .prompt-card h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #78350f;
+      margin-bottom: 0.5rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .prompt-card h4 i { color: #d97706; }
+    .prompt-card p { font-size: 0.88rem; color: #451a03; margin: 0; }
+
+    /* event flow diagram (CSS only) */
+    .event-flow {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      margin: 1.2rem 0;
+    }
+    .event-flow .node {
+      background: #f1f6fc;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 0.8rem;
+      padding: 0.6rem 1rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #1e3a63;
+      text-align: center;
+    }
+    .event-flow .arrow {
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+
+    /* navigation footer */
+    .nav-footer {
+      margin-top: 2.5rem;
+      padding-top: 1.5rem;
+      border-top: 2px solid #eef2f6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .nav-footer a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      text-decoration: none;
+      color: #d97706;
+      font-weight: 600;
+      font-size: 0.9rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 0.8rem;
+      background: #fef7ed;
+      transition: background 0.15s;
+    }
+    .nav-footer a:hover { background: #fde68a; }
+
+    @media (max-width: 800px) {
+      .page { padding: 1.8rem; }
+      .prompt-grid { grid-template-columns: 1fr; }
+      .page-header { flex-direction: column; align-items: flex-start; }
+    }
+    @media (max-width: 500px) {
+      body { padding: 0.8rem; }
+      .page { padding: 1.4rem; border-radius: 1.6rem; }
+      .page-header h1 { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- breadcrumb -->
+    <div class="breadcrumb">
+      <a href="index.html"><i class="fas fa-house"></i> Landing</a>
+      <i class="fas fa-chevron-right"></i>
+      <span>Event-Driven Programming</span>
+    </div>
+
+    <!-- header -->
+    <div class="page-header">
+      <div class="icon"><i class="fas fa-bolt"></i></div>
+      <div>
+        <h1>Event-Driven Programming</h1>
+        <p>Theme 2 of 4 · CIS046-3 Software For Enterprise · Assignment 1 (60%)</p>
+      </div>
+    </div>
+
+    <!-- overview -->
+    <div class="section">
+      <h2><i class="fas fa-circle-info"></i> What you must demonstrate</h2>
+      <p>
+        Your video must relate <strong>event-driven programming</strong> to your own code. At
+        minimum you need to mention events and relate them to specific handlers. To score higher,
+        you must identify the different event types in your application, explain the mechanism
+        that dispatches and handles them, and ultimately <em>justify</em> your event-handling
+        design (for 70%+).
+      </p>
+      <div class="callout">
+        <strong>Threshold expectation:</strong> explain the key concept of events based on the
+        code you have developed. Simply saying "I used addEventListener" without connecting it
+        to the event types and handlers in your project keeps you in the 40–49% band.
+      </div>
+    </div>
+
+    <!-- event flow -->
+    <div class="section">
+      <h2><i class="fas fa-diagram-project"></i> Typical event flow in your application</h2>
+      <p>Use a diagram like this in your video to show the path from a user action to your handler:</p>
+      <div class="event-flow">
+        <div class="node">User action<br><small>click / submit</small></div>
+        <i class="fas fa-arrow-right arrow"></i>
+        <div class="node">Browser / Runtime<br><small>event object</small></div>
+        <i class="fas fa-arrow-right arrow"></i>
+        <div class="node">Event listener<br><small>addEventListener</small></div>
+        <i class="fas fa-arrow-right arrow"></i>
+        <div class="node">Handler function<br><small>your code</small></div>
+        <i class="fas fa-arrow-right arrow"></i>
+        <div class="node">State update<br><small>UI / API call</small></div>
+      </div>
+    </div>
+
+    <!-- code example -->
+    <div class="section">
+      <h2><i class="fas fa-code"></i> Evidence from your code</h2>
+      <p>Show a real handler from your Banana API game and explain each part:</p>
+      <div class="code-block">
+        <span class="code-label">game.js · event handler</span>
+        <pre><span class="comment">// Event: user submits a guess</span>
+<span class="keyword">const</span> guessForm = document.<span class="fn">querySelector</span>(<span class="string">'#guess-form'</span>);
+
+guessForm.<span class="fn">addEventListener</span>(<span class="string">'submit'</span>, <span class="keyword">async</span> (event) => {
+  event.<span class="fn">preventDefault</span>();                 <span class="comment">// stop page reload</span>
+  <span class="keyword">const</span> guess = event.target.guess.value;
+
+  <span class="keyword">try</span> {
+    <span class="keyword">const</span> result = <span class="keyword">await</span> <span class="type">BananaClient</span>.<span class="fn">checkGuess</span>(guess);
+    <span class="type">GameUI</span>.<span class="fn">updateFeedback</span>(result);   <span class="comment">// event → state → UI</span>
+  } <span class="keyword">catch</span> (err) {
+    <span class="type">GameUI</span>.<span class="fn">showError</span>(err.message);
+  }
+});
+
+<span class="comment">// Custom event: emitted when a round ends</span>
+document.<span class="fn">addEventListener</span>(<span class="string">'round:complete'</span>, (e) => {
+  <span class="type">ScoreBoard</span>.<span class="fn">render</span>(e.detail.score);
+});
+</pre>
+      </div>
+      <p style="font-size:0.88rem; color:#475569;">
+        Tip: also highlight a <strong>custom event</strong> (like <code>round:complete</code>) to
+        show you understand event dispatch beyond built-in browser events.
+      </p>
+    </div>
+
+    <!-- rubric -->
+    <div class="section">
+      <h2><i class="fas fa-clipboard-check"></i> Marking rubric for this theme</h2>
+      <table class="rubric-table">
+        <thead>
+          <tr>
+            <th style="width:15%">Band</th>
+            <th>What the marker looks for</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="band">40–49%</td>
+            <td>Mention event-driven programming and are able to relate it to your code.</td>
+          </tr>
+          <tr>
+            <td class="band">50–59%</td>
+            <td>Clearly identify various events and their role within your code.</td>
+          </tr>
+          <tr>
+            <td class="band two-one">60–69%</td>
+            <td>Confidently reflect upon how events are generated in your application and what mechanisms are in place to handle these events.</td>
+          </tr>
+          <tr>
+            <td class="band first">70%+</td>
+            <td>Justify the approach taken when implementing events and event handlers into your software.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- what to say -->
+    <div class="section">
+      <h2><i class="fas fa-microphone"></i> What to say in your video</h2>
+      <div class="prompt-grid">
+        <div class="prompt-card">
+          <h4><i class="fas fa-mouse-pointer"></i> Event types</h4>
+          <p>List the events in your app (submit, click, custom <code>round:complete</code>) and say where each originates — user, API response, or timer.</p>
+        </div>
+        <div class="prompt-card">
+          <h4><i class="fas fa-gears"></i> Handler mechanism</h4>
+          <p>Explain how the browser/runtime dispatches events, how your listeners are registered, and how <code>preventDefault</code> / propagation affect behaviour.</p>
+        </div>
+        <div class="prompt-card">
+          <h4><i class="fas fa-sitemap"></i> Separation of concerns</h4>
+          <p>Show how handlers stay thin — they delegate to <code>BananaClient</code> and <code>GameUI</code> — keeping event logic decoupled from business logic.</p>
+        </div>
+        <div class="prompt-card">
+          <h4><i class="fas fa-scale-balanced"></i> Justification (70%+)</h4>
+          <p>Justify your approach vs alternatives: callbacks vs promises vs async/await, or global vs delegated listeners. Explain why your choice suits this game.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- checklist -->
+    <div class="section">
+      <h2><i class="fas fa-list-check"></i> Pre-submission checklist</h2>
+      <ul class="checklist">
+        <li><i class="fas fa-check-circle"></i> At least two real event types from your code are shown and named.</li>
+        <li><i class="fas fa-check-circle"></i> The dispatch-to-handler mechanism is explained, not just listed.</li>
+        <li><i class="fas fa-check-circle"></i> Custom events (if used) are highlighted and explained.</li>
+        <li><i class="fas fa-check-circle"></i> Handlers shown to be thin and delegated to services/UI modules.</li>
+        <li><i class="fas fa-check-circle"></i> For 70%+: a justification of your event approach vs at least one alternative.</li>
+        <li><i class="fas fa-check-circle"></i> All external code (GitHub, LLMs, forums) referenced in code comments.</li>
+      </ul>
+    </div>
+
+    <!-- navigation footer -->
+    <div class="nav-footer">
+      <a href="Version-Control.html"><i class="fas fa-arrow-left"></i> Previous: Version Control</a>
+      <a href="Interoperability.html">Next: Interoperability <i class="fas fa-arrow-right"></i></a>
+    </div>
+  </div>
+</body>
+</html>

@@ -54,10 +54,11 @@ export default function LoginPage() {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
 
-    const [mode, setMode] = useState('login');
+    const [rememberedLogin] = useState(readRememberedLogin);
     const [mode, setMode] = useState(
         searchParams.get('mode') === 'register' ? 'register' : 'login'
     );
+    const [remember, setRemember] = useState(Boolean(rememberedLogin?.email));
     const [form, setForm] = useState({
         name: '',
         email: rememberedLogin?.email || '',

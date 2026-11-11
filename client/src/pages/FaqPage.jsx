@@ -58,12 +58,12 @@ const FAQS = [
     {
         category: 'gameplay',
         q: 'What is the difference between Easy, Hard and Custom?',
-        a: 'Standard Easy is 10 quizzes with 30 seconds each. Standard Hard is 10 quizzes with 15 seconds each. Custom lets you choose between 5 and 30 quizzes and a 10–60 second timer.',
+        a: 'Standard Easy is 10 quizzes with 30 seconds each. Standard Hard is 10 quizzes with 15 seconds each. Custom lets you choose 5, 10, 20 or 30 quizzes and a 10–60 second timer.',
     },
     {
         category: 'gameplay',
         q: 'How does scoring work?',
-        a: 'Each correct answer earns a base of 50 points plus a speed bonus. A continued streak adds to your run, so quick correct answers score the most. Wrong, skipped and timed-out quizzes earn 0 points.',
+        a: 'Each correct answer earns a base of 100 points plus up to 50 speed-bonus points. A continued streak multiplies the result, up to 2×, so quick correct answers score the most. Wrong, skipped and timed-out quizzes earn 0 points.',
     },
     {
         category: 'gameplay',
@@ -110,7 +110,7 @@ const FAQS = [
     {
         category: 'account',
         q: 'How do I hide my profile from the leaderboard?',
-        a: 'Open Profile → Appearance and turn off “Show me on the leaderboard”. Your points still count for achievements and stats, but your name and avatar are removed from the public board.',
+        a: 'Open Profile → Privacy & data and turn off “Show me on the leaderboard”. Your points still count for achievements and stats, but your name and avatar are removed from the public board.',
     },
 
     // Achievements & leaderboard
@@ -144,12 +144,12 @@ const FAQS = [
     {
         category: 'data',
         q: 'Can I export or delete my data?',
-        a: 'Yes. Profile → Privacy & data lets you download a copy of your data and deactivate your account. You can also contact support to request deletion.',
+        a: 'Yes. Profile → Privacy & data lets you download a copy of your data, and the Danger zone tab lets you deactivate your account. You can also contact support to request deletion.',
     },
     {
         category: 'data',
         q: 'Do you use cookies?',
-        a: 'We use an essential session cookie to keep you signed in. We also save a few preferences in your browser, such as audio settings and your cookie choice. We do not use advertising cookies.',
+        a: 'We use an essential session cookie named “sid” to keep you signed in. If you tick “Remember me”, it can last up to 30 days; otherwise it is removed when you close the browser. A “banana-remember” cookie saves your email so the sign-in form can prefill it, and browser storage keeps your audio and cookie-banner choices. We do not use advertising cookies.',
     },
     {
         category: 'data',

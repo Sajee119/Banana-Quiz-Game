@@ -32,8 +32,14 @@ The project is a distributed full-stack application:
   created, plus resend cooldowns and attempt limits.
 - Google and Facebook OAuth login, with provider emails treated as verified.
 - Password strength policy, reset links, and session revocation.
-- Profile tabs for identity, appearance, notifications, security, activity,
-  privacy, and account deactivation.
+- Optional “Remember me” that keeps the session cookie for a configurable
+  number of days, with the saved email prefilled on the sign-in form.
+- Auto-submit gameplay with Enter-to-submit, a manual Submit answer button when
+  auto-submit is disabled, and optional celebrations, timer and keyboard hints.
+- Profile tabs for identity, appearance, gameplay, notifications, security,
+  activity, privacy, and account deactivation.
+- Public FAQ, Help Centre, Terms of Service and Privacy Policy pages with a
+  shared site footer.
 - Email-verification confirmation for existing accounts created before OTP.
 - Login history with device summaries, masked IP addresses, and failed-attempt
   information.
@@ -86,13 +92,11 @@ Install dependencies in both applications:
 cd server
 npm install
 
-Create a `server/.env` file based on `server/.env.example` before starting the server.
-
-## Available Server Commands
-=======
 cd ../client
 npm install
 ```
+
+Create the server environment file:
 
 ```bash
 copy server\.env.example server\.env
@@ -129,6 +133,7 @@ Important settings include:
 | `CLIENT_URL` | Browser URL used for CORS and redirects |
 | `AUTH_CALLBACK_URL` | Server URL used for OAuth callbacks |
 | `COOKIE_SECURE` | Enables secure cookies when using HTTPS |
+| `SESSION_REMEMBER_DAYS` | Session lifetime when “Remember me” is ticked (default 30) |
 | `GOOGLE_*`, `FACEBOOK_*` | OAuth application credentials |
 | `PASSWORD_RESET_TTL_MINUTES` | Password-reset link lifetime |
 | `EMAIL_OTP_TTL_MINUTES` | Minutes an email verification code stays valid |
@@ -146,130 +151,6 @@ credentials.
 
 | Route | Access | Purpose |
 | --- | --- | --- |
-| `/` | Public | Landing page with features, modes, achievements, FAQ and a live leaderboard preview |
-| `/login` | Public | Sign in, create an account, or continue with Google/Facebook |
-| `/forgot-password` | Public | Request a single-use password reset link |
-| `/reset-password?token=…` | Public | Choose a new password from a valid reset link |
-| `/dashboard` | Signed in | Post-login hub: player status, mode picker, audio controls, achievements preview |
-| `/play?mode=classic\|blitz\|zen` | Signed in | The counting game |
-| `/achievements` | Signed in | Full achievement cabinet with progress filters |
-| `/leaderboard` | Public | Global rankings |
-| `/profile` | Signed in | Account details, preferences, password, devices and login history |
-
-A successful sign-in redirects to `/dashboard`.
-
-## Player accounts
-
-Players can sign up and sign in in two ways:
-
-- **Email + password** on `/login` (the Create Account tab). Passwords are hashed
-  with bcrypt and never returned by the API. Single-word names are supported;
-  first and last name are optional profile fields.
-- **Google / Facebook OAuth** using the buttons on the same page.
-
-### Auth endpoints
-
-- `POST /auth/register` with `{ "name", "email", "password" }` — creates the
-  account and starts a session. The password must pass the shared password policy.
-- `POST /auth/login` with `{ "email", "password" }` — starts a session. Successful
-  and failed attempts are both recorded in the player's login history.
-- `POST /auth/forgot-password` with `{ "email" }` — creates a single-use reset
-  token and emails a link when the account exists. The response is always the
-  same so the endpoint cannot be used to discover registered emails.
-- `GET /auth/reset-password/validate?token=…` — checks a reset token before the
-  page asks for a new password.
-- `POST /auth/reset-password` with `{ "token", "password" }` — sets the new
-  password, marks the token used and signs out every existing session.
-- `POST /auth/logout` — ends the session.
-- `GET /auth/status` — returns `{ authenticated, user }` for the current session.
-- `GET /auth/google` / `GET /auth/facebook` — begin the OAuth flow.
-
-If an email is already linked to a social account, password login returns a
-message telling the player to use Google or Facebook instead.
-
-### Password policy
-
-Registration, password changes and password resets all use
-`server/src/utils/passwordPolicy.js`:
-
-- At least 8 characters (12+ is marked as strong).
-- At least three of lowercase letters, uppercase letters, numbers and symbols.
-- Not a well-known common password.
-- Does not contain the player's name or email address.
-
-The client mirrors these rules in `client/src/lib/passwordStrength.js`, so the
-sign-up, reset and account-settings forms show a live strength meter and
-checklist while the player types. The server remains authoritative.
-
-### Password reset links
-
-Reset links contain a 32-byte random token. Only a SHA-256 hash of the token is
-stored, alongside a 30-minute expiry (`PASSWORD_RESET_TTL_MINUTES`). Tokens are
-single-use, and requesting a new link invalidates any previous unused link.
-Expired token documents are removed by MongoDB's TTL monitor.
-
-When SMTP is not configured, the server logs the reset URL and, in development
-only, returns it as `devResetUrl` so the flow can be tested locally. In
-production, the link is never returned by the API.
-
-Configure email delivery with the optional SMTP variables in
-`server/.env.example`: `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`,
-`SMTP_PASS` and `MAIL_FROM`.
-
-### Account endpoints
-
-All account endpoints require an authenticated session.
-
-- `GET /api/users/me` — profile plus current stats.
-- `PATCH /api/users/me` — update `name`, `bio` (max 160 chars), `avatar` (http(s)
-  URL), `favoriteMode` (`classic`, `blitz`, `zen`) and `preferences`
-  (`reducedMotion`, `showOnLeaderboard`).
-- `PATCH /api/users/me/password` — set or change the password. Existing passwords
-  require `currentPassword`; social-only accounts can add one. The new password
-  must pass the policy, and reusing the current password is rejected.
-- `GET /api/users/me/security` — security score, checklist, password age, recent
-  device count, failed attempts and last sign-in times.
-- `POST /api/users/me/logout-others` — sign out every other device while keeping
-  the current session.
-- `GET /api/users/me/logins` — recent sign-in attempts and grouped devices,
-  including the email used, success/failure, failure reason, browser, OS, masked
-  IP and whether the attempt came from the current device.
-- `GET /api/users/me/achievements` — achievement list, progress and summary.
-- `GET /api/users/leaderboard?limit=25` — public rankings. Players who turn off
-  `showOnLeaderboard` are excluded.
-
-Login history is stored in a separate `LoginEvent` collection. Each event keeps
-the email used, the sign-in method, whether the attempt succeeded and why it
-failed, a parsed browser/OS label, a coarse device type and a SHA-256 hash of the
-session id (never the raw cookie). The last 50 events per player are kept.
-Failed attempts for unknown emails are stored without a player reference.
-
-### Session security
-
-Sessions carry the account's `authVersion`. Changing the password, resetting it
-or choosing “Sign out other devices” increments that version, so any session with
-an older value is rejected on its next request. A password change keeps the
-current session signed in; a reset signs out every device. Password changes and
-resets also send a notification email when SMTP is configured.
-
-The API disables `x-powered-by`, uses Helmet security headers, masks IP addresses
-in account history, rate-limits credential and password-reset endpoints, and
-returns a generic response for forgot-password requests to prevent account
-enumeration.
-
-## Game modes
-
-Modes are defined in `server/src/config/gameModes.js` and exposed publicly via
-`GET /api/game/modes`.
-
-| Mode | Time per puzzle | Points multiplier | Speed bonus |
-| --- | --- | --- | --- |
-| Classic | 120 s | 1× | Yes |
-| Blitz | 30 s | 1.5× | Yes |
-| Zen | 300 s | 1× | No |
-
-### Game endpoints
-=======
 | `/` | Public | Product landing page, features, modes, FAQ, and leaderboard preview |
 | `/login` | Public | Sign in, or create an account through email OTP verification |
 | `/verify-email?verificationId=...&purpose=...` | Public | Enter a 6-digit code to finish sign-up or confirm an email |
@@ -284,6 +165,10 @@ Modes are defined in `server/src/config/gameModes.js` and exposed publicly via
 | `/achievements` | Signed in | Review achievement progress |
 | `/leaderboard` | Public | View eligible global rankings |
 | `/profile` | Signed in | Manage identity, email verification, preferences, password, devices, privacy, and account status |
+| `/faq` | Public | Searchable frequently asked questions |
+| `/help` | Public | Help Centre guides and support links |
+| `/terms` | Public | Terms of Service |
+| `/privacy` | Public | Privacy Policy and cookie details |
 
 Protected routes are wrapped by `ProtectedRoute`. Authentication state is
 restored by `AuthProvider` through `/auth/status` when the client starts.
@@ -298,8 +183,11 @@ The current player-facing modes are defined in
 | --- | --- | --- |
 | Standard Easy | 10 puzzles, 30 seconds per puzzle | Learning the calculation flow |
 | Standard Hard | 10 puzzles, 15 seconds per puzzle | Fast calculations |
-| Custom | 1-30 puzzles, 10-60 seconds per puzzle | Personal practice |
+| Custom | 5, 10, 20 or 30 puzzles, 10-60 seconds per puzzle | Personal practice |
 
+The API accepts a custom quiz count from 1 to 30; the in-game picker offers 5,
+10, 20 and 30. Custom games are saved to history but are not leaderboard
+eligible.
 
 The game lifecycle is:
 
@@ -307,7 +195,9 @@ The game lifecycle is:
 2. The server requests a puzzle from the Banana API and stores the solution
    privately in a `GameSession`.
 3. The server returns the image and timer metadata, but never the solution.
-4. The player submits a numeric answer, skips, or reaches the timeout.
+4. The player types or taps a numeric answer, presses Enter, skips, or reaches
+   the timeout. With auto-submit enabled, a short pause submits the answer
+   automatically.
 5. The server atomically claims the session so a late or duplicate submission
    cannot score the same puzzle twice.
 6. The result reveals the solution, updates statistics, and records history.
@@ -323,10 +213,12 @@ For a correct answer, the server calculates:
 ```
 
 The defaults are 100 base points, up to 50 speed-bonus points, a streak step
-of 0.1 capped at 2x, and a configurable fast-answer threshold. Incorrect,
-skipped, and timed-out puzzles award zero points but remain part of the
-player's history and game statistics. Leaderboard eligibility can be disabled
-for custom practice games.
+of 0.1 capped at 2x, and a configurable fast-answer threshold. The
+player-facing Easy, Hard and Custom modes use a 1x multiplier. The server also
+accepts the legacy `classic`, `blitz` and `zen` mode IDs: Blitz applies a 1.5x
+multiplier and Zen disables the speed bonus. Incorrect, skipped, and timed-out
+puzzles award zero points but remain part of the player's history and game
+statistics. Leaderboard eligibility can be disabled for custom practice games.
 
 Achievements are derived from stored statistics and cover first games, wins,
 streaks, fast calculations, point milestones, games played, and mode
@@ -344,8 +236,12 @@ completion. The player can inspect progress on `/achievements`.
   to the resend cooldown and limit.
 - `GET /auth/verification/status?verificationId=...&kind=...` returns the
   masked email, expiry, attempt count, and resend state for a challenge.
-- `POST /auth/login` authenticates with email and password.
-- `GET /auth/google` and `GET /auth/facebook` start OAuth flows.
+- `POST /auth/login` authenticates with `{ "email", "password", "remember" }`.
+  When `remember` is true the session cookie persists for
+  `SESSION_REMEMBER_DAYS` (30 by default); otherwise it ends with the browser
+  session.
+- `GET /auth/google` and `GET /auth/facebook` start OAuth flows and carry the
+  same remember choice through a short-lived cookie.
 - `POST /auth/logout` ends the current session.
 - `GET /auth/status` returns the current authentication state.
 - `POST /auth/email/verify/request` sends a code to the signed-in account.
@@ -372,10 +268,16 @@ password policy requires at least eight characters, at least three character
 categories, no common password, and no use of the player's name or email.
 The server is authoritative; the client only provides immediate feedback.
 
-Sessions use an HTTP-only cookie and MongoDB-backed storage. An `authVersion`
-on the user and session allows password changes, password resets, and “sign
-out other devices” to invalidate older sessions. Login attempts are recorded
-as `LoginEvent` documents with a hashed session identifier and masked IP data.
+Sessions use an HTTP-only cookie named `sid` and MongoDB-backed storage. The
+cookie is a browser-session cookie by default. Ticking “Remember me” at sign-in
+makes it persistent for `SESSION_REMEMBER_DAYS` (30 by default). The client also
+stores the email and remember choice in a first-party `banana-remember` cookie
+so the sign-in form can prefill it; an explicit sign-out clears that cookie.
+
+An `authVersion` on the user and session allows password changes, password
+resets, and “sign out other devices” to invalidate older sessions. Login
+attempts are recorded as `LoginEvent` documents with a hashed session
+identifier and masked IP data.
 
 ## API overview
 
@@ -384,7 +286,11 @@ All private user and game endpoints require the current session.
 ### User endpoints
 
 - `GET /api/users/me` returns the profile, verification state, and stats.
-- `PATCH /api/users/me` updates profile, mode, and preferences.
+- `PATCH /api/users/me` updates `name`, `bio` (max 160 characters), `avatar`,
+  `favoriteMode` (`easy`, `hard` or `custom`) and `preferences`: `reducedMotion`,
+  `showOnLeaderboard`, `emailNotifications`, `loginAlerts`, `productUpdates`,
+  `defaultMode`, `autoSubmit`, `celebrations`, `showKeyboardHints`, `showTimer`,
+  `defaultQuizCount` and `defaultTime`.
 - `PATCH /api/users/me/password` changes or adds a password.
 - `GET /api/users/me/security` returns verification and security checks.
 - `POST /api/users/me/logout-others` revokes other devices.
@@ -431,9 +337,11 @@ are stored locally under `bq-audio-settings`.
 
 The application supports a reduced-motion preference through `MotionConfig`
 and responsive layouts for mobile browsers. The profile page groups settings
-into identity, appearance, notifications, security, activity, privacy, and
-account-management tabs. Numeric answers can be entered through the on-screen
-controls and supported keyboard input.
+into identity, appearance, gameplay, notifications, security, activity, privacy,
+and account-management tabs. Profile → Gameplay controls auto-submit,
+celebrations, the countdown timer, keyboard hints and the default Custom quiz
+count and time. Numeric answers can be entered through the on-screen controls
+and supported keyboard input.
 
 ## Commands and validation
 

@@ -28,10 +28,11 @@ const { buildUserPayload } = require('../utils/userPayload');
 const { evaluatePassword } = require('../utils/passwordPolicy');
 const { getClientIp, parseUserAgent } = require('../utils/userAgent');
 const logger = require('../utils/logger');
-const { ensureGuest } = require('../middleware/auth.middleware');
 const { ensureGuest, ensureAuthenticated } = require('../middleware/auth.middleware');
 
 const PENDING_PASSWORD_ROUNDS = 12;
+const REMEMBER_MAX_AGE_MS = env.SESSION_REMEMBER_DAYS * 24 * 60 * 60 * 1000;
+const OAUTH_REMEMBER_COOKIE = 'bq_oauth_remember';
 
 const authOptions = {
     failureRedirect: `${env.CLIENT_URL}/login?error=oauth_failed`,
@@ -89,7 +90,13 @@ function readRequestCookie(req, name) {
 
     for (const part of header.split(';')) {
         const [key, ...rest] = part.trim().split('=');
-        if (key === name) return decodeURIComponent(rest.join('='));
+        if (key !== name) continue;
+        const raw = rest.join('=');
+        try {
+            return decodeURIComponent(raw);
+        } catch {
+            return raw;
+        }
     }
     return null;
 }
@@ -773,7 +780,7 @@ router.post('/logout', (req, res, next) => {
     req.logout((err) => {
         if (err) return next(err);
         req.session.destroy((err2) => {
-        if (err2) return next(err2);
+            if (err2) return next(err2);
             res.clearCookie('sid', { path: '/' });
             res.json({ success: true, message: 'Logged out' });
         });

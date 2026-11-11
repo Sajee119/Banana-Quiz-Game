@@ -73,7 +73,8 @@ app.use(
             httpOnly: true,
             secure: env.COOKIE_SECURE, // true in production w/ HTTPS
             sameSite: env.COOKIE_SECURE ? 'none' : 'lax',
-            maxAge: 14 * 24 * 60 * 60 * 1000,
+            // No maxAge by default: the browser drops the cookie when it closes.
+            // Login can opt into a persistent cookie with "Remember me".
         },
     })
 );

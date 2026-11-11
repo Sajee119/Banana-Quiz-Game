@@ -86,11 +86,13 @@ Install dependencies in both applications:
 cd server
 npm install
 
+Create a `server/.env` file based on `server/.env.example` before starting the server.
+
+## Available Server Commands
+=======
 cd ../client
 npm install
 ```
-
-Create the server environment file:
 
 ```bash
 copy server\.env.example server\.env
@@ -144,6 +146,130 @@ credentials.
 
 | Route | Access | Purpose |
 | --- | --- | --- |
+| `/` | Public | Landing page with features, modes, achievements, FAQ and a live leaderboard preview |
+| `/login` | Public | Sign in, create an account, or continue with Google/Facebook |
+| `/forgot-password` | Public | Request a single-use password reset link |
+| `/reset-password?token=…` | Public | Choose a new password from a valid reset link |
+| `/dashboard` | Signed in | Post-login hub: player status, mode picker, audio controls, achievements preview |
+| `/play?mode=classic\|blitz\|zen` | Signed in | The counting game |
+| `/achievements` | Signed in | Full achievement cabinet with progress filters |
+| `/leaderboard` | Public | Global rankings |
+| `/profile` | Signed in | Account details, preferences, password, devices and login history |
+
+A successful sign-in redirects to `/dashboard`.
+
+## Player accounts
+
+Players can sign up and sign in in two ways:
+
+- **Email + password** on `/login` (the Create Account tab). Passwords are hashed
+  with bcrypt and never returned by the API. Single-word names are supported;
+  first and last name are optional profile fields.
+- **Google / Facebook OAuth** using the buttons on the same page.
+
+### Auth endpoints
+
+- `POST /auth/register` with `{ "name", "email", "password" }` — creates the
+  account and starts a session. The password must pass the shared password policy.
+- `POST /auth/login` with `{ "email", "password" }` — starts a session. Successful
+  and failed attempts are both recorded in the player's login history.
+- `POST /auth/forgot-password` with `{ "email" }` — creates a single-use reset
+  token and emails a link when the account exists. The response is always the
+  same so the endpoint cannot be used to discover registered emails.
+- `GET /auth/reset-password/validate?token=…` — checks a reset token before the
+  page asks for a new password.
+- `POST /auth/reset-password` with `{ "token", "password" }` — sets the new
+  password, marks the token used and signs out every existing session.
+- `POST /auth/logout` — ends the session.
+- `GET /auth/status` — returns `{ authenticated, user }` for the current session.
+- `GET /auth/google` / `GET /auth/facebook` — begin the OAuth flow.
+
+If an email is already linked to a social account, password login returns a
+message telling the player to use Google or Facebook instead.
+
+### Password policy
+
+Registration, password changes and password resets all use
+`server/src/utils/passwordPolicy.js`:
+
+- At least 8 characters (12+ is marked as strong).
+- At least three of lowercase letters, uppercase letters, numbers and symbols.
+- Not a well-known common password.
+- Does not contain the player's name or email address.
+
+The client mirrors these rules in `client/src/lib/passwordStrength.js`, so the
+sign-up, reset and account-settings forms show a live strength meter and
+checklist while the player types. The server remains authoritative.
+
+### Password reset links
+
+Reset links contain a 32-byte random token. Only a SHA-256 hash of the token is
+stored, alongside a 30-minute expiry (`PASSWORD_RESET_TTL_MINUTES`). Tokens are
+single-use, and requesting a new link invalidates any previous unused link.
+Expired token documents are removed by MongoDB's TTL monitor.
+
+When SMTP is not configured, the server logs the reset URL and, in development
+only, returns it as `devResetUrl` so the flow can be tested locally. In
+production, the link is never returned by the API.
+
+Configure email delivery with the optional SMTP variables in
+`server/.env.example`: `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`,
+`SMTP_PASS` and `MAIL_FROM`.
+
+### Account endpoints
+
+All account endpoints require an authenticated session.
+
+- `GET /api/users/me` — profile plus current stats.
+- `PATCH /api/users/me` — update `name`, `bio` (max 160 chars), `avatar` (http(s)
+  URL), `favoriteMode` (`classic`, `blitz`, `zen`) and `preferences`
+  (`reducedMotion`, `showOnLeaderboard`).
+- `PATCH /api/users/me/password` — set or change the password. Existing passwords
+  require `currentPassword`; social-only accounts can add one. The new password
+  must pass the policy, and reusing the current password is rejected.
+- `GET /api/users/me/security` — security score, checklist, password age, recent
+  device count, failed attempts and last sign-in times.
+- `POST /api/users/me/logout-others` — sign out every other device while keeping
+  the current session.
+- `GET /api/users/me/logins` — recent sign-in attempts and grouped devices,
+  including the email used, success/failure, failure reason, browser, OS, masked
+  IP and whether the attempt came from the current device.
+- `GET /api/users/me/achievements` — achievement list, progress and summary.
+- `GET /api/users/leaderboard?limit=25` — public rankings. Players who turn off
+  `showOnLeaderboard` are excluded.
+
+Login history is stored in a separate `LoginEvent` collection. Each event keeps
+the email used, the sign-in method, whether the attempt succeeded and why it
+failed, a parsed browser/OS label, a coarse device type and a SHA-256 hash of the
+session id (never the raw cookie). The last 50 events per player are kept.
+Failed attempts for unknown emails are stored without a player reference.
+
+### Session security
+
+Sessions carry the account's `authVersion`. Changing the password, resetting it
+or choosing “Sign out other devices” increments that version, so any session with
+an older value is rejected on its next request. A password change keeps the
+current session signed in; a reset signs out every device. Password changes and
+resets also send a notification email when SMTP is configured.
+
+The API disables `x-powered-by`, uses Helmet security headers, masks IP addresses
+in account history, rate-limits credential and password-reset endpoints, and
+returns a generic response for forgot-password requests to prevent account
+enumeration.
+
+## Game modes
+
+Modes are defined in `server/src/config/gameModes.js` and exposed publicly via
+`GET /api/game/modes`.
+
+| Mode | Time per puzzle | Points multiplier | Speed bonus |
+| --- | --- | --- | --- |
+| Classic | 120 s | 1× | Yes |
+| Blitz | 30 s | 1.5× | Yes |
+| Zen | 300 s | 1× | No |
+
+### Game endpoints
+=======
 | `/` | Public | Product landing page, features, modes, FAQ, and leaderboard preview |
 | `/login` | Public | Sign in, or create an account through email OTP verification |
 | `/verify-email?verificationId=...&purpose=...` | Public | Enter a 6-digit code to finish sign-up or confirm an email |
@@ -173,6 +299,7 @@ The current player-facing modes are defined in
 | Standard Easy | 10 puzzles, 30 seconds per puzzle | Learning the calculation flow |
 | Standard Hard | 10 puzzles, 15 seconds per puzzle | Fast calculations |
 | Custom | 1-30 puzzles, 10-60 seconds per puzzle | Personal practice |
+
 
 The game lifecycle is:
 

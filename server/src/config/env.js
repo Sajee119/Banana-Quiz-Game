@@ -12,6 +12,8 @@ const schema = Joi.object({
     CLIENT_URL: Joi.string().uri().default('http://localhost:5173'),
     AUTH_CALLBACK_URL: Joi.string().uri().default('http://localhost:3000'),
     COOKIE_SECURE: Joi.boolean().default(false),
+    // Lifetime of the session cookie when the player ticks "Remember me".
+    SESSION_REMEMBER_DAYS: Joi.number().min(1).max(365).default(30),
 
     PASSWORD_RESET_TTL_MINUTES: Joi.number().min(5).max(120).default(30),
 

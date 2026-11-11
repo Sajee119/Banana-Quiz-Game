@@ -44,10 +44,11 @@ const SECTIONS = [
         id: 'cookies',
         title: '4. Cookies and browser storage',
         body: [
-            'We use an essential session cookie named “sid” to keep you signed in. Without it, protected pages such as your dashboard cannot work. The cookie is HTTP-only and is cleared when your session ends.',
+            'We use an essential session cookie named “sid” to keep you signed in. Without it, protected pages such as your dashboard cannot work. The cookie is HTTP-only. When you tick “Remember me” at sign-in, it is stored for 30 days; otherwise it is removed when you close the browser.',
             'We also use browser storage for small preferences and the active game:',
         ],
         bullets: [
+            '“banana-remember” is a first-party cookie that saves your email address and remember choice so the sign-in form can prefill it.',
             '“bq-audio-settings” in local storage remembers your sound and music choices.',
             '“banana-cookie-choice” in local storage remembers your cookie banner choice.',
             '“banana-game-config” and “banana-game-id” in session storage keep an active game running until you finish or quit.',

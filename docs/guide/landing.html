@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CIS046-3 · Software For Enterprise · Assignment Landing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #f9fafc;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: #1e293b;
+      line-height: 1.5;
+      padding: 2rem 1.5rem;
+    }
+
+    .page {
+      max-width: 1300px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 2.5rem;
+      box-shadow: 0 20px 35px -10px rgba(0, 20, 50, 0.1);
+      overflow: hidden;
+      padding: 2.5rem 2.8rem;
+    }
+
+    /* header / meta */
+    .unit-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      border-bottom: 2px solid #eef2f6;
+      padding-bottom: 1.5rem;
+    }
+
+    .unit-title h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #0b2b4f;
+      line-height: 1.2;
+    }
+
+    .unit-title .code {
+      font-size: 1rem;
+      font-weight: 500;
+      background: #e5edf5;
+      color: #1e4f7a;
+      padding: 0.2rem 0.9rem;
+      border-radius: 30px;
+      display: inline-block;
+      margin-top: 0.4rem;
+    }
+
+    .deadline-card {
+      background: #fff7ed;
+      border-left: 6px solid #f59e0b;
+      padding: 1rem 1.8rem;
+      border-radius: 1rem;
+      box-shadow: 0 6px 12px -6px rgba(245, 158, 11, 0.2);
+    }
+
+    .deadline-card .label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #b45309;
+      font-weight: 600;
+    }
+
+    .deadline-card .date {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #92400e;
+      line-height: 1.2;
+    }
+
+    .deadline-card .feedback {
+      font-size: 0.9rem;
+      color: #7c2d12;
+      margin-top: 0.25rem;
+      font-weight: 500;
+    }
+
+    /* stats grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin: 2rem 0 2.2rem 0;
+    }
+
+    .stat-item {
+      background: #f1f6fb;
+      padding: 1.1rem 1.2rem;
+      border-radius: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .stat-item i {
+      font-size: 1.7rem;
+      color: #1e5b9c;
+      width: 2rem;
+      text-align: center;
+    }
+
+    .stat-item .info h4 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #4b5e74;
+      font-weight: 600;
+    }
+
+    .stat-item .info p {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #0b2b4f;
+      line-height: 1.3;
+    }
+
+    .stat-item .info .small {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #2c4c6c;
+    }
+
+    /* Section headings */
+    .section-title {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: #0b2b4f;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 2.5rem 0 1.5rem 0;
+      letter-spacing: -0.01em;
+    }
+
+    .section-title i {
+      color: #2563eb;
+      font-size: 1.5rem;
+    }
+
+    /* theme cards (clickable) */
+    .themes-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.2rem;
+      margin-bottom: 1rem;
+    }
+
+    .theme-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 1.5rem;
+      padding: 1.5rem 1.2rem 1.2rem 1.2rem;
+      box-shadow: 0 4px 12px -6px rgba(0,0,0,0.05);
+      transition: transform 0.1s, box-shadow 0.2s, border-color 0.2s;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      position: relative;
+    }
+
+    .theme-card:hover {
+      box-shadow: 0 12px 20px -12px #1e3a8a30;
+      border-color: #cbd5e1;
+      transform: translateY(-2px);
+    }
+
+    .theme-card .theme-icon {
+      font-size: 2rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .theme-card h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #0f2b47;
+      margin-bottom: 0.5rem;
+    }
+
+    .theme-card p {
+      font-size: 0.9rem;
+      color: #334155;
+      line-height: 1.5;
+    }
+
+    .theme-card .open-badge {
+      display: inline-block;
+      margin-top: 0.9rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #2563eb;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .theme-card .open-badge i {
+      font-size: 0.7rem;
+      margin-left: 4px;
+    }
+
+    /* individual theme colors */
+    .theme-card.vc .theme-icon { color: #2563eb; }
+    .theme-card.ed .theme-icon { color: #d97706; }
+    .theme-card.io .theme-icon { color: #059669; }
+    .theme-card.vi .theme-icon { color: #7c3aed; }
+
+    /* quick links row */
+    .quick-links {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 1.2rem 0 0.5rem;
+    }
+
+    .quick-link {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 1rem;
+      padding: 1rem 1.3rem;
+      text-decoration: none;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .quick-link:hover {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+    }
+
+    .quick-link i {
+      font-size: 1.3rem;
+      color: #2563eb;
+      width: 1.8rem;
+      text-align: center;
+    }
+
+    .quick-link .ql-text {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #0b2b4f;
+    }
+
+    .quick-link .ql-sub {
+      font-size: 0.78rem;
+      color: #64748b;
+      font-weight: 400;
+    }
+
+    /* timeline table */
+    .timeline-wrapper {
+      overflow-x: auto;
+      border-radius: 1.2rem;
+      border: 1px solid #e9eef3;
+      background: #ffffff;
+      margin-bottom: 1rem;
+    }
+
+    .timeline-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      min-width: 750px;
+    }
+
+    .timeline-table th {
+      text-align: left;
+      padding: 1rem 1.2rem;
+      background: #f1f6fc;
+      font-weight: 600;
+      color: #1e3a63;
+      border-bottom: 1px solid #d0dfeb;
+      font-size: 0.9rem;
+      letter-spacing: 0.02em;
+    }
+
+    .timeline-table td {
+      padding: 0.9rem 1.2rem;
+      border-bottom: 1px solid #eef2f6;
+      color: #1e293b;
+      vertical-align: top;
+    }
+
+    .timeline-table tr:last-child td { border-bottom: none; }
+    .timeline-table tr:hover { background: #fafcff; }
+
+    .week-badge {
+      display: inline-block;
+      background: #dbeafe;
+      color: #1e40af;
+      font-weight: 600;
+      padding: 0.2rem 0.7rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      white-space: nowrap;
+    }
+
+    /* deliverables */
+    .deliverables-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin: 1.2rem 0 0.5rem 0;
+    }
+
+    .deliverable-item {
+      background: #f9fcff;
+      border-radius: 1.4rem;
+      padding: 1.6rem 1.6rem 1.4rem 1.6rem;
+      border: 1px solid #deeaf5;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .deliverable-item .number {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #2563eb;
+      line-height: 1;
+    }
+
+    .deliverable-item h4 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #0b2b4f;
+      margin: 0.25rem 0 0.2rem;
+    }
+
+    .deliverable-item p {
+      color: #2d3c50;
+      font-size: 0.95rem;
+    }
+
+    /* cap warning */
+    .cap-warning {
+      background: #fef2f2;
+      border-left: 6px solid #dc2626;
+      border-radius: 1rem;
+      padding: 1.3rem 1.8rem;
+      margin: 2rem 0 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem 2rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .cap-warning .text {
+      font-weight: 500;
+      color: #991b1b;
+      max-width: 750px;
+    }
+
+    .cap-warning .badge {
+      background: #dc2626;
+      color: white;
+      font-weight: 700;
+      padding: 0.4rem 1.2rem;
+      border-radius: 40px;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+
+    /* criteria grid */
+    .criteria-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.2rem;
+      margin: 1.2rem 0 0.8rem;
+    }
+
+    .criteria-card {
+      background: #ffffff;
+      border-radius: 1.2rem;
+      border: 1px solid #e2e8f0;
+      padding: 1.3rem 1.5rem;
+    }
+
+    .criteria-card h4 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1e3a63;
+      margin-bottom: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .criteria-card h4 i { color: #2563eb; width: 1.5rem; }
+
+    .criteria-card p {
+      font-size: 0.9rem;
+      color: #334155;
+      margin-bottom: 0.4rem;
+    }
+
+    .criteria-card .highlight {
+      font-weight: 600;
+      color: #0f2b47;
+    }
+
+    /* footer note */
+    .footer-note {
+      margin-top: 2.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: #4b5e74;
+    }
+
+    .footer-note a {
+      color: #2563eb;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .footer-note a:hover { text-decoration: underline; }
+
+    /* responsive */
+    @media (max-width: 1000px) {
+      .themes-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 900px) {
+      .page { padding: 1.8rem; }
+      .criteria-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 0.8rem; }
+      .page { padding: 1.5rem; border-radius: 1.8rem; }
+      .unit-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+      .themes-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .deadline-card .date { font-size: 1.3rem; }
+    }
+
+    @media (max-width: 400px) {
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- header -->
+    <div class="unit-header">
+      <div class="unit-title">
+        <h1>Software For Enterprise</h1>
+        <div class="code">CIS046-3 · Assignment 1</div>
+      </div>
+      <div class="deadline-card">
+        <div class="label"><i class="fas fa-calendar-alt" style="margin-right: 6px;"></i> Submission deadline</div>
+        <div class="date">04 Dec 2026 · 10:00</div>
+        <div class="feedback"><i class="fas fa-clock"></i> Feedback due: 24 Dec 2026 (20 working days)</div>
+      </div>
+    </div>
+
+    <!-- quick stats -->
+    <div class="stats-grid">
+      <div class="stat-item">
+        <i class="fas fa-video"></i>
+        <div class="info">
+          <h4>Artifact type</h4>
+          <p>Video + code</p>
+          <span class="small">max 10 minutes</span>
+        </div>
+      </div>
+      <div class="stat-item">
+        <i class="fas fa-weight-hanging"></i>
+        <div class="info">
+          <h4>Weighting</h4>
+          <p>60%</p>
+          <span class="small">of unit grade</span>
+        </div>
+      </div>
+      <div class="stat-item">
+        <i class="fas fa-users"></i>
+        <div class="info">
+          <h4>Format</h4>
+          <p>Individual</p>
+          <span class="small">present in week 8</span>
+        </div>
+      </div>
+      <div class="stat-item">
+        <i class="fas fa-code"></i>
+        <div class="info">
+          <h4>Language</h4>
+          <p>Your choice</p>
+          <span class="small">JS · PHP · Java · etc.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 themes (clickable) -->
+    <div class="section-title">
+      <i class="fas fa-cubes"></i>
+      <span>Four core themes · click to open each guide</span>
+    </div>
+    <div class="themes-grid">
+      <a href="Version-Control.html" class="theme-card vc">
+        <div class="theme-icon"><i class="fab fa-git-alt"></i></div>
+        <h3>Version Control</h3>
+        <p>Track changes, branching, commit granularity, modularity, and collaboration with Git.</p>
+        <span class="open-badge">Open guide <i class="fas fa-arrow-right"></i></span>
+      </a>
+      <a href="Event-Driven-Programming.html" class="theme-card ed">
+        <div class="theme-icon"><i class="fas fa-bolt"></i></div>
+        <h3>Event-Driven</h3>
+        <p>Events, handlers, and the mechanisms that respond to user actions or system triggers.</p>
+        <span class="open-badge">Open guide <i class="fas fa-arrow-right"></i></span>
+      </a>
+      <a href="Interoperability.html" class="theme-card io">
+        <div class="theme-icon"><i class="fas fa-plug"></i></div>
+        <h3>Interoperability</h3>
+        <p>Integration with third‑party APIs, protocols, and cross‑platform communication.</p>
+        <span class="open-badge">Open guide <i class="fas fa-arrow-right"></i></span>
+      </a>
+      <a href="Virtual-Identity.html" class="theme-card vi">
+        <div class="theme-icon"><i class="fas fa-user-shield"></i></div>
+        <h3>Virtual Identity</h3>
+        <p>Authentication, cookies, passwords, and secure mechanisms to establish identity.</p>
+        <span class="open-badge">Open guide <i class="fas fa-arrow-right"></i></span>
+      </a>
+    </div>
+
+    <!-- quick links row -->
+    <div class="quick-links">
+      <a href="Version-Control.html" class="quick-link">
+        <i class="fas fa-code-branch"></i>
+        <div>
+          <div class="ql-text">Version Control</div>
+          <div class="ql-sub">Git, branches, commits</div>
+        </div>
+      </a>
+      <a href="Event-Driven-Programming.html" class="quick-link">
+        <i class="fas fa-bolt"></i>
+        <div>
+          <div class="ql-text">Event-Driven</div>
+          <div class="ql-sub">Handlers, custom events</div>
+        </div>
+      </a>
+      <a href="Interoperability.html" class="quick-link">
+        <i class="fas fa-plug"></i>
+        <div>
+          <div class="ql-text">Interoperability</div>
+          <div class="ql-sub">Banana API, REST, JSON</div>
+        </div>
+      </a>
+      <a href="Virtual-Identity.html" class="quick-link">
+        <i class="fas fa-user-shield"></i>
+        <div>
+          <div class="ql-text">Virtual Identity</div>
+          <div class="ql-sub">Auth, cookies, bcrypt</div>
+        </div>
+      </a>
+      <a href="#timeline" class="quick-link">
+        <i class="fas fa-calendar-week"></i>
+        <div>
+          <div class="ql-text">Timeline</div>
+          <div class="ql-sub">Week-by-week plan</div>
+        </div>
+      </a>
+      <a href="#criteria" class="quick-link">
+        <i class="fas fa-clipboard-check"></i>
+        <div>
+          <div class="ql-text">Marking Criteria</div>
+          <div class="ql-sub">Bands &amp; grade caps</div>
+        </div>
+      </a>
+    </div>
+
+    <!-- timeline -->
+    <div class="section-title" id="timeline">
+      <i class="fas fa-calendar-week"></i>
+      <span>Timeline &amp; key sessions</span>
+    </div>
+    <div class="timeline-wrapper">
+      <table class="timeline-table">
+        <thead>
+          <tr>
+            <th>Week</th>
+            <th>Task / focus</th>
+            <th>Software topics covered</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="week-badge">Week 1</span></td>
+            <td>Commenting and understanding code design</td>
+            <td>Overview of programming languages, history, application areas</td>
+          </tr>
+          <tr>
+            <td><span class="week-badge">Week 2</span></td>
+            <td><strong>Assignment introduction</strong> · discussion with tutor</td>
+            <td>Version control</td>
+          </tr>
+          <tr>
+            <td><span class="week-badge">Week 3</span></td>
+            <td>Development of artefact (use external sources, document use)</td>
+            <td>Interoperability</td>
+          </tr>
+          <tr>
+            <td><span class="week-badge">Week 4</span></td>
+            <td>Continue artefact</td>
+            <td>GUI and Events</td>
+          </tr>
+          <tr>
+            <td><span class="week-badge">Week 5</span></td>
+            <td>Continue artefact</td>
+            <td>Authentication &amp; Cookies</td>
+          </tr>
+          <tr>
+            <td><span class="week-badge">Week 6–7</span></td>
+            <td>Additional lecture topics (not directly the four themes)</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><span class="week-badge">Week 8</span></td>
+            <td><strong>Feedback session with tutor</strong> (present your work)</td>
+            <td>Evidence needed — must present code in week 8 or earlier</td>
+          </tr>
+          <tr>
+            <td><span class="week-badge">Week 9</span></td>
+            <td>Finalise code based on feedback</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><span class="week-badge">Week 10</span></td>
+            <td>Production of video and additional material</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><span class="week-badge">Week 11</span></td>
+            <td><strong>Assignment submission</strong> · revision session for exam</td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- deliverables -->
+    <div class="section-title">
+      <i class="fas fa-box-archive"></i>
+      <span>Deliverables</span>
+    </div>
+    <div class="deliverables-list">
+      <div class="deliverable-item">
+        <div class="number">1</div>
+        <h4>Authentic video (≤10 min)</h4>
+        <p>Demonstrate your working system, then discuss version control, event-driven programming, interoperability and virtual identity — using relevant terminology and focused on your own code. Your own voice is required; avoid heavy editing.</p>
+      </div>
+      <div class="deliverable-item">
+        <div class="number">2</div>
+        <h4>Additional material</h4>
+        <p>Full source code of a working implementation, clearly referencing any external code (GitHub, LLMs, etc.). May also include transcript, design docs, testing evidence and integration proof.</p>
+      </div>
+      <div class="deliverable-item">
+        <div class="number">3</div>
+        <h4>Evidence of Week 8 presentation</h4>
+        <p>You must present your work to the tutor in Week 8 or earlier. This proves active development and is a mandatory requirement.</p>
+      </div>
+    </div>
+
+    <!-- cap warning -->
+    <div class="cap-warning">
+      <div class="text">
+        <i class="fas fa-exclamation-triangle" style="margin-right: 10px; color: #b91c1c;"></i>
+        <strong>Grade caps apply:</strong> missing Week 8 presentation, no dedicated code submission, code not addressing requirements, or video without your own voice → capped at 58%. Two or more of these issues → capped at 48%.
+      </div>
+      <div class="badge">⚠️ Don't risk it</div>
+    </div>
+
+    <!-- marking criteria summary -->
+    <div class="section-title" id="criteria">
+      <i class="fas fa-clipboard-check"></i>
+      <span>Marking criteria · 1st class expectations</span>
+    </div>
+    <div class="criteria-grid">
+      <div class="criteria-card">
+        <h4><i class="fab fa-git-alt"></i> Version control</h4>
+        <p><span class="highlight">70%+</span> — Critically evaluate code structure, alternative approaches, and how branching/tagging/code reviews enhance quality, scalability and maintainability.</p>
+      </div>
+      <div class="criteria-card">
+        <h4><i class="fas fa-bolt"></i> Event-driven programming</h4>
+        <p><span class="highlight">70%+</span> — Justify your approach when implementing events and event handlers in your software.</p>
+      </div>
+      <div class="criteria-card">
+        <h4><i class="fas fa-plug"></i> Interoperability</h4>
+        <p><span class="highlight">70%+</span> — Critically justify the approaches taken to include third-party software (e.g., web service) into your application.</p>
+      </div>
+      <div class="criteria-card">
+        <h4><i class="fas fa-user-shield"></i> Virtual identity</h4>
+        <p><span class="highlight">70%+</span> — Critically discuss authentication mechanisms used, their role in security, and consider alternative approaches.</p>
+      </div>
+    </div>
+
+    <!-- footer -->
+    <div class="footer-note">
+      <div>
+        <i class="fas fa-check-circle" style="color: #2563eb; margin-right: 6px;"></i>
+        Use of external code (GitHub, LLMs) is allowed if clearly referenced in code comments.
+      </div>
+      <div>
+        <i class="fas fa-ban" style="color: #b45309; margin-right: 6px;"></i>
+        Generative AI allowed for <strong>code</strong>, not for <strong>video</strong>.
+      </div>
+      <div>
+        <i class="fas fa-laptop-code"></i> Example code: Banana API / Java / JS · check BREO.
+      </div>
+    </div>
+
+    <div style="margin-top: 1.5rem; font-size: 0.85rem; color: #3b4e66; background: #eef4fa; padding: 0.8rem 1.5rem; border-radius: 1rem;">
+      <i class="fas fa-graduation-cap" style="margin-right: 8px;"></i>
+      <strong>Threshold expectations:</strong> implement a distributed architecture for a given scenario; explain key concepts (version control, virtual identity, events, interoperability) based on your code.
+    </div>
+  </div>
+</body>
+</html>

@@ -12,7 +12,6 @@ import {
     ShieldCheck,
     Sparkles,
     MousePointerClick,
-    Clock,
     Users,
     ChevronDown,
     ArrowRight,
@@ -21,7 +20,6 @@ import {
     CircleCheck,
     Globe,
     Smartphone,
-    Volume2,
     Gamepad2,
     Crown,
 } from 'lucide-react';
@@ -38,7 +36,7 @@ const FEATURES = [
     {
         icon: MousePointerClick,
         title: 'Instant rounds',
-        text: 'No downloads, no tutorials. Open the page, pick a mode and start counting in seconds.',
+        text: 'No downloads, no tutorials. Open the page, pick a mode and start calculating banana values in seconds.',
         color: 'from-banana-300 to-banana-500',
     },
     {
@@ -56,7 +54,7 @@ const FEATURES = [
     {
         icon: Zap,
         title: 'Speed bonuses',
-        text: 'The faster you count, the more bonus points you earn on top of the base score.',
+        text: 'The faster you calculate the banana value, the more bonus points you earn on top of the base score.',
         color: 'from-pink-300 to-pink-500',
     },
     {
@@ -84,17 +82,17 @@ const STEPS = [
     {
         icon: Users,
         title: 'Create your account',
-        text: 'Sign up with email or one tap using Google or Facebook. Your progress is saved automatically.',
+        text: 'Sign up with email or one tap using Google or Facebook. Email accounts confirm a 6-digit code before the account is created.',
     },
     {
         icon: Gamepad2,
         title: 'Pick a play mode',
-        text: 'Classic, Blitz or Zen. Each mode changes the timer and how many points a round is worth.',
+        text: 'Standard Easy, Standard Hard or Custom. Each mode changes the timer and challenge settings.',
     },
     {
         icon: Trophy,
-        title: 'Count and climb',
-        text: 'Beat the clock, build streaks, unlock achievements and rise up the global leaderboard.',
+        title: 'Calculate and climb',
+        text: 'Calculate each banana value, beat the clock, build streaks, unlock achievements and rise up the global leaderboard.',
     },
 ];
 
@@ -106,6 +104,10 @@ const FAQS = [
     {
         q: 'Do I need an account to play?',
         a: 'You need an account to save scores, streaks and achievements. Sign up with email, Google or Facebook — it takes a few seconds.',
+    },
+    {
+        q: 'Why do I need to verify my email?',
+        a: 'New email accounts receive a 6-digit code. Entering it proves you own the address and activates the account. Google and Facebook sign-ins are already verified by the provider.',
     },
     {
         q: 'How does scoring work?',
@@ -122,7 +124,6 @@ const FAQS = [
 ];
 
 const MEDALS = ['🥇', '🥈', '🥉'];
-const CURRENT_YEAR = new Date().getFullYear();
 
 export default function LandingPage() {
     usePageTitle();
@@ -148,7 +149,8 @@ export default function LandingPage() {
         };
     }, []);
 
-    const primaryTarget = user ? '/dashboard' : '/login';
+    const primaryTarget = user ? '/dashboard' : '/login?mode=register';
+    const headerTarget = user ? '/dashboard' : '/login';
 
     return (
         <div className="min-h-screen">
@@ -186,7 +188,7 @@ export default function LandingPage() {
                                 <Trophy size={17} /> Leaderboard
                             </Button>
                         </Link>
-                        <Link to={primaryTarget}>
+                        <Link to={headerTarget}>
                             <Button className="!px-4 !py-2 !text-base">
                                 {user ? 'Dashboard' : 'Sign In'}
                             </Button>
@@ -213,7 +215,7 @@ export default function LandingPage() {
                             transition={{ delay: 0.05 }}
                             className="mt-4 font-display text-5xl font-extrabold leading-[1.05] text-banana-800 md:text-6xl"
                         >
-                            Count bananas.
+                            Calculate banana values.
                             <br />
                             <span className="text-banana-500">Beat the clock.</span>
                             <br />
@@ -226,7 +228,7 @@ export default function LandingPage() {
                             transition={{ delay: 0.12 }}
                             className="mt-5 max-w-xl text-lg text-banana-700"
                         >
-                            Banana Quiz is a fast, free counting game. Spot the bunch, type the number,
+                            Banana Quiz is a fast, free calculation game. Study the banana puzzle, enter its value,
                             and chain correct answers for streak multipliers. Three modes, fourteen
                             achievements and a global leaderboard are waiting.
                         </motion.p>
@@ -269,10 +271,10 @@ export default function LandingPage() {
                                     <BananaLogo size={44} className="animate-wiggle" />
                                     <div>
                                         <p className="font-display text-lg font-extrabold leading-none text-banana-800">Today's bunch</p>
-                                        <p className="text-xs font-bold text-banana-500">Classic mode</p>
+                                        <p className="text-xs font-bold text-banana-500">Easy mode</p>
                                     </div>
                                 </div>
-                                <span className="rounded-full bg-banana-200 px-2.5 py-1 text-xs font-extrabold text-banana-800">02:00</span>
+                                <span className="rounded-full bg-banana-200 px-2.5 py-1 text-xs font-extrabold text-banana-800">30s</span>
                             </div>
 
                             <div className="grid grid-cols-3 gap-2 rounded-2xl bg-gradient-to-br from-banana-100 to-amber-100 p-4">
@@ -367,7 +369,7 @@ export default function LandingPage() {
                                         <h3 className="font-display text-2xl font-extrabold text-banana-800">{mode.label}</h3>
                                         <p className="text-xs font-bold uppercase tracking-wide text-banana-500">{mode.tagline}</p>
                                         <p className="mt-2 flex-1 text-sm text-banana-700">{mode.description}</p>
-                                        <Link to={user ? `/play?mode=${mode.id}` : '/login'} className="mt-4">
+                                        <Link to={user ? `/play?mode=${mode.id}` : '/login?mode=register'} className="mt-4">
                                             <Button className="w-full !py-2.5 !text-base">
                                                 <Play size={16} /> Play {mode.label}
                                             </Button>
@@ -389,7 +391,7 @@ export default function LandingPage() {
                                 text="Achievements unlock automatically from your real stats. Chase streaks, speed records, point milestones and mode mastery."
                                 align="left"
                             />
-                            <Link to={user ? '/achievements' : '/login'}>
+                            <Link to={user ? '/achievements' : '/login?mode=register'}>
                                 <Button variant="secondary" className="!py-3">
                                     <Award size={18} /> Explore achievements
                                 </Button>
@@ -423,7 +425,7 @@ export default function LandingPage() {
                         <SectionIntro
                             eyebrow="Getting started"
                             title="From zero to banana hero in three steps"
-                            text="No installs, no setup screens. You can be counting within a minute."
+                            text="No installs, no setup screens. You can be calculating banana values within a minute."
                         />
                         <div className="grid gap-4 md:grid-cols-3">
                             {STEPS.map((step, i) => (
@@ -528,7 +530,7 @@ export default function LandingPage() {
                         </div>
                         <div className="relative">
                             <h2 className="font-display text-4xl font-extrabold text-white drop-shadow md:text-5xl">
-                                Ready to count?
+                                Ready to calculate?
                             </h2>
                             <p className="mx-auto mt-2 max-w-xl text-banana-50">
                                 Your first bunch is one click away. Play free, earn badges and see how high you can climb.
@@ -549,54 +551,6 @@ export default function LandingPage() {
                     </div>
                 </section>
             </main>
-
-            {/* Footer */}
-            <footer className="border-t-2 border-banana-200 bg-white/60">
-                <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 md:grid-cols-4 md:px-6">
-                    <div className="md:col-span-2">
-                        <div className="flex items-center gap-2">
-                            <BananaLogo size={40} />
-                            <span className="font-display text-xl font-extrabold text-banana-800">Banana Quiz</span>
-                        </div>
-                        <p className="mt-2 max-w-sm text-sm text-banana-600">
-                            A free counting game for quick breaks and long leaderboard climbs. Count the bunch, beat the clock.
-                        </p>
-                        <div className="mt-3 flex flex-wrap gap-3 text-xs font-bold text-banana-500">
-                            <span className="flex items-center gap-1"><Volume2 size={14} /> Synthesised audio</span>
-                            <span className="flex items-center gap-1"><Smartphone size={14} /> Mobile ready</span>
-                            <span className="flex items-center gap-1"><Clock size={14} /> Timed rounds</span>
-                        </div>
-                    </div>
-
-                    <div>
-                        <p className="mb-2 font-display text-sm font-extrabold uppercase tracking-wide text-banana-700">Play</p>
-                        <ul className="space-y-1.5 text-sm text-banana-600">
-                            <li><Link to={user ? '/dashboard' : '/login'} className="hover:text-banana-900">Dashboard</Link></li>
-                            <li><Link to="/play" className="hover:text-banana-900">Standard Easy</Link></li>
-                            <li><Link to="/play" className="hover:text-banana-900">Standard Hard</Link></li>
-                            <li><Link to="/play" className="hover:text-banana-900">Custom practice</Link></li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <p className="mb-2 font-display text-sm font-extrabold uppercase tracking-wide text-banana-700">Explore</p>
-                        <ul className="space-y-1.5 text-sm text-banana-600">
-                            <li><Link to="/achievements" className="hover:text-banana-900">Achievements</Link></li>
-                            <li><Link to="/leaderboard" className="hover:text-banana-900">Leaderboard</Link></li>
-                            <li><Link to="/profile" className="hover:text-banana-900">Account settings</Link></li>
-                            <li><a href="#faq" className="hover:text-banana-900">FAQ</a></li>
-                        </ul>
-                    </div>
-                </div>
-                <div className="border-t border-banana-200 px-4 py-4 text-center text-xs text-banana-500">
-                    <p>
-                        © {CURRENT_YEAR} Banana Quiz · Powered by{' '}
-                        <a href="https://marcconrad.com/uob/banana/doc.php" className="underline hover:text-banana-700">
-                            Banana API
-                        </a>
-                    </p>
-                </div>
-            </footer>
         </div>
     );
 }

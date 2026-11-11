@@ -18,7 +18,29 @@ api.interceptors.response.use(
 export const authApi = {
     status: () => api.get('/auth/status').then((r) => r.data),
     login: (credentials) => api.post('/auth/login', credentials).then((r) => r.data),
-    register: (payload) => api.post('/auth/register', payload).then((r) => r.data),
+    register: (payload) =>
+        api.post('/auth/register', payload, { timeout: 30000 }).then((r) => r.data),
+    verifyRegistration: (payload) =>
+        api.post('/auth/register/verify', payload, { timeout: 20000 }).then((r) => r.data),
+    resendRegistration: (verificationId) =>
+        api
+            .post('/auth/register/resend', { verificationId }, { timeout: 30000 })
+            .then((r) => r.data),
+    verificationStatus: ({ verificationId, kind = 'registration' }) =>
+        api
+            .get('/auth/verification/status', {
+                params: { verificationId, kind },
+                timeout: 20000,
+            })
+            .then((r) => r.data),
+    requestEmailVerification: () =>
+        api.post('/auth/email/verify/request', {}, { timeout: 30000 }).then((r) => r.data),
+    confirmEmailVerification: (payload) =>
+        api.post('/auth/email/verify/confirm', payload, { timeout: 20000 }).then((r) => r.data),
+    resendEmailVerification: (verificationId) =>
+        api
+            .post('/auth/email/verify/resend', { verificationId }, { timeout: 30000 })
+            .then((r) => r.data),
     forgotPassword: (email) =>
         api.post('/auth/forgot-password', { email }, { timeout: 30000 }).then((r) => r.data),
     validateResetToken: (token) =>
@@ -40,6 +62,7 @@ export const userApi = {
     logoutOthers: () => api.post('/api/users/me/logout-others').then((r) => r.data),
     logins: () => api.get('/api/users/me/logins').then((r) => r.data),
     achievements: () => api.get('/api/users/me/achievements').then((r) => r.data),
+    deactivate: (payload) => api.post('/api/users/me/deactivate', payload).then((r) => r.data),
     leaderboard: (limit = 25) =>
         api.get(`/api/users/leaderboard?limit=${limit}`).then((r) => r.data),
 };

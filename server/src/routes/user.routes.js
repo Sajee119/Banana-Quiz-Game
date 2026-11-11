@@ -7,47 +7,8 @@ const { evaluateAchievements } = require('../services/achievement.service');
 const { getLoginHistory } = require('../services/loginHistory.service');
 const { sendPasswordChangedEmail } = require('../services/mail.service');
 const { evaluatePassword } = require('../utils/passwordPolicy');
+const { DEFAULT_PREFERENCES, buildUserPayload, buildStatsPayload } = require('../utils/userPayload');
 const asyncHandler = require('../utils/asyncHandler');
-
-const DEFAULT_PREFERENCES = {
-    reducedMotion: false,
-    showOnLeaderboard: true,
-};
-
-function buildUserPayload(user) {
-    const preferences = user.preferences || {};
-    return {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        displayName: user.displayName,
-        primaryProvider: user.primaryProvider,
-        providerNames: user.providerNames,
-        avatar: user.avatar || null,
-        bio: user.bio || '',
-        favoriteMode: user.favoriteMode || 'classic',
-        preferences: {
-            reducedMotion: preferences.reducedMotion ?? DEFAULT_PREFERENCES.reducedMotion,
-            showOnLeaderboard: preferences.showOnLeaderboard ?? DEFAULT_PREFERENCES.showOnLeaderboard,
-        },
-        createdAt: user.createdAt,
-        lastLoginAt: user.lastLoginAt,
-        passwordChangedAt: user.passwordChangedAt || null,
-    };
-}
-
-function buildStatsPayload(stats) {
-    return {
-        totalPoints: stats.totalPoints || 0,
-        gamesPlayed: stats.gamesPlayed || 0,
-        gamesWon: stats.gamesWon || 0,
-        currentStreak: stats.currentStreak || 0,
-        bestStreak: stats.bestStreak || 0,
-        fastestAnswerMs: stats.fastestAnswerMs ?? null,
-        lastPlayedAt: stats.lastPlayedAt || null,
-    };
-}
 
 const profileSchema = Joi.object({
     name: Joi.string().trim().min(2).max(60).messages({
@@ -66,12 +27,24 @@ const profileSchema = Joi.object({
             'string.uri': 'Avatar must be a valid http(s) image URL.',
             'string.max': 'Avatar URL is too long.',
         }),
-    favoriteMode: Joi.string().valid('classic', 'blitz', 'zen').messages({
-        'any.only': 'Choose Classic, Blitz or Zen.',
-    }),
+    favoriteMode: Joi.string()
+        .valid('easy', 'hard', 'custom', 'classic', 'blitz', 'zen')
+        .messages({
+            'any.only': 'Choose Standard Easy, Standard Hard or Custom.',
+        }),
     preferences: Joi.object({
         reducedMotion: Joi.boolean(),
         showOnLeaderboard: Joi.boolean(),
+        emailNotifications: Joi.boolean(),
+        loginAlerts: Joi.boolean(),
+        productUpdates: Joi.boolean(),
+        defaultMode: Joi.string().valid('easy', 'hard', 'custom'),
+        autoSubmit: Joi.boolean(),
+        celebrations: Joi.boolean(),
+        showKeyboardHints: Joi.boolean(),
+        showTimer: Joi.boolean(),
+        defaultQuizCount: Joi.number().valid(5, 10, 20, 30),
+        defaultTime: Joi.number().valid(10, 15, 20, 30, 45, 60),
     }).min(1),
 }).min(1);
 
@@ -82,6 +55,14 @@ const passwordSchema = Joi.object({
         'string.max': 'New password must be 72 characters or fewer.',
         'any.required': 'New password is required.',
     }),
+});
+
+const deactivateSchema = Joi.object({
+    confirm: Joi.string().valid('DELETE').required().messages({
+        'any.only': 'Type DELETE to confirm.',
+        'any.required': 'Type DELETE to confirm.',
+    }),
+    password: Joi.string().allow('').max(72).default(''),
 });
 
 router.get('/me', ensureAuthenticated, asyncHandler(async (req, res) => {
@@ -189,11 +170,20 @@ router.get('/me/security', ensureAuthenticated, asyncHandler(async (req, res) =>
 
     const loginData = await getLoginHistory(req.user.id, req.sessionID);
     const hasPassword = user.providers.some((provider) => provider.name === 'local');
+    const userPayload = buildUserPayload(user);
     const passwordAgeDays = user.passwordChangedAt
         ? Math.floor((Date.now() - new Date(user.passwordChangedAt).getTime()) / 86400000)
         : null;
 
     const checks = [
+        {
+            id: 'email',
+            label: 'Email address verified',
+            passed: userPayload.emailVerified,
+            hint: userPayload.emailVerified
+                ? 'The address has been confirmed by email or a trusted provider.'
+                : 'Confirm your email from the Security tab of your profile.',
+        },
         {
             id: 'password',
             label: 'Password sign-in enabled',
@@ -237,6 +227,8 @@ router.get('/me/security', ensureAuthenticated, asyncHandler(async (req, res) =>
             score,
             level,
             hasPassword,
+            emailVerified: userPayload.emailVerified,
+            emailVerifiedAt: userPayload.emailVerifiedAt,
             passwordChangedAt: user.passwordChangedAt || null,
             passwordAgeDays,
             activeDevices: loginData.devices.length,
@@ -275,6 +267,48 @@ router.get('/me/achievements', ensureAuthenticated, asyncHandler(async (req, res
     res.json({ success: true, ...data });
 }));
 
+router.post('/me/deactivate', ensureAuthenticated, asyncHandler(async (req, res) => {
+    const { value, error } = deactivateSchema.validate(req.body || {}, { abortEarly: true });
+    if (error) {
+        return res.status(400).json({ success: false, message: error.message });
+    }
+
+    const user = await User.findById(req.user.id).select('+passwordHash');
+    if (!user) return res.status(404).json({ success: false, message: 'Account not found.' });
+
+    if (user.passwordHash) {
+        if (!value.password) {
+            return res.status(400).json({
+                success: false,
+                message: 'Enter your current password to deactivate your account.',
+            });
+        }
+        const matches = await user.comparePassword(value.password);
+        if (!matches) {
+            return res.status(401).json({ success: false, message: 'Current password is incorrect.' });
+        }
+    }
+
+    user.isActive = false;
+    user.authVersion = (user.authVersion || 0) + 1;
+    await user.save();
+
+    await new Promise((resolve, reject) => {
+        req.logout((err) => (err ? reject(err) : resolve()));
+    });
+    if (req.session) {
+        await new Promise((resolve, reject) => {
+            req.session.destroy((err) => (err ? reject(err) : resolve()));
+        });
+    }
+    res.clearCookie('sid', { path: '/' });
+
+    return res.json({
+        success: true,
+        message: 'Your account has been deactivated. Contact support if you want to restore it.',
+    });
+}));
+
 router.get('/leaderboard', async (req, res, next) => {
     try {
         const Score = require('../models/Score');
@@ -287,11 +321,12 @@ router.get('/leaderboard', async (req, res, next) => {
         const rows = await Score.find()
             .sort({ totalPoints: -1, gamesWon: -1, bestStreak: -1, updatedAt: 1 })
             .limit(500)
-            .populate('user', 'firstName lastName avatar preferences');
+            .populate('user', 'firstName lastName avatar preferences isActive');
 
         const mapped = rows
             .filter((score) => score.user)
             .map((score) => ({ score, user: score.user }))
+            .filter(({ user }) => user.isActive !== false)
             .filter(({ user }) => user.preferences?.showOnLeaderboard !== false)
             .map(({ score, user }, idx) => {
                 const gamesPlayed = score.gamesPlayed || 0;

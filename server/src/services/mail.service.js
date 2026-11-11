@@ -181,6 +181,66 @@ Open Banana Quiz: ${loginUrl}`;
     return sendMail({ to, subject, text, html });
 }
 
+async function sendOtpEmail({ to, name, otp, expiresInMinutes, purpose = 'registration' }) {
+    const displayName = name || 'Quiz player';
+    const safeName = escapeHtml(displayName);
+    const code = escapeHtml(otp);
+    const isRegistration = purpose === 'registration';
+    const action = isRegistration
+        ? 'confirm your email and activate your Banana Quiz account'
+        : 'verify this email address for your Banana Quiz account';
+    const subject = isRegistration
+        ? 'Your Banana Quiz verification code'
+        : 'Confirm your Banana Quiz email address';
+    const text = `Hi ${displayName},
+
+Use this 6-digit code to ${action}:
+
+${otp}
+
+The code expires in ${expiresInMinutes} minutes. If you did not request it, you can safely ignore this email.`;
+
+    const html = layout({
+        title: 'Your verification code',
+        preheader: `Your Banana Quiz code expires in ${expiresInMinutes} minutes.`,
+        body: `
+          <p style="margin:0 0 14px;font-size:16px;line-height:1.6;">Hi <strong>${safeName}</strong>,</p>
+          <p style="margin:0 0 20px;font-size:15px;line-height:1.6;">Use the code below to ${escapeHtml(action)}.</p>
+          <div style="margin:0 0 20px;padding:18px 12px;border:2px dashed #F5C542;border-radius:16px;background:#FFFBEA;text-align:center;">
+            <p style="margin:0 0 6px;font-size:11px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:#9B5700;">Verification code</p>
+            <p style="margin:0;font-family:'Courier New',Courier,monospace;font-size:36px;font-weight:bold;letter-spacing:10px;color:#542900;">${code}</p>
+          </div>
+          <p style="margin:0 0 10px;font-size:13px;line-height:1.6;color:#8F4500;">This code expires in <strong>${expiresInMinutes} minutes</strong> and can only be used once.</p>
+          <p style="margin:0;font-size:13px;line-height:1.6;color:#8F4500;">If you did not request this code, you can safely ignore this email.</p>`,
+        footer: 'For your security, never share this code with anyone. Banana Quiz will never ask for it.',
+    });
+
+    return sendMail({ to, subject, text, html });
+}
+
+async function sendEmailVerifiedEmail({ to, name, verifiedAt }) {
+    const displayName = name || 'Quiz player';
+    const when = formatIndiaTime(verifiedAt);
+    const subject = 'Your Banana Quiz email is verified';
+    const text = `Hi ${displayName},
+
+Your email address ${to} was verified on ${when}.
+
+Your account is now fully activated. If you did not do this, reset your password and contact support.`;
+
+    const html = layout({
+        title: 'Email verified',
+        preheader: 'Your Banana Quiz account email is now confirmed.',
+        body: `
+          <p style="margin:0 0 14px;font-size:16px;line-height:1.6;">Hi <strong>${escapeHtml(displayName)}</strong>,</p>
+          <p style="margin:0 0 14px;font-size:15px;line-height:1.6;">Your email address <strong>${escapeHtml(to)}</strong> was verified on <strong>${escapeHtml(when)}</strong>.</p>
+          <p style="margin:0;font-size:14px;line-height:1.6;color:#8F4500;">Your account is now fully activated. If this was not you, reset your password immediately.</p>`,
+        footer: 'This is an automated security notification.',
+    });
+
+    return sendMail({ to, subject, text, html });
+}
+
 async function sendLoginConfirmationEmail({
     to,
     name,
@@ -236,5 +296,7 @@ module.exports = {
     sendPasswordResetEmail,
     sendPasswordChangedEmail,
     sendWelcomeEmail,
+    sendOtpEmail,
+    sendEmailVerifiedEmail,
     sendLoginConfirmationEmail,
 };

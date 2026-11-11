@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interoperability · CIS046-3 Assignment</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #f9fafc;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: #1e293b;
+      line-height: 1.6;
+      padding: 2rem 1.5rem;
+    }
+
+    .page {
+      max-width: 1150px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 2.5rem;
+      box-shadow: 0 20px 35px -10px rgba(0, 20, 50, 0.08);
+      overflow: hidden;
+      padding: 2.5rem 2.8rem;
+    }
+
+    /* breadcrumb */
+    .breadcrumb {
+      font-size: 0.85rem;
+      color: #64748b;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .breadcrumb a { color: #2563eb; text-decoration: none; font-weight: 500; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb i { font-size: 0.65rem; color: #94a3b8; }
+
+    /* header */
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 2px solid #eef2f6;
+      margin-bottom: 2rem;
+    }
+    .page-header .icon {
+      width: 64px; height: 64px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border-radius: 1.2rem;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 2rem;
+      flex-shrink: 0;
+      box-shadow: 0 8px 16px -6px #05966960;
+    }
+    .page-header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #0b2b4f;
+      letter-spacing: -0.02em;
+    }
+    .page-header p { color: #475569; font-size: 0.95rem; }
+
+    /* section */
+    .section { margin-bottom: 2.5rem; }
+    .section h2 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #0b2b4f;
+      display: flex; align-items: center; gap: 0.7rem;
+      margin-bottom: 1rem;
+      letter-spacing: -0.01em;
+    }
+    .section h2 i { color: #059669; font-size: 1.2rem; }
+    .section p { color: #334155; font-size: 0.95rem; margin-bottom: 0.8rem; }
+
+    /* callout */
+    .callout {
+      background: #ecfdf5;
+      border-left: 5px solid #10b981;
+      border-radius: 0.9rem;
+      padding: 1.1rem 1.4rem;
+      font-size: 0.92rem;
+      color: #065f46;
+      margin: 1rem 0;
+    }
+    .callout strong { color: #064e3b; }
+
+    /* code block */
+    .code-block {
+      background: #0f172a;
+      border-radius: 1rem;
+      padding: 1.3rem 1.5rem;
+      overflow-x: auto;
+      margin: 1rem 0;
+      position: relative;
+    }
+    .code-block .code-label {
+      position: absolute;
+      top: 0; right: 0;
+      background: #1e293b;
+      color: #94a3b8;
+      font-size: 0.7rem;
+      padding: 0.25rem 0.8rem;
+      border-radius: 0 1rem 0 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+    .code-block pre {
+      font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+      font-size: 0.82rem;
+      line-height: 1.65;
+      color: #e2e8f0;
+      white-space: pre;
+    }
+    .code-block .comment { color: #64748b; font-style: italic; }
+    .code-block .keyword { color: #93c5fd; }
+    .code-block .string { color: #86efac; }
+    .code-block .fn { color: #fbbf24; }
+    .code-block .type { color: #f472b6; }
+
+    /* rubric table */
+    .rubric-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin-top: 1rem;
+      border-radius: 1rem;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+    }
+    .rubric-table th {
+      background: #ecfdf5;
+      padding: 0.9rem 1rem;
+      text-align: left;
+      font-weight: 600;
+      color: #065f46;
+      border-bottom: 1px solid #a7f3d0;
+      font-size: 0.82rem;
+    }
+    .rubric-table td {
+      padding: 0.9rem 1rem;
+      border-bottom: 1px solid #eef2f6;
+      vertical-align: top;
+      color: #334155;
+    }
+    .rubric-table tr:last-child td { border-bottom: none; }
+    .rubric-table .band {
+      font-weight: 700;
+      color: #1e3a63;
+      white-space: nowrap;
+    }
+    .rubric-table .band.first { color: #059669; }
+    .rubric-table .band.two-one { color: #0d9488; }
+
+    /* checklist */
+    .checklist {
+      list-style: none;
+      display: grid;
+      gap: 0.6rem;
+      margin-top: 1rem;
+    }
+    .checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.8rem;
+      background: #f8fafc;
+      padding: 0.85rem 1.2rem;
+      border-radius: 0.8rem;
+      font-size: 0.92rem;
+      color: #1e293b;
+      border: 1px solid #eef2f6;
+    }
+    .checklist li i {
+      color: #059669;
+      font-size: 1rem;
+      margin-top: 0.15rem;
+      flex-shrink: 0;
+    }
+
+    /* prompt cards */
+    .prompt-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .prompt-card {
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      border-radius: 1rem;
+      padding: 1.2rem 1.4rem;
+    }
+    .prompt-card h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #065f46;
+      margin-bottom: 0.5rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .prompt-card h4 i { color: #059669; }
+    .prompt-card p { font-size: 0.88rem; color: #064e3b; margin: 0; }
+
+    /* interop flow */
+    .interop-flow {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      margin: 1.2rem 0;
+    }
+    .interop-flow .node {
+      background: #f0fdfa;
+      border: 1.5px solid #99f6e4;
+      border-radius: 0.8rem;
+      padding: 0.6rem 1rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #115e59;
+      text-align: center;
+    }
+    .interop-flow .arrow {
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+
+    /* protocol badge */
+    .protocol-badge {
+      display: inline-block;
+      background: #ecfdf5;
+      color: #065f46;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.2rem 0.7rem;
+      border-radius: 20px;
+      border: 1px solid #a7f3d0;
+      margin-left: 0.4rem;
+      vertical-align: middle;
+    }
+
+    /* navigation footer */
+    .nav-footer {
+      margin-top: 2.5rem;
+      padding-top: 1.5rem;
+      border-top: 2px solid #eef2f6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .nav-footer a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      text-decoration: none;
+      color: #059669;
+      font-weight: 600;
+      font-size: 0.9rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 0.8rem;
+      background: #ecfdf5;
+      transition: background 0.15s;
+    }
+    .nav-footer a:hover { background: #a7f3d0; }
+
+    @media (max-width: 800px) {
+      .page { padding: 1.8rem; }
+      .prompt-grid { grid-template-columns: 1fr; }
+      .page-header { flex-direction: column; align-items: flex-start; }
+    }
+    @media (max-width: 500px) {
+      body { padding: 0.8rem; }
+      .page { padding: 1.4rem; border-radius: 1.6rem; }
+      .page-header h1 { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- breadcrumb -->
+    <div class="breadcrumb">
+      <a href="landing.html"><i class="fas fa-house"></i> Landing</a>
+      <i class="fas fa-chevron-right"></i>
+      <span>Interoperability</span>
+    </div>
+
+    <!-- header -->
+    <div class="page-header">
+      <div class="icon"><i class="fas fa-plug"></i></div>
+      <div>
+        <h1>Interoperability</h1>
+        <p>Theme 3 of 4 · CIS046-3 Software For Enterprise · Assignment 1 (60%)</p>
+      </div>
+    </div>
+
+    <!-- overview -->
+    <div class="section">
+      <h2><i class="fas fa-circle-info"></i> What you must demonstrate</h2>
+      <p>
+        Your video must relate <strong>interoperability</strong> to your own code. At minimum you
+        must mention it and connect it to your project. Higher bands require you to identify
+        <em>where</em> your code interoperates with someone else's code and <em>what protocol</em>
+        is used (50–59%), reflect on how your code works with a different architecture or remote
+        system (60–69%), and critically justify your approach to including third-party software
+        such as the Banana API (70%+).
+      </p>
+      <div class="callout">
+        <strong>Threshold expectation:</strong> explain the key concept of interoperability based
+        on the code you have developed. The Banana API is the obvious candidate — but you can also
+        discuss how your chosen language interoperates with the browser, a database, or another
+        service.
+      </div>
+    </div>
+
+    <!-- interop flow -->
+    <div class="section">
+      <h2><i class="fas fa-diagram-project"></i> Interoperability in your Banana API game</h2>
+      <p>Show the boundary between your system and the third-party service in your video:</p>
+      <div class="interop-flow">
+        <div class="node">Your game<br><small>JS / Java / PHP</small></div>
+        <i class="fas fa-arrow-right arrow"></i>
+        <div class="node">HTTP client<br><small>fetch / HttpClient</small></div>
+        <i class="fas fa-arrow-right arrow"></i>
+        <div class="node">Banana API<br><small>marcconrad.com</small></div>
+        <i class="fas fa-arrow-right arrow"></i>
+        <div class="node">JSON response<br><small>parsed &amp; validated</small></div>
+        <i class="fas fa-arrow-right arrow"></i>
+        <div class="node">Your UI<br><small>renders result</small></div>
+      </div>
+      <p style="font-size:0.88rem; color:#475569;">
+        <strong>Protocols to name:</strong> HTTPS<span class="protocol-badge">application layer</span>
+        TCP/IP<span class="protocol-badge">transport / network</span>
+        JSON<span class="protocol-badge">data format</span>
+        REST<span class="protocol-badge">API style</span>
+      </p>
+    </div>
+
+    <!-- code example -->
+    <div class="section">
+      <h2><i class="fas fa-code"></i> Evidence from your code</h2>
+      <p>Show the integration layer as a separate module, so you can talk about encapsulation:</p>
+      <div class="code-block">
+        <span class="code-label">banana-client.js · integration layer</span>
+        <pre><span class="comment">// Third-party integration: Banana API</span>
+<span class="comment">// Docs: https://marcconrad.com/uob/banana/doc.php</span>
+<span class="comment">// Protocol: HTTPS (REST) · Data format: JSON</span>
+
+<span class="keyword">export class</span> <span class="type">BananaClient</span> {
+  <span class="keyword">static</span> <span class="keyword">async</span> <span class="fn">checkGuess</span>(guess) {
+    <span class="keyword">const</span> url = <span class="string">`https://marcconrad.com/uob/banana/api.php?question=${encodeURIComponent(guess)}`</span>;
+
+    <span class="keyword">const</span> response = <span class="keyword">await</span> <span class="fn">fetch</span>(url, {
+      method: <span class="string">'GET'</span>,
+      headers: { <span class="string">'Accept'</span>: <span class="string">'application/json'</span> },
+    });
+
+    <span class="keyword">if</span> (!response.ok) {
+      <span class="keyword">throw new</span> <span class="type">Error</span>(<span class="string">`Banana API error: ${response.status}`</span>);
+    }
+
+    <span class="comment">// Contract check: validate shape before trusting it</span>
+    <span class="keyword">const</span> data = <span class="keyword">await</span> response.<span class="fn">json</span>();
+    <span class="keyword">if</span> (<span class="keyword">typeof</span> data.correct !== <span class="string">'boolean'</span>) {
+      <span class="keyword">throw new</span> <span class="type">Error</span>(<span class="string">'Unexpected API response shape'</span>);
+    }
+    <span class="keyword">return</span> data;
+  }
+}
+</pre>
+      </div>
+      <p style="font-size:0.88rem; color:#475569;">
+        Tip: mention <strong>error handling</strong>, <strong>timeouts</strong>, and <strong>contract
+        validation</strong> — these show you understand the risks of depending on someone else's code.
+      </p>
+    </div>
+
+    <!-- rubric -->
+    <div class="section">
+      <h2><i class="fas fa-clipboard-check"></i> Marking rubric for this theme</h2>
+      <table class="rubric-table">
+        <thead>
+          <tr>
+            <th style="width:15%">Band</th>
+            <th>What the marker looks for</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="band">40–49%</td>
+            <td>Mention interoperability and are able to relate it to the code.</td>
+          </tr>
+          <tr>
+            <td class="band">50–59%</td>
+            <td>Clearly identify where your code interoperates with someone else's code and what protocol is used to accomplish this.</td>
+          </tr>
+          <tr>
+            <td class="band two-one">60–69%</td>
+            <td>Confidently reflect on how your code works together with other code written in a different architecture or running on a different system.</td>
+          </tr>
+          <tr>
+            <td class="band first">70%+</td>
+            <td>Critically justify the approaches you have taken to include third-party software, such as a web service, into your application.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- what to say -->
+    <div class="section">
+      <h2><i class="fas fa-microphone"></i> What to say in your video</h2>
+      <div class="prompt-grid">
+        <div class="prompt-card">
+          <h4><i class="fas fa-link"></i> Where the boundary sits</h4>
+          <p>Name the exact module (<code>BananaClient</code>) that talks to the external service, and show that the rest of your code never calls the API directly.</p>
+        </div>
+        <div class="prompt-card">
+          <h4><i class="fas fa-exchange-alt"></i> Protocols used</h4>
+          <p>Say "HTTPS GET request returning JSON over REST" and explain why these choices interoperate cleanly with a JavaScript/Java client.</p>
+        </div>
+        <div class="prompt-card">
+          <h4><i class="fas fa-server"></i> Different architecture</h4>
+          <p>Discuss how your client runs on a different system (browser / JVM) from the server-side API, and how the HTTP contract bridges them.</p>
+        </div>
+        <div class="prompt-card">
+          <h4><i class="fas fa-scale-balanced"></i> Justification (70%+)</h4>
+          <p>Justify why you chose the Banana API, why you wrapped it in its own class, and how you handle failure (timeouts, malformed JSON, rate limits) vs alternatives.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- checklist -->
+    <div class="section">
+      <h2><i class="fas fa-list-check"></i> Pre-submission checklist</h2>
+      <ul class="checklist">
+        <li><i class="fas fa-check-circle"></i> The external service (e.g. Banana API) is named and its docs are referenced in code comments.</li>
+        <li><i class="fas fa-check-circle"></i> The integration layer is isolated in its own module/class.</li>
+        <li><i class="fas fa-check-circle"></i> Protocols named explicitly: HTTPS, REST, JSON.</li>
+        <li><i class="fas fa-check-circle"></i> Error handling and response validation are shown and explained.</li>
+        <li><i class="fas fa-check-circle"></i> For 70%+: a critical justification of the third-party choice and integration approach.</li>
+        <li><i class="fas fa-check-circle"></i> All third-party code (GitHub, LLMs, forums) referenced in code comments.</li>
+      </ul>
+    </div>
+
+    <!-- navigation footer -->
+    <div class="nav-footer">
+      <a href="Event-Driven-Programming.html"><i class="fas fa-arrow-left"></i> Previous: Event-Driven</a>
+      <a href="Virtual-Identity.html">Next: Virtual Identity <i class="fas fa-arrow-right"></i></a>
+    </div>
+  </div>
+</body>
+</html>

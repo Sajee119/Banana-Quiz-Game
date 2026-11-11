@@ -40,10 +40,20 @@ const passwordResetLimiter = rateLimit({
     max: 15,
     message: { success: false, message: 'Too many password reset attempts, try again later.' },
 });
+const otpLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 25,
+    message: { success: false, message: 'Too many verification attempts, try again later.' },
+});
 
 app.use(['/auth/login', '/auth/register'], authLimiter);
 
 app.post(['/auth/forgot-password', '/auth/reset-password'], passwordResetLimiter);
+
+app.use(
+    ['/auth/register/verify', '/auth/register/resend', '/auth/verification/status', '/auth/email/verify'],
+    otpLimiter
+);
 
 app.use('/api/game', gameLimiter);
 

@@ -44,6 +44,9 @@ export function formatDuration(ms) {
     return `${(ms / 1000).toFixed(1)}s`;
 }
 
+export const QUIZ_COUNT_OPTIONS = [5, 10, 20, 30];
+export const TIME_LIMIT_OPTIONS = [10, 15, 20, 30, 45, 60];
+
 export const POINTS_PER_LEVEL = 500;
 
 export function getLevel(totalPoints = 0) {
@@ -73,7 +76,7 @@ export const MODE_INFO = {
         id: 'easy',
         label: 'Standard · Easy',
         tagline: '10 quizzes · 30 seconds each',
-        description: 'A steady pace for building your banana-counting streak.',
+        description: 'A steady pace for building your banana-value calculation streak.',
         time: '30 sec',
         multiplier: '50+',
     },
@@ -81,7 +84,7 @@ export const MODE_INFO = {
         id: 'hard',
         label: 'Standard · Hard',
         tagline: '10 quizzes · 15 seconds each',
-        description: 'Fast eyes and faster answers. Every quiz has only 15 seconds.',
+        description: 'Fast calculations and faster answers. Every puzzle has only 15 seconds.',
         time: '15 sec',
         multiplier: '50+',
     },
@@ -89,10 +92,22 @@ export const MODE_INFO = {
         id: 'custom',
         label: 'Custom',
         tagline: 'Choose quizzes and time',
-        description: 'Build a practice game with your own quiz count and timer.',
+        description: 'Build a practice game with your own puzzle count and timer.',
         time: '10–60 sec',
         multiplier: 'Practice',
     },
 };
 
 export const MODE_LIST = Object.values(MODE_INFO);
+
+const LEGACY_MODE_ALIASES = {
+    classic: 'easy',
+    blitz: 'hard',
+    zen: 'custom',
+};
+
+export function normalizeModeId(modeId) {
+    const id = String(modeId || '').trim().toLowerCase();
+    const normalized = LEGACY_MODE_ALIASES[id] || id;
+    return Object.hasOwn(MODE_INFO, normalized) ? normalized : 'easy';
+}

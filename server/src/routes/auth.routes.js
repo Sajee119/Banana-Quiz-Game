@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 const router = require('express').Router();
 const passport = require('passport');
 const env = require('../config/env');
@@ -10,20 +11,27 @@ const {
     sendPasswordResetEmail,
     sendPasswordChangedEmail,
     sendWelcomeEmail,
+    sendEmailVerifiedEmail,
     sendLoginConfirmationEmail,
 } = require('../services/mail.service');
+const {
+    createChallenge,
+    findChallenge,
+    checkOtp,
+    refreshChallenge,
+    deliverOtp,
+    canResend,
+    buildStatusPayload,
+    maskEmail,
+} = require('../services/emailVerification.service');
+const { buildUserPayload } = require('../utils/userPayload');
 const { evaluatePassword } = require('../utils/passwordPolicy');
 const { getClientIp, parseUserAgent } = require('../utils/userAgent');
 const logger = require('../utils/logger');
-<<<<<<< Updated upstream
 const { ensureGuest } = require('../middleware/auth.middleware');
-=======
 const { ensureGuest, ensureAuthenticated } = require('../middleware/auth.middleware');
 
 const PENDING_PASSWORD_ROUNDS = 12;
-const REMEMBER_MAX_AGE_MS = env.SESSION_REMEMBER_DAYS * 24 * 60 * 60 * 1000;
-const OAUTH_REMEMBER_COOKIE = 'bq_oauth_remember';
->>>>>>> Stashed changes
 
 const authOptions = {
     failureRedirect: `${env.CLIENT_URL}/login?error=oauth_failed`,
@@ -106,6 +114,7 @@ function syncSessionVersion(req) {
 }
 
 function notifySuccessfulLogin(req, user, method) {
+    if (user.preferences?.loginAlerts === false) return Promise.resolve();
     const device = parseUserAgent(req.headers?.['user-agent']);
     return sendLoginConfirmationEmail({
         to: user.email,
@@ -121,6 +130,7 @@ function notifySuccessfulLogin(req, user, method) {
 }
 
 function notifyWelcome(user, provider) {
+    if (user.preferences?.emailNotifications === false) return Promise.resolve();
     return sendWelcomeEmail({
         to: user.email,
         name: user.displayName,
@@ -132,7 +142,64 @@ function notifyWelcome(user, provider) {
     });
 }
 
-// email + password signup
+// Helper for the two OTP check endpoints. It keeps every failure response in
+// one place so the client always receives the same friendly shape.
+function otpErrorResponse(res, result) {
+    if (result.status === 'expired' || result.status === 'missing') {
+        return res.status(410).json({
+            success: false,
+            expired: true,
+            message: 'This verification code has expired. Request a new one.',
+        });
+    }
+    if (result.status === 'locked') {
+        return res.status(429).json({
+            success: false,
+            locked: true,
+            message: 'Too many incorrect attempts. Request a new code to continue.',
+        });
+    }
+
+    const remaining = result.remainingAttempts;
+    return res.status(400).json({
+        success: false,
+        attemptsRemaining: remaining,
+        message:
+            typeof remaining === 'number'
+                ? `That code is not correct. ${remaining} attempt${remaining === 1 ? '' : 's'} left.`
+                : 'That code is not correct.',
+    });
+}
+
+function otpDeliveryPayload({ challenge, delivery, email, message, includeUser = false, user = null }) {
+    const payload = {
+        success: true,
+        requiresVerification: true,
+        message,
+        verificationId: challenge.challengeToken,
+        email: maskEmail(email),
+        expiresAt: challenge.record.expiresAt,
+        expiresInMinutes: challenge.expiresInMinutes,
+        resendAfterSeconds: challenge.resendAfterSeconds,
+        otpLength: 6,
+        ...(includeUser && user ? { user: buildUserPayload(user) } : {}),
+    };
+
+    // A local development machine may not have SMTP configured. Returning the
+    // code in development keeps the flow testable without weakening
+    // production, where the code is only ever sent by email.
+    if (!delivery.sent && env.NODE_ENV !== 'production') {
+        payload.devOtp = challenge.otp;
+        payload.deliveryWarning =
+            'SMTP delivery is not available, so the code is shown here for local development.';
+    }
+
+    return payload;
+}
+
+// email + password signup. The account is NOT created yet: a pending,
+// expiring challenge is stored and a 6-digit code is emailed. The User row is
+// only inserted after POST /auth/register/verify succeeds.
 router.post('/register', asyncHandler(async (req, res) => {
     const { name = '', email = '', password = '' } = req.body || {};
     const displayName = typeof name === 'string' ? name.trim() : '';
@@ -158,7 +225,65 @@ router.post('/register', asyncHandler(async (req, res) => {
         return res.status(409).json({ success: false, message: 'An account with this email already exists. Try signing in.' });
     }
 
-    const user = await User.registerLocal({ name: displayName, email: normalizedEmail, password });
+    const passwordHash = await bcrypt.hash(password, PENDING_PASSWORD_ROUNDS);
+    const challenge = await createChallenge({
+        kind: 'registration',
+        email: normalizedEmail,
+        name: displayName,
+        passwordHash,
+        ip: getClientIp(req),
+        userAgent: req.headers?.['user-agent'] || '',
+    });
+
+    const delivery = await deliverOtp({
+        record: challenge.record,
+        otp: challenge.otp,
+        purpose: 'registration',
+    });
+
+    return res.status(202).json(
+        otpDeliveryPayload({
+            challenge,
+            delivery,
+            email: normalizedEmail,
+            message: `We sent a 6-digit code to ${maskEmail(normalizedEmail)}. Enter it to finish creating your account.`,
+        })
+    );
+}));
+
+router.post('/register/verify', asyncHandler(async (req, res) => {
+    const { verificationId = '', otp = '' } = req.body || {};
+    const pending = await findChallenge({ challengeToken: verificationId, kind: 'registration' });
+
+    const check = await checkOtp(pending, otp);
+    if (check.status !== 'ok') return otpErrorResponse(res, check);
+
+    const record = check.record;
+    if (!record.passwordHash) {
+        await record.deleteOne();
+        return res.status(400).json({
+            success: false,
+            message: 'This sign-up could not be completed. Please start again.',
+        });
+    }
+
+    const existing = await User.exists({ email: record.email });
+    if (existing) {
+        await record.deleteOne();
+        return res.status(409).json({
+            success: false,
+            message: 'An account with this email already exists. Try signing in.',
+        });
+    }
+
+    const user = await User.createVerifiedLocal({
+        name: record.name,
+        email: record.email,
+        passwordHash: record.passwordHash,
+        emailVerifiedAt: new Date(),
+    });
+
+    await record.deleteOne();
     await loginUser(req, user);
     await recordLogin(req, {
         userId: user.id,
@@ -169,7 +294,204 @@ router.post('/register', asyncHandler(async (req, res) => {
     void notifyWelcome(user, 'email');
     void notifySuccessfulLogin(req, user, 'password');
 
-    return res.status(201).json({ success: true, user });
+    return res.status(201).json({
+        success: true,
+        verified: true,
+        message: 'Your email is verified and your account is ready.',
+        user: buildUserPayload(user),
+    });
+}));
+
+router.post('/register/resend', asyncHandler(async (req, res) => {
+    const { verificationId = '' } = req.body || {};
+    const record = await findChallenge({ challengeToken: verificationId, kind: 'registration' });
+
+    if (!record) {
+        return res.status(410).json({
+            success: false,
+            expired: true,
+            message: 'This sign-up has expired. Please register again.',
+        });
+    }
+
+    const decision = canResend(record);
+    if (!decision.allowed) {
+        return res.status(429).json({
+            success: false,
+            retryAfter: decision.retryAfter ?? null,
+            message:
+                decision.reason === 'cooldown'
+                    ? `Please wait ${decision.retryAfter} seconds before requesting another code.`
+                    : 'You have reached the resend limit. Please start the sign-up again.',
+        });
+    }
+
+    const refreshed = await refreshChallenge(record);
+    const delivery = await deliverOtp({
+        record,
+        otp: refreshed.otp,
+        purpose: 'registration',
+    });
+
+    return res.json(
+        otpDeliveryPayload({
+            challenge: {
+                record,
+                challengeToken: verificationId,
+                otp: refreshed.otp,
+                expiresInMinutes: refreshed.expiresInMinutes,
+                resendAfterSeconds: refreshed.resendAfterSeconds,
+            },
+            delivery,
+            email: record.email,
+            message: `A new code was sent to ${maskEmail(record.email)}.`,
+        })
+    );
+}));
+
+router.get('/verification/status', asyncHandler(async (req, res) => {
+    const kind = req.query.kind === 'email_verification' ? 'email_verification' : 'registration';
+    const record = await findChallenge({
+        challengeToken: typeof req.query.verificationId === 'string' ? req.query.verificationId : '',
+        kind,
+    });
+
+    if (!record) {
+        return res.json({
+            success: true,
+            active: false,
+            message: 'This verification link is invalid or has expired.',
+        });
+    }
+
+    return res.json({ success: true, active: true, ...buildStatusPayload(record) });
+}));
+
+// Confirm the email of an account that is already signed in. This covers
+// accounts created before email verification was introduced.
+router.post('/email/verify/request', ensureAuthenticated, asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ success: false, message: 'Account not found.' });
+
+    const payload = buildUserPayload(user);
+    if (payload.emailVerified) {
+        return res.status(400).json({
+            success: false,
+            alreadyVerified: true,
+            message: 'Your email address is already verified.',
+            user: payload,
+        });
+    }
+
+    const challenge = await createChallenge({
+        kind: 'email_verification',
+        email: user.email,
+        name: user.displayName,
+        userId: user._id,
+        ip: getClientIp(req),
+        userAgent: req.headers?.['user-agent'] || '',
+    });
+
+    const delivery = await deliverOtp({
+        record: challenge.record,
+        otp: challenge.otp,
+        purpose: 'email_verification',
+    });
+
+    return res.status(202).json({
+        ...otpDeliveryPayload({
+            challenge,
+            delivery,
+            email: user.email,
+            message: `We sent a verification code to ${maskEmail(user.email)}.`,
+        }),
+    });
+}));
+
+router.post('/email/verify/confirm', ensureAuthenticated, asyncHandler(async (req, res) => {
+    const { verificationId = '', otp = '' } = req.body || {};
+    const pending = await findChallenge({ challengeToken: verificationId, kind: 'email_verification' });
+
+    if (!pending || String(pending.user) !== String(req.user.id)) {
+        return res.status(410).json({
+            success: false,
+            expired: true,
+            message: 'This verification link is invalid or has expired.',
+        });
+    }
+
+    const check = await checkOtp(pending, otp);
+    if (check.status !== 'ok') return otpErrorResponse(res, check);
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ success: false, message: 'Account not found.' });
+
+    user.emailVerified = true;
+    user.emailVerifiedAt = new Date();
+    await user.save();
+    await check.record.deleteOne();
+
+    sendEmailVerifiedEmail({
+        to: user.email,
+        name: user.displayName,
+        verifiedAt: user.emailVerifiedAt,
+    }).catch((err) => {
+        logger.warn(`Could not send verified-email confirmation to ${user.email}: ${err.message}`);
+    });
+
+    return res.json({
+        success: true,
+        verified: true,
+        message: 'Your email address is verified.',
+        user: buildUserPayload(user),
+    });
+}));
+
+router.post('/email/verify/resend', ensureAuthenticated, asyncHandler(async (req, res) => {
+    const { verificationId = '' } = req.body || {};
+    const record = await findChallenge({ challengeToken: verificationId, kind: 'email_verification' });
+
+    if (!record || String(record.user) !== String(req.user.id)) {
+        return res.status(410).json({
+            success: false,
+            expired: true,
+            message: 'This verification link is invalid or has expired.',
+        });
+    }
+
+    const decision = canResend(record);
+    if (!decision.allowed) {
+        return res.status(429).json({
+            success: false,
+            retryAfter: decision.retryAfter ?? null,
+            message:
+                decision.reason === 'cooldown'
+                    ? `Please wait ${decision.retryAfter} seconds before requesting another code.`
+                    : 'You have reached the resend limit. Try again later.',
+        });
+    }
+
+    const refreshed = await refreshChallenge(record);
+    const delivery = await deliverOtp({
+        record,
+        otp: refreshed.otp,
+        purpose: 'email_verification',
+    });
+
+    return res.json(
+        otpDeliveryPayload({
+            challenge: {
+                record,
+                challengeToken: verificationId,
+                otp: refreshed.otp,
+                expiresInMinutes: refreshed.expiresInMinutes,
+                resendAfterSeconds: refreshed.resendAfterSeconds,
+            },
+            delivery,
+            email: record.email,
+            message: `A new code was sent to ${maskEmail(record.email)}.`,
+        })
+    );
 }));
 
 // email + password login
@@ -185,7 +507,7 @@ router.post('/login', asyncHandler(async (req, res) => {
     const normalizedEmail = normalizeEmail(email);
     const user = await User.findByEmailWithPassword(normalizedEmail);
 
-    if (!user) {
+    if (!user || user.isActive === false) {
         await recordLogin(req, {
             email: normalizedEmail,
             method: 'password',
@@ -231,7 +553,7 @@ router.post('/login', asyncHandler(async (req, res) => {
     });
     void notifySuccessfulLogin(req, user, 'password');
 
-    return res.json({ success: true, user });
+    return res.json({ success: true, user: buildUserPayload(user) });
 }));
 
 /**
@@ -462,7 +784,7 @@ router.post('/logout', (req, res, next) => {
 router.get('/status', (req, res) => {
     res.json({
         authenticated: req.isAuthenticated ? req.isAuthenticated() : false,
-        user: req.user || null,
+        user: req.user ? buildUserPayload(req.user) : null,
     });
 });
 

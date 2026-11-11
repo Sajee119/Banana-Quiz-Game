@@ -16,6 +16,13 @@ const schema = Joi.object({
     SESSION_REMEMBER_DAYS: Joi.number().min(1).max(365).default(30),
 
     PASSWORD_RESET_TTL_MINUTES: Joi.number().min(5).max(120).default(30),
+
+    // Email OTP verification for new accounts and unverified existing accounts.
+    EMAIL_OTP_TTL_MINUTES: Joi.number().min(5).max(60).default(10),
+    EMAIL_OTP_MAX_ATTEMPTS: Joi.number().min(3).max(10).default(5),
+    EMAIL_OTP_MAX_RESENDS: Joi.number().min(1).max(10).default(5),
+    EMAIL_OTP_RESEND_SECONDS: Joi.number().min(0).max(300).default(30),
+
     SMTP_HOST: Joi.string().allow('').default(''),
     SMTP_PORT: Joi.number().default(587),
     SMTP_SECURE: Joi.boolean().default(false),

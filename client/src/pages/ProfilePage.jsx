@@ -1,32 +1,38 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
+    Activity,
     ArrowLeft,
-    Trophy,
-    Target,
-    Flame,
-    Zap,
-    Crown,
-    Gamepad2,
-    Settings,
-    ShieldCheck,
-    KeyRound,
-    Monitor,
-    Smartphone,
-    Tablet,
+    Bell,
     CalendarDays,
-    Mail,
-    Save,
-    RefreshCw,
     Check,
     CircleAlert,
+    Crown,
+    Download,
+    Eye,
+    Flame,
+    Gamepad2,
     Image,
-    UserRound,
+    KeyRound,
     ListChecks,
     LogOut,
+    Mail,
+    MailCheck,
+    Monitor,
+    Palette,
+    RefreshCw,
+    Save,
+    Settings,
     ShieldAlert,
-    Activity,
+    ShieldCheck,
+    Smartphone,
+    Tablet,
+    Target,
+    Trash2,
+    Trophy,
+    UserRound,
+    Zap,
 } from 'lucide-react';
 import AppHeader from '../components/AppHeader.jsx';
 import Card from '../components/Card.jsx';
@@ -36,13 +42,16 @@ import StatCard from '../components/StatCard.jsx';
 import PasswordInput from '../components/PasswordInput.jsx';
 import PasswordStrengthMeter from '../components/PasswordStrengthMeter.jsx';
 import { useAuth } from '../context/auth-context.js';
-import { userApi } from '../api/client.js';
+import { authApi, userApi } from '../api/client.js';
 import {
     MODE_LIST,
+    QUIZ_COUNT_OPTIONS,
+    TIME_LIMIT_OPTIONS,
     formatDate,
     formatDateTime,
     formatRelative,
     initials,
+    normalizeModeId,
 } from '../lib/format.js';
 import { evaluatePassword } from '../lib/passwordStrength.js';
 import { usePageTitle } from '../hooks/usePageTitle.js';
@@ -70,35 +79,57 @@ const REASON_LABELS = {
     social_only: 'Social-only account',
 };
 
+const TABS = [
+    { id: 'profile', label: 'Profile', icon: UserRound },
+    { id: 'appearance', label: 'Appearance', icon: Palette },
+    { id: 'gameplay', label: 'Gameplay', icon: Gamepad2 },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
+    { id: 'security', label: 'Security', icon: ShieldCheck },
+    { id: 'activity', label: 'Activity', icon: Activity },
+    { id: 'privacy', label: 'Privacy & data', icon: Eye },
+    { id: 'danger-zone', label: 'Danger zone', icon: ShieldAlert },
+];
+
+const DEFAULT_PREFERENCES = {
+    reducedMotion: false,
+    showOnLeaderboard: true,
+    emailNotifications: true,
+    loginAlerts: true,
+    productUpdates: false,
+    defaultMode: 'easy',
+    autoSubmit: true,
+    celebrations: true,
+    showKeyboardHints: true,
+    showTimer: true,
+    defaultQuizCount: 10,
+    defaultTime: 30,
+};
+
 export default function ProfilePage() {
     usePageTitle('Profile & settings');
-    const { user, stats, setUser } = useAuth();
+    const { user, stats, setUser, setStats } = useAuth();
+    const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
+
     const requestedTab = searchParams.get('tab') || 'profile';
-    const tabs = ['profile', 'controls', 'privacy', 'security', 'activity', 'danger-zone'];
-    const activeTab = tabs.includes(requestedTab) ? requestedTab : 'profile';
+    const activeTab = TABS.some((tab) => tab.id === requestedTab) ? requestedTab : 'profile';
 
     const [profile, setProfile] = useState({
-        name: user?.displayName || '',
-        bio: user?.bio || '',
-        avatar: user?.avatar || '',
-        favoriteMode: user?.favoriteMode || 'classic',
+        name: '',
+        bio: '',
+        avatar: '',
+        favoriteMode: 'easy',
     });
-    const [preferences, setPreferences] = useState({
-        reducedMotion: Boolean(user?.preferences?.reducedMotion),
-        showOnLeaderboard: user?.preferences?.showOnLeaderboard !== false,
-    });
-
-    const [savingProfile, setSavingProfile] = useState(false);
-    const [profileMessage, setProfileMessage] = useState(null);
+    const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES);
+    const [notices, setNotices] = useState({});
+    const [savingSection, setSavingSection] = useState('');
 
     const [passwordForm, setPasswordForm] = useState({
         currentPassword: '',
         newPassword: '',
         confirmPassword: '',
     });
-    const [savingPassword, setSavingPassword] = useState(false);
-    const [passwordMessage, setPasswordMessage] = useState(null);
+    const [passwordNotice, setPasswordNotice] = useState(null);
 
     const [loginData, setLoginData] = useState(null);
     const [loginError, setLoginError] = useState('');
@@ -108,14 +139,72 @@ export default function ProfilePage() {
     const [securityError, setSecurityError] = useState('');
     const [loadingSecurity, setLoadingSecurity] = useState(true);
     const [signingOutOthers, setSigningOutOthers] = useState(false);
-    const [deviceMessage, setDeviceMessage] = useState(null);
+    const [deviceNotice, setDeviceNotice] = useState(null);
 
-    const hasPassword = user?.providerNames?.includes('local');
+    const [emailAction, setEmailAction] = useState({ sending: false, error: '' });
+
+    const [deactivateForm, setDeactivateForm] = useState({ confirm: '', password: '' });
+    const [deactivating, setDeactivating] = useState(false);
+    const [deactivateError, setDeactivateError] = useState('');
+
+    const [verifiedBanner, setVerifiedBanner] = useState(
+        searchParams.get('verified') === '1'
+    );
+
+    const hasPassword =
+        security?.hasPassword ?? Boolean(user?.providerNames?.includes('local'));
     const winRate = stats?.gamesPlayed
         ? Math.round((stats.gamesWon / stats.gamesPlayed) * 100)
         : 0;
 
-    const fetchSecurity = () => {
+    useEffect(() => {
+        if (!user) return;
+        setProfile({
+            name: user.displayName || '',
+            bio: user.bio || '',
+            avatar: user.avatar || '',
+            favoriteMode: normalizeModeId(user.favoriteMode),
+        });
+        const storedQuizCount = Number(user.preferences?.defaultQuizCount);
+        const storedTime = Number(user.preferences?.defaultTime);
+
+        setPreferences({
+            reducedMotion:
+                user.preferences?.reducedMotion ?? DEFAULT_PREFERENCES.reducedMotion,
+            showOnLeaderboard:
+                user.preferences?.showOnLeaderboard ?? DEFAULT_PREFERENCES.showOnLeaderboard,
+            emailNotifications:
+                user.preferences?.emailNotifications ?? DEFAULT_PREFERENCES.emailNotifications,
+            loginAlerts: user.preferences?.loginAlerts ?? DEFAULT_PREFERENCES.loginAlerts,
+            productUpdates:
+                user.preferences?.productUpdates ?? DEFAULT_PREFERENCES.productUpdates,
+            defaultMode: normalizeModeId(
+                user.preferences?.defaultMode ?? DEFAULT_PREFERENCES.defaultMode
+            ),
+            autoSubmit: user.preferences?.autoSubmit ?? DEFAULT_PREFERENCES.autoSubmit,
+            celebrations: user.preferences?.celebrations ?? DEFAULT_PREFERENCES.celebrations,
+            showKeyboardHints:
+                user.preferences?.showKeyboardHints ?? DEFAULT_PREFERENCES.showKeyboardHints,
+            showTimer: user.preferences?.showTimer ?? DEFAULT_PREFERENCES.showTimer,
+            defaultQuizCount: QUIZ_COUNT_OPTIONS.includes(storedQuizCount)
+                ? storedQuizCount
+                : DEFAULT_PREFERENCES.defaultQuizCount,
+            defaultTime: TIME_LIMIT_OPTIONS.includes(storedTime)
+                ? storedTime
+                : DEFAULT_PREFERENCES.defaultTime,
+        });
+    }, [user]);
+
+    useEffect(() => {
+        if (searchParams.get('verified') === '1') setVerifiedBanner(true);
+    }, [searchParams]);
+
+    const loadSecurity = useCallback(() => {
+        setLoadingSecurity(true);
+        setLoadingLogins(true);
+        setSecurityError('');
+        setLoginError('');
+
         Promise.allSettled([userApi.security(), userApi.logins()])
             .then(([securityResult, loginResult]) => {
                 if (securityResult.status === 'fulfilled') {
@@ -131,8 +220,7 @@ export default function ProfilePage() {
                     setLoginData(loginResult.value);
                 } else {
                     setLoginError(
-                        loginResult.reason?.friendlyMessage ||
-                            'Could not load login history.'
+                        loginResult.reason?.friendlyMessage || 'Could not load login history.'
                     );
                 }
             })
@@ -140,88 +228,103 @@ export default function ProfilePage() {
                 setLoadingLogins(false);
                 setLoadingSecurity(false);
             });
-    };
-
-    const loadSecurity = () => {
-        setLoadingLogins(true);
-        setLoadingSecurity(true);
-        setLoginError('');
-        setSecurityError('');
-        fetchSecurity();
-    };
-
-    useEffect(() => {
-        fetchSecurity();
     }, []);
 
-    const handleLogoutOthers = async () => {
-        if (signingOutOthers) return;
-        setSigningOutOthers(true);
-        setDeviceMessage(null);
+    useEffect(() => {
+        loadSecurity();
+    }, [loadSecurity]);
 
-        try {
-            const data = await userApi.logoutOthers();
-            if (data.user) setUser(data.user);
-            setDeviceMessage({
-                type: 'success',
-                text: data.message || 'All other devices have been signed out.',
-            });
-            loadSecurity();
-        } catch (err) {
-            setDeviceMessage({
-                type: 'error',
-                text: err.friendlyMessage || 'Could not sign out your other devices.',
-            });
-        } finally {
-            setSigningOutOthers(false);
-        }
+    const selectTab = (tabId) => {
+        setNotices({});
+        setPasswordNotice(null);
+        setDeviceNotice(null);
+        setEmailAction({ sending: false, error: '' });
+        setSearchParams(tabId === 'profile' ? {} : { tab: tabId }, { replace: true });
+    };
+
+    const setNotice = (scope, notice) => {
+        setNotices((prev) => ({ ...prev, [scope]: notice }));
     };
 
     const updateProfileField = (field) => (event) => {
         setProfile((prev) => ({ ...prev, [field]: event.target.value }));
-        setProfileMessage(null);
+        setNotice('profile', null);
     };
 
     const updatePreference = (field) => (event) => {
         const value = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
         setPreferences((prev) => ({ ...prev, [field]: value }));
-        setProfileMessage(null);
+        setNotices({});
     };
 
-    const handleProfileSave = async (event) => {
+    const saveProfile = async (event) => {
         event.preventDefault();
-        if (savingProfile) return;
-        setSavingProfile(true);
-        setProfileMessage(null);
+        if (savingSection) return;
+        setSavingSection('profile');
+        setNotice('profile', null);
 
         try {
             const data = await userApi.updateMe({
-                name: profile.name,
+                name: profile.name.trim(),
                 bio: profile.bio,
-                avatar: profile.avatar,
+                avatar: profile.avatar || '',
                 favoriteMode: profile.favoriteMode,
-                preferences,
             });
             setUser(data.user);
-            setProfileMessage({ type: 'success', text: data.message || 'Account settings saved.' });
+            setNotice('profile', {
+                type: 'success',
+                text: data.message || 'Profile updated.',
+            });
         } catch (err) {
-            setProfileMessage({ type: 'error', text: err.friendlyMessage || 'Could not save settings.' });
+            setNotice('profile', {
+                type: 'error',
+                text: err.friendlyMessage || 'Could not save your profile.',
+            });
         } finally {
-            setSavingProfile(false);
+            setSavingSection('');
+        }
+    };
+
+    const savePreferences = async (scope, changes, successText) => {
+        if (savingSection) return;
+        setSavingSection(scope);
+        setNotice(scope, null);
+
+        try {
+            const data = await userApi.updateMe({ preferences: changes });
+            setUser(data.user);
+            setNotice(scope, { type: 'success', text: successText });
+        } catch (err) {
+            setNotice(scope, {
+                type: 'error',
+                text: err.friendlyMessage || 'Could not save your preferences.',
+            });
+        } finally {
+            setSavingSection('');
         }
     };
 
     const handlePasswordSave = async (event) => {
         event.preventDefault();
-        if (savingPassword) return;
-        setPasswordMessage(null);
+        if (savingSection) return;
+        setPasswordNotice(null);
 
         if (passwordForm.newPassword.length < 8) {
-            setPasswordMessage({ type: 'error', text: 'New password must be at least 8 characters.' });
+            setPasswordNotice({
+                type: 'error',
+                text: 'New password must be at least 8 characters.',
+            });
+            return;
+        }
+        if (hasPassword && !passwordForm.currentPassword) {
+            setPasswordNotice({
+                type: 'error',
+                text: 'Enter your current password to change it.',
+            });
             return;
         }
         if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-            setPasswordMessage({ type: 'error', text: 'The new passwords do not match.' });
+            setPasswordNotice({ type: 'error', text: 'The new passwords do not match.' });
             return;
         }
 
@@ -230,23 +333,116 @@ export default function ProfilePage() {
             name: user?.displayName,
         });
         if (!policy.valid) {
-            setPasswordMessage({ type: 'error', text: policy.message });
+            setPasswordNotice({ type: 'error', text: policy.message });
             return;
         }
 
-        setSavingPassword(true);
+        setSavingSection('password');
         try {
             const data = await userApi.changePassword({
                 currentPassword: passwordForm.currentPassword,
                 newPassword: passwordForm.newPassword,
             });
             if (data.user) setUser(data.user);
-            setPasswordMessage({ type: 'success', text: data.message || 'Password updated.' });
+            setPasswordNotice({
+                type: 'success',
+                text: data.message || 'Password updated.',
+            });
             setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
         } catch (err) {
-            setPasswordMessage({ type: 'error', text: err.friendlyMessage || 'Could not update password.' });
+            setPasswordNotice({
+                type: 'error',
+                text: err.friendlyMessage || 'Could not update your password.',
+            });
         } finally {
-            setSavingPassword(false);
+            setSavingSection('');
+        }
+    };
+
+    const handleLogoutOthers = async () => {
+        if (signingOutOthers) return;
+        setSigningOutOthers(true);
+        setDeviceNotice(null);
+
+        try {
+            const data = await userApi.logoutOthers();
+            if (data.user) setUser(data.user);
+            setDeviceNotice({
+                type: 'success',
+                text: data.message || 'All other devices have been signed out.',
+            });
+            loadSecurity();
+        } catch (err) {
+            setDeviceNotice({
+                type: 'error',
+                text: err.friendlyMessage || 'Could not sign out your other devices.',
+            });
+        } finally {
+            setSigningOutOthers(false);
+        }
+    };
+
+    const handleRequestVerification = async () => {
+        if (emailAction.sending) return;
+        setEmailAction({ sending: true, error: '' });
+
+        try {
+            const data = await authApi.requestEmailVerification();
+            if (data.verificationId) {
+                navigate(
+                    `/verify-email?verificationId=${encodeURIComponent(
+                        data.verificationId
+                    )}&purpose=email_verification`,
+                    {
+                        state: {
+                            email: data.email,
+                            devOtp: data.devOtp,
+                            expiresAt: data.expiresAt,
+                        },
+                    }
+                );
+                return;
+            }
+            setEmailAction({ sending: false, error: 'Could not start email verification.' });
+        } catch (err) {
+            const payload = err.response?.data;
+            if (payload?.alreadyVerified && payload.user) setUser(payload.user);
+            setEmailAction({
+                sending: false,
+                error: err.friendlyMessage || 'Could not send a verification code.',
+            });
+        }
+    };
+
+    const handleDeactivate = async (event) => {
+        event.preventDefault();
+        if (deactivating) return;
+        setDeactivateError('');
+
+        if (deactivateForm.confirm !== 'DELETE') {
+            setDeactivateError('Type DELETE in capitals to confirm.');
+            return;
+        }
+        if (hasPassword && !deactivateForm.password) {
+            setDeactivateError('Enter your current password to deactivate your account.');
+            return;
+        }
+
+        setDeactivating(true);
+        try {
+            await userApi.deactivate({
+                confirm: deactivateForm.confirm,
+                password: deactivateForm.password,
+            });
+            setUser(null);
+            setStats(null);
+            navigate('/', { replace: true });
+        } catch (err) {
+            setDeactivateError(
+                err.friendlyMessage || 'Could not deactivate your account.'
+            );
+        } finally {
+            setDeactivating(false);
         }
     };
 
@@ -254,26 +450,52 @@ export default function ProfilePage() {
         () =>
             (loginData?.history || [])
                 .filter((entry) => entry.success === false)
-                .slice(0, 4),
+                .slice(0, 6),
         [loginData]
     );
 
     const statCards = useMemo(
         () => [
             { icon: <Trophy size={18} />, label: 'Total points', value: stats?.totalPoints ?? 0 },
-            { icon: <Gamepad2 size={18} />, label: 'Games played', value: stats?.gamesPlayed ?? 0, color: 'from-sky-300 to-sky-500' },
-            { icon: <Target size={18} />, label: 'Win rate', value: `${winRate}%`, color: 'from-emerald-300 to-emerald-500' },
-            { icon: <Flame size={18} />, label: 'Current streak', value: stats?.currentStreak ?? 0, color: 'from-orange-300 to-orange-500' },
-            { icon: <Crown size={18} />, label: 'Best streak', value: stats?.bestStreak ?? 0, color: 'from-violet-300 to-violet-500' },
+            {
+                icon: <Gamepad2 size={18} />,
+                label: 'Games played',
+                value: stats?.gamesPlayed ?? 0,
+                color: 'from-sky-300 to-sky-500',
+            },
+            {
+                icon: <Target size={18} />,
+                label: 'Win rate',
+                value: `${winRate}%`,
+                color: 'from-emerald-300 to-emerald-500',
+            },
+            {
+                icon: <Flame size={18} />,
+                label: 'Current streak',
+                value: stats?.currentStreak ?? 0,
+                color: 'from-orange-300 to-orange-500',
+            },
+            {
+                icon: <Crown size={18} />,
+                label: 'Best streak',
+                value: stats?.bestStreak ?? 0,
+                color: 'from-violet-300 to-violet-500',
+            },
             {
                 icon: <Zap size={18} />,
                 label: 'Fastest answer',
-                value: stats?.fastestAnswerMs ? `${(stats.fastestAnswerMs / 1000).toFixed(1)}s` : '—',
+                value: stats?.fastestAnswerMs
+                    ? `${(stats.fastestAnswerMs / 1000).toFixed(1)}s`
+                    : '—',
                 color: 'from-pink-300 to-pink-500',
             },
         ],
         [stats, winRate]
     );
+
+    const favouriteLabel =
+        MODE_LIST.find((mode) => mode.id === normalizeModeId(user?.favoriteMode))?.label ||
+        'Standard · Easy';
 
     if (!user) return null;
 
@@ -283,18 +505,54 @@ export default function ProfilePage() {
 
             <main className="mx-auto max-w-5xl px-4 py-6 md:px-6 md:py-8">
                 <div className="mb-5">
-                    <p className="text-sm font-extrabold uppercase tracking-widest text-banana-600">Account centre</p>
-                    <h1 className="font-display text-4xl font-extrabold text-banana-900">Profile &amp; settings</h1>
-                    <p className="mt-1 text-banana-700">Manage your public identity, custom controls, privacy choices, security and data.</p>
+                    <p className="text-sm font-extrabold uppercase tracking-widest text-banana-600">
+                        Account centre
+                    </p>
+                    <h1 className="font-display text-4xl font-extrabold text-banana-900">
+                        Profile &amp; settings
+                    </h1>
+                    <p className="mt-1 text-banana-700">
+                        Manage your public identity, game defaults, notifications, privacy,
+                        security and data.
+                    </p>
                 </div>
+
                 <div className="mb-4 flex items-center justify-between gap-3">
-                    <Link to="/dashboard" className="flex items-center gap-1.5 text-sm font-bold text-banana-700 hover:underline">
+                    <Link
+                        to="/dashboard"
+                        className="flex items-center gap-1.5 text-sm font-bold text-banana-700 hover:underline"
+                    >
                         <ArrowLeft size={17} /> Back to dashboard
                     </Link>
-                    <Link to="/achievements" className="flex items-center gap-1.5 text-sm font-bold text-banana-700 hover:underline">
+                    <Link
+                        to="/achievements"
+                        className="flex items-center gap-1.5 text-sm font-bold text-banana-700 hover:underline"
+                    >
                         <Trophy size={16} /> Achievements
                     </Link>
                 </div>
+
+                {verifiedBanner && (
+                    <div className="mb-4 flex items-start gap-3 rounded-2xl border-2 border-emerald-300 bg-emerald-50 px-4 py-3">
+                        <MailCheck size={20} className="mt-0.5 flex-shrink-0 text-emerald-600" />
+                        <div className="min-w-0 flex-1">
+                            <p className="font-display text-base font-extrabold text-emerald-800">
+                                Email verified
+                            </p>
+                            <p className="text-xs font-semibold text-emerald-700">
+                                Your address is confirmed. Recovery and security emails can now
+                                reach you.
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setVerifiedBanner(false)}
+                            className="rounded-lg px-2 py-1 text-xs font-extrabold text-emerald-700 hover:bg-emerald-100"
+                        >
+                            Dismiss
+                        </button>
+                    </div>
+                )}
 
                 {/* Identity card */}
                 <motion.div initial={{ y: 14, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
@@ -303,19 +561,23 @@ export default function ProfilePage() {
                             <div className="flex min-w-0 items-center gap-4">
                                 <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl border-4 border-banana-300 bg-banana-100 font-display text-2xl font-extrabold text-banana-600 shadow-game-sm">
                                     {user.avatar ? (
-                                        <img src={user.avatar} alt="" className="h-full w-full object-cover" />
+                                        <img
+                                            src={user.avatar}
+                                            alt=""
+                                            className="h-full w-full object-cover"
+                                        />
                                     ) : (
                                         initials(user.displayName)
                                     )}
                                 </div>
                                 <div className="min-w-0">
-                                    <h1 className="break-words font-display text-3xl font-extrabold leading-tight text-banana-800">
+                                    <h2 className="break-words font-display text-3xl font-extrabold leading-tight text-banana-800">
                                         {user.displayName}
-                                    </h1>
+                                    </h2>
                                     <p className="flex min-w-0 flex-wrap items-center gap-1.5 break-all text-sm text-banana-600">
                                         <Mail size={14} /> {user.email}
                                     </p>
-                                    <div className="mt-2 flex flex-wrap gap-1.5">
+                                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
                                         {user.providerNames?.map((provider) => (
                                             <span
                                                 key={provider}
@@ -324,32 +586,64 @@ export default function ProfilePage() {
                                                 {provider}
                                             </span>
                                         ))}
+                                        {user.emailVerified ? (
+                                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-extrabold text-emerald-700">
+                                                <MailCheck size={12} /> Email verified
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-extrabold text-amber-700">
+                                                <CircleAlert size={12} /> Email not verified
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                             </div>
 
                             <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:text-right">
                                 <div>
-                                    <dt className="text-[11px] font-bold uppercase tracking-wide text-banana-500">Joined</dt>
-                                    <dd className="font-bold text-banana-800">{formatDate(user.createdAt)}</dd>
+                                    <dt className="text-[11px] font-bold uppercase tracking-wide text-banana-500">
+                                        Joined
+                                    </dt>
+                                    <dd className="font-bold text-banana-800">
+                                        {formatDate(user.createdAt)}
+                                    </dd>
                                 </div>
                                 <div>
-                                    <dt className="text-[11px] font-bold uppercase tracking-wide text-banana-500">Last login</dt>
-                                    <dd className="font-bold text-banana-800">{formatRelative(user.lastLoginAt)}</dd>
+                                    <dt className="text-[11px] font-bold uppercase tracking-wide text-banana-500">
+                                        Last login
+                                    </dt>
+                                    <dd className="font-bold text-banana-800">
+                                        {formatRelative(user.lastLoginAt)}
+                                    </dd>
                                 </div>
                                 <div>
-                                    <dt className="text-[11px] font-bold uppercase tracking-wide text-banana-500">Favourite mode</dt>
-                                    <dd className="font-bold capitalize text-banana-800">{user.favoriteMode || 'classic'}</dd>
+                                    <dt className="text-[11px] font-bold uppercase tracking-wide text-banana-500">
+                                        Favourite mode
+                                    </dt>
+                                    <dd className="font-bold text-banana-800">{favouriteLabel}</dd>
                                 </div>
                                 <div>
-                                    <dt className="text-[11px] font-bold uppercase tracking-wide text-banana-500">Security</dt>
-                                    <dd className="font-bold text-banana-800">{hasPassword ? 'Password set' : 'Social only'}</dd>
+                                    <dt className="text-[11px] font-bold uppercase tracking-wide text-banana-500">
+                                        Email status
+                                    </dt>
+                                    <dd
+                                        className={`font-bold ${
+                                            user.emailVerified
+                                                ? 'text-emerald-700'
+                                                : 'text-amber-700'
+                                        }`}
+                                    >
+                                        {user.emailVerified
+                                            ? user.emailVerifiedAt
+                                                ? `Verified ${formatDate(user.emailVerifiedAt)}`
+                                                : 'Verified'
+                                            : 'Needs verification'}
+                                    </dd>
                                 </div>
                             </dl>
                         </div>
                     </Card>
 
-                    {/* Stats */}
                     <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
                         {statCards.map((card) => (
                             <StatCard key={card.label} {...card} />
@@ -357,512 +651,179 @@ export default function ProfilePage() {
                     </div>
 
                     <div className="grid gap-5 lg:grid-cols-[220px_1fr]">
-                        <aside className="h-fit rounded-3xl border-4 border-banana-300 bg-white/90 p-3 shadow-game" aria-label="Profile settings navigation">
-                            {[
-                                ['profile', 'Profile'],
-                                ['controls', 'Controls'],
-                                ['privacy', 'Privacy'],
-                                ['security', 'Security'],
-                                ['activity', 'Activity'],
-                                ['danger-zone', 'Danger zone'],
-                            ].map(([value, label]) => (
-                                <button key={value} type="button" onClick={() => setSearchParams({ tab: value })} className={`mb-1 w-full rounded-xl px-3 py-2.5 text-left text-sm font-extrabold transition ${activeTab === value ? 'bg-banana-300 text-banana-900' : 'text-banana-700 hover:bg-banana-100'}`}>{label}</button>
-                            ))}
-                        </aside>
-                        <div>
-                        {activeTab !== 'profile' && <ProfileTabPanel tab={activeTab} preferences={preferences} updatePreference={updatePreference} security={security} loadingSecurity={loadingSecurity} loginData={loginData} user={user} stats={stats} />}
-                    <div className={activeTab === 'profile' ? '' : 'hidden'}>
-                        <div className="space-y-5 lg:col-span-2">
-                            {/* Account details */}
-                            <Card className="!p-5 md:!p-6">
-                                <SectionHeading
-                                    icon={<UserRound size={20} />}
-                                    title="Account details"
-                                    subtitle="Update how you appear across Banana Quiz."
-                                />
-
-                                <form onSubmit={handleProfileSave} className="space-y-4">
-                                    <div className="grid gap-4 sm:grid-cols-2">
-                                        <Field label="Display name" htmlFor="displayName">
-                                            <input
-                                                id="displayName"
-                                                value={profile.name}
-                                                onChange={updateProfileField('name')}
-                                                required
-                                                minLength={2}
-                                                maxLength={60}
-                                                className={inputClass}
-                                                placeholder="Your name"
-                                            />
-                                        </Field>
-                                        <Field label="Favourite mode" htmlFor="favoriteMode">
-                                            <select
-                                                id="favoriteMode"
-                                                value={profile.favoriteMode}
-                                                onChange={updateProfileField('favoriteMode')}
-                                                className={inputClass}
-                                            >
-                                                {MODE_LIST.map((mode) => (
-                                                    <option key={mode.id} value={mode.id}>
-                                                        {mode.label} — {mode.tagline}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </Field>
-                                    </div>
-
-                                    <Field label="Email" htmlFor="email" hint="Contact support to change your email.">
-                                        <input id="email" value={user.email} readOnly disabled className={`${inputClass} opacity-60`} />
-                                    </Field>
-
-                                    <Field label="Avatar image URL" htmlFor="avatar" hint="Paste a public https image link. Leave empty for your initials.">
-                                        <div className="flex items-center gap-2">
-                                            <Image size={18} className="flex-shrink-0 text-banana-500" />
-                                            <input
-                                                id="avatar"
-                                                type="url"
-                                                value={profile.avatar}
-                                                onChange={updateProfileField('avatar')}
-                                                className={inputClass}
-                                                placeholder="https://example.com/avatar.png"
-                                            />
-                                        </div>
-                                    </Field>
-
-                                    <Field label="Bio" htmlFor="bio" hint={`${profile.bio.length}/160 characters`}>
-                                        <textarea
-                                            id="bio"
-                                            value={profile.bio}
-                                            onChange={updateProfileField('bio')}
-                                            maxLength={160}
-                                            rows={3}
-                                            className={`${inputClass} resize-none`}
-                                            placeholder="Tell other players about your banana-counting skills…"
-                                        />
-                                    </Field>
-
-                                    <div className="rounded-2xl border-2 border-banana-200 bg-banana-50 p-4">
-                                        <p className="mb-3 flex items-center gap-2 font-bold text-banana-800">
-                                            <Settings size={17} /> Web page settings
-                                        </p>
-                                        <div className="space-y-3">
-                                            <PreferenceToggle
-                                                label="Reduce motion"
-                                                description="Turn off floating and wiggling animations."
-                                                checked={preferences.reducedMotion}
-                                                onChange={updatePreference('reducedMotion')}
-                                            />
-                                            <PreferenceToggle
-                                                label="Show me on the leaderboard"
-                                                description="Hide your name and score from public rankings."
-                                                checked={preferences.showOnLeaderboard}
-                                                onChange={updatePreference('showOnLeaderboard')}
-                                            />
-                                            <div className="flex items-center justify-between gap-3 border-t border-banana-200 pt-3">
-                                                <div>
-                                                    <p className="font-bold text-banana-800">Cookie preferences</p>
-                                                    <p className="text-xs font-semibold text-banana-600">Choose allow or decline again next time.</p>
-                                                </div>
-                                                <button type="button" onClick={() => { localStorage.removeItem('banana-cookie-choice'); window.location.reload(); }} className="rounded-xl border-2 border-banana-300 bg-white px-3 py-2 text-xs font-extrabold text-banana-700 hover:bg-banana-100">Review</button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {profileMessage && <Message {...profileMessage} />}
-
-                                    <div className="flex justify-end">
-                                        <Button type="submit" disabled={savingProfile} className="!py-2.5 !text-base">
-                                            <Save size={17} /> {savingProfile ? 'Saving…' : 'Save changes'}
-                                        </Button>
-                                    </div>
-                                </form>
-                            </Card>
-
-                            {/* Password */}
-                            <Card className="!p-5 md:!p-6">
-                                <SectionHeading
-                                    icon={<KeyRound size={20} />}
-                                    title={hasPassword ? 'Change password' : 'Add a password'}
-                                    subtitle={
-                                        hasPassword
-                                            ? 'Use at least 8 characters. Your current password is required.'
-                                            : 'Set a password so you can sign in without a social provider.'
-                                    }
-                                />
-
-                                <form onSubmit={handlePasswordSave} className="space-y-4">
-                                    {hasPassword && (
-                                        <PasswordInput
-                                            id="currentPassword"
-                                            label="Current password"
-                                            value={passwordForm.currentPassword}
-                                            onChange={(event) =>
-                                                setPasswordForm((prev) => ({
-                                                    ...prev,
-                                                    currentPassword: event.target.value,
-                                                }))
-                                            }
-                                            autoComplete="current-password"
-                                            maxLength={72}
-                                            placeholder="Current password"
-                                            inputClassName={inputClass}
-                                        />
-                                    )}
-                                    <div className="grid gap-4 sm:grid-cols-2">
-                                        <PasswordInput
-                                            id="newPassword"
-                                            label="New password"
-                                            value={passwordForm.newPassword}
-                                            onChange={(event) =>
-                                                setPasswordForm((prev) => ({
-                                                    ...prev,
-                                                    newPassword: event.target.value,
-                                                }))
-                                            }
-                                            autoComplete="new-password"
-                                            minLength={8}
-                                            placeholder="At least 8 characters"
-                                            inputClassName={inputClass}
-                                        />
-                                        <PasswordInput
-                                            id="confirmPassword"
-                                            label="Confirm new password"
-                                            value={passwordForm.confirmPassword}
-                                            onChange={(event) =>
-                                                setPasswordForm((prev) => ({
-                                                    ...prev,
-                                                    confirmPassword: event.target.value,
-                                                }))
-                                            }
-                                            autoComplete="new-password"
-                                            minLength={8}
-                                            placeholder="Repeat new password"
-                                            inputClassName={inputClass}
-                                        />
-                                    </div>
-
-                                    <PasswordStrengthMeter
-                                        password={passwordForm.newPassword}
-                                        email={user?.email}
-                                        name={user?.displayName}
-                                    />
-
-                                    {passwordForm.confirmPassword.length > 0 &&
-                                        passwordForm.newPassword !==
-                                            passwordForm.confirmPassword && (
-                                            <p className="text-xs font-semibold text-red-600">
-                                                The new passwords do not match yet.
-                                            </p>
-                                        )}
-
-                                    {passwordMessage && <Message {...passwordMessage} />}
-
-                                    <div className="flex justify-end">
-                                        <Button type="submit" variant="secondary" disabled={savingPassword} className="!py-2.5 !text-base">
-                                            <ShieldCheck size={17} /> {savingPassword ? 'Updating…' : 'Update password'}
-                                        </Button>
-                                    </div>
-                                </form>
-                            </Card>
-
-                            {/* Login history */}
-                            <Card className="!p-5 md:!p-6">
-                                <div className="mb-4 flex items-start justify-between gap-3">
-                                    <SectionHeading
-                                        icon={<ListChecks size={20} />}
-                                        title="Login history"
-                                        subtitle="Every recent sign-in attempt, including failed ones."
-                                        noMargin
-                                    />
+                        <aside
+                            className="h-fit overflow-x-auto rounded-3xl border-4 border-banana-300 bg-white/90 p-2 shadow-game lg:p-3"
+                            aria-label="Profile settings navigation"
+                        >
+                            <div className="flex gap-1 lg:block">
+                                {TABS.map(({ id, label, icon: Icon }) => (
                                     <button
+                                        key={id}
                                         type="button"
-                                        onClick={loadSecurity}
-                                        title="Refresh security details"
-                                        className="rounded-xl p-2 text-banana-600 hover:bg-banana-100"
+                                        onClick={() => selectTab(id)}
+                                        aria-current={activeTab === id ? 'page' : undefined}
+                                        className={`mb-0 flex flex-shrink-0 items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-extrabold transition lg:mb-1 lg:w-full ${
+                                            activeTab === id
+                                                ? 'bg-banana-300 text-banana-900'
+                                                : 'text-banana-700 hover:bg-banana-100'
+                                        }`}
                                     >
-                                        <RefreshCw
-                                            size={17}
-                                            className={
-                                                loadingLogins || loadingSecurity ? 'animate-spin' : ''
-                                            }
-                                        />
+                                        <Icon size={17} className="flex-shrink-0" />
+                                        <span className="whitespace-nowrap">{label}</span>
                                     </button>
-                                </div>
+                                ))}
+                            </div>
+                        </aside>
 
-                                {loginError && <Message type="error" text={loginError} />}
-
-                                {loadingLogins && !loginData && (
-                                    <p className="py-6 text-center text-sm font-semibold text-banana-500">Loading sign-ins…</p>
-                                )}
-
-                                {loginData && loginData.history.length === 0 && (
-                                    <p className="py-6 text-center text-sm font-semibold text-banana-500">
-                                        No sign-ins recorded yet.
-                                    </p>
-                                )}
-
-                                <ul className="divide-y divide-banana-100">
-                                    {loginData?.history.map((entry) => {
-                                        const Icon = DEVICE_ICONS[entry.deviceType] || Monitor;
-                                        const failed = entry.success === false;
-                                        return (
-                                            <li key={entry.id} className="flex items-center gap-3 py-3">
-                                                <div
-                                                    className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${
-                                                        failed
-                                                            ? 'bg-red-50 text-red-600'
-                                                            : 'bg-banana-100 text-banana-700'
-                                                    }`}
-                                                >
-                                                    <Icon size={18} />
-                                                </div>
-                                                <div className="min-w-0 flex-1">
-                                                    <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-bold text-banana-800">
-                                                        <span className="truncate">{entry.device}</span>
-                                                        {entry.current && (
-                                                            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-extrabold uppercase text-emerald-700">
-                                                                This device
-                                                            </span>
-                                                        )}
-                                                        {failed && (
-                                                            <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-extrabold uppercase text-red-700">
-                                                                {REASON_LABELS[entry.reason] || 'Failed'}
-                                                            </span>
-                                                        )}
-                                                    </p>
-                                                    <p className="break-words text-xs text-banana-500">
-                                                        {METHOD_LABELS[entry.method] || entry.method} ·{' '}
-                                                        {entry.email || user.email} · {entry.ip} ·{' '}
-                                                        {formatDateTime(entry.at)}
-                                                    </p>
-                                                </div>
-                                            </li>
-                                        );
-                                    })}
-                                </ul>
-                            </Card>
-                        </div>
-
-                        {/* Right column */}
-                        <div className="space-y-5">
-                            <Card className="!p-5">
-                                <SectionHeading
-                                    icon={<ShieldCheck size={20} />}
-                                    title="Account security"
-                                    subtitle="Live checks on how protected your account is."
-                                    noMargin
+                        <div className="min-w-0 space-y-5">
+                            {activeTab === 'profile' && (
+                                <ProfileSection
+                                    profile={profile}
+                                    updateProfileField={updateProfileField}
+                                    onSubmit={saveProfile}
+                                    saving={savingSection === 'profile'}
+                                    notice={notices.profile}
+                                    user={user}
+                                    onVerify={handleRequestVerification}
+                                    emailAction={emailAction}
                                 />
+                            )}
 
-                                {loadingSecurity && !security && (
-                                    <p className="py-4 text-center text-xs font-semibold text-banana-500">
-                                        Checking your account…
-                                    </p>
-                                )}
-
-                                {securityError && (
-                                    <div className="mt-3">
-                                        <Message type="error" text={securityError} />
-                                    </div>
-                                )}
-
-                                {security && (
-                                    <>
-                                        <div className="mt-3 flex items-center gap-3">
-                                            <div
-                                                className={`flex h-16 w-16 flex-shrink-0 flex-col items-center justify-center rounded-2xl ${
-                                                    security.score >= 75
-                                                        ? 'bg-emerald-100 text-emerald-700'
-                                                        : security.score >= 50
-                                                          ? 'bg-amber-100 text-amber-700'
-                                                          : 'bg-red-100 text-red-700'
-                                                }`}
-                                            >
-                                                <span className="font-display text-xl font-extrabold leading-none">
-                                                    {security.score}%
-                                                </span>
-                                                <span className="mt-0.5 text-[9px] font-bold uppercase tracking-wide">
-                                                    secure
-                                                </span>
-                                            </div>
-                                            <div className="min-w-0 flex-1">
-                                                <p className="text-sm font-extrabold text-banana-800">
-                                                    {security.level}
-                                                </p>
-                                                <p className="text-[11px] text-banana-500">
-                                                    {security.checks.filter((check) => check.passed).length}/
-                                                    {security.checks.length} checks passed
-                                                </p>
-                                                <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-banana-200">
-                                                    <div
-                                                        className={`h-full rounded-full ${
-                                                            security.score >= 75
-                                                                ? 'bg-emerald-500'
-                                                                : security.score >= 50
-                                                                  ? 'bg-amber-400'
-                                                                  : 'bg-red-500'
-                                                        }`}
-                                                        style={{ width: `${security.score}%` }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <ul className="mt-3 space-y-1.5">
-                                            {security.checks.map((check) => (
-                                                <li
-                                                    key={check.id}
-                                                    title={check.hint}
-                                                    className="flex items-start gap-2 text-[11px] font-semibold"
-                                                >
-                                                    {check.passed ? (
-                                                        <Check
-                                                            size={14}
-                                                            className="mt-0.5 flex-shrink-0 text-emerald-600"
-                                                        />
-                                                    ) : (
-                                                        <CircleAlert
-                                                            size={14}
-                                                            className="mt-0.5 flex-shrink-0 text-amber-500"
-                                                        />
-                                                    )}
-                                                    <span
-                                                        className={
-                                                            check.passed
-                                                                ? 'text-emerald-700'
-                                                                : 'text-banana-600'
-                                                        }
-                                                    >
-                                                        {check.label}
-                                                    </span>
-                                                </li>
-                                            ))}
-                                        </ul>
-
-                                        <div className="mt-3 space-y-0.5 border-t border-banana-100 pt-2.5 text-[11px] text-banana-500">
-                                            <p className="flex items-center gap-1.5">
-                                                <Activity size={12} />
-                                                Last sign-in:{' '}
-                                                <span className="font-bold text-banana-700">
-                                                    {formatRelative(security.lastSuccessAt)}
-                                                </span>
-                                            </p>
-                                            <p className="flex items-center gap-1.5">
-                                                <ShieldAlert size={12} />
-                                                Failed attempts:{' '}
-                                                <span className="font-bold text-banana-700">
-                                                    {security.failedLogins}
-                                                </span>
-                                            </p>
-                                        </div>
-                                    </>
-                                )}
-
-                                <Button
-                                    variant="secondary"
-                                    onClick={handleLogoutOthers}
-                                    disabled={signingOutOthers}
-                                    className="mt-4 w-full !py-2.5 !text-base"
-                                >
-                                    <LogOut size={17} />{' '}
-                                    {signingOutOthers ? 'Signing out…' : 'Sign out other devices'}
-                                </Button>
-                                {deviceMessage && (
-                                    <div className="mt-3">
-                                        <Message {...deviceMessage} />
-                                    </div>
-                                )}
-                            </Card>
-
-                            <Card className="!p-5">
-                                <SectionHeading icon={<CalendarDays size={20} />} title="Devices" subtitle="Where you are signed in." noMargin />
-                                <div className="mt-3 space-y-2">
-                                    {loginData?.devices.map((device) => {
-                                        const Icon = DEVICE_ICONS[device.deviceType] || Monitor;
-                                        return (
-                                            <div
-                                                key={device.id}
-                                                className={`rounded-xl border-2 p-2.5 ${
-                                                    device.current ? 'border-emerald-300 bg-emerald-50' : 'border-banana-200 bg-white/70'
-                                                }`}
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    <Icon size={16} className="text-banana-600" />
-                                                    <p className="flex-1 truncate text-sm font-bold text-banana-800">{device.device}</p>
-                                                    {device.current && <Check size={15} className="text-emerald-600" />}
-                                                </div>
-                                                <p className="mt-0.5 text-[11px] text-banana-500">
-                                                    {device.logins} sign-in{device.logins === 1 ? '' : 's'} · last {formatRelative(device.lastSeenAt)}
-                                                </p>
-                                            </div>
-                                        );
-                                    })}
-                                    {loginData && loginData.devices.length === 0 && (
-                                        <p className="py-3 text-center text-xs font-semibold text-banana-500">No devices yet.</p>
-                                    )}
-                                </div>
-                            </Card>
-
-                            <Card className="!p-5">
-                                <SectionHeading
-                                    icon={<ShieldAlert size={20} />}
-                                    title="Failed sign-ins"
-                                    subtitle="Recent attempts that did not get in."
-                                    noMargin
+                            {activeTab === 'appearance' && (
+                                <AppearanceSection
+                                    preferences={preferences}
+                                    updatePreference={updatePreference}
+                                    onSubmit={() =>
+                                        savePreferences(
+                                            'appearance',
+                                            {
+                                                reducedMotion: preferences.reducedMotion,
+                                                defaultMode: preferences.defaultMode,
+                                            },
+                                            'Appearance settings saved.'
+                                        )
+                                    }
+                                    saving={savingSection === 'appearance'}
+                                    notice={notices.appearance}
                                 />
-                                <div className="mt-3 space-y-2">
-                                    {failedLogins.length === 0 && (
-                                        <p className="py-2 text-center text-xs font-semibold text-banana-500">
-                                            No failed attempts recorded. Nice and quiet.
-                                        </p>
-                                    )}
-                                    {failedLogins.map((entry) => (
-                                        <div
-                                            key={`failed-${entry.id}`}
-                                            className="rounded-xl border-2 border-red-100 bg-red-50/60 p-2.5"
-                                        >
-                                            <p className="flex items-center gap-2 text-xs font-bold text-red-700">
-                                                <ShieldAlert size={14} className="flex-shrink-0" />
-                                                {REASON_LABELS[entry.reason] || 'Sign-in failed'}
-                                            </p>
-                                            <p className="mt-0.5 break-words text-[11px] text-banana-500">
-                                                {entry.email || user.email} · {entry.ip} ·{' '}
-                                                {formatRelative(entry.at)}
-                                            </p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </Card>
+                            )}
 
-                            <Card className="!p-5">
-                                <SectionHeading icon={<Gamepad2 size={20} />} title="Sound & music" subtitle="Saved on this device." noMargin />
-                                <div className="mt-4">
-                                    <AudioControls />
-                                </div>
-                            </Card>
+                            {activeTab === 'gameplay' && (
+                                <GameplaySection
+                                    preferences={preferences}
+                                    updatePreference={updatePreference}
+                                    onSubmit={() =>
+                                        savePreferences(
+                                            'gameplay',
+                                            {
+                                                autoSubmit: preferences.autoSubmit,
+                                                celebrations: preferences.celebrations,
+                                                showKeyboardHints:
+                                                    preferences.showKeyboardHints,
+                                                showTimer: preferences.showTimer,
+                                                defaultQuizCount: Number(
+                                                    preferences.defaultQuizCount
+                                                ),
+                                                defaultTime: Number(preferences.defaultTime),
+                                            },
+                                            'Gameplay settings saved.'
+                                        )
+                                    }
+                                    saving={savingSection === 'gameplay'}
+                                    notice={notices.gameplay}
+                                />
+                            )}
 
-                            <Card className="!p-5">
-                                <SectionHeading icon={<Trophy size={20} />} title="Quick links" noMargin />
-                                <div className="mt-3 space-y-2">
-                                    <Link to="/dashboard" className="block">
-                                        <Button variant="secondary" className="w-full !py-2.5 !text-base">
-                                            <Gamepad2 size={17} /> Dashboard
-                                        </Button>
-                                    </Link>
-                                    <Link to="/achievements" className="block">
-                                        <Button variant="secondary" className="w-full !py-2.5 !text-base">
-                                            <Trophy size={17} /> Achievements
-                                        </Button>
-                                    </Link>
-                                    <Link to="/leaderboard" className="block">
-                                        <Button variant="ghost" className="w-full !py-2.5 !text-base">
-                                            <Crown size={17} /> Leaderboard
-                                        </Button>
-                                    </Link>
-                                </div>
-                            </Card>
+                            {activeTab === 'notifications' && (
+                                <NotificationsSection
+                                    preferences={preferences}
+                                    updatePreference={updatePreference}
+                                    onSubmit={() =>
+                                        savePreferences(
+                                            'notifications',
+                                            {
+                                                emailNotifications:
+                                                    preferences.emailNotifications,
+                                                loginAlerts: preferences.loginAlerts,
+                                                productUpdates: preferences.productUpdates,
+                                            },
+                                            'Notification preferences saved.'
+                                        )
+                                    }
+                                    saving={savingSection === 'notifications'}
+                                    notice={notices.notifications}
+                                />
+                            )}
+
+                            {activeTab === 'security' && (
+                                <SecuritySection
+                                    user={user}
+                                    hasPassword={hasPassword}
+                                    security={security}
+                                    loadingSecurity={loadingSecurity}
+                                    securityError={securityError}
+                                    passwordForm={passwordForm}
+                                    setPasswordForm={setPasswordForm}
+                                    onPasswordSubmit={handlePasswordSave}
+                                    savingPassword={savingSection === 'password'}
+                                    passwordNotice={passwordNotice}
+                                    emailAction={emailAction}
+                                    onVerify={handleRequestVerification}
+                                    signingOutOthers={signingOutOthers}
+                                    onLogoutOthers={handleLogoutOthers}
+                                    deviceNotice={deviceNotice}
+                                />
+                            )}
+
+                            {activeTab === 'activity' && (
+                                <ActivitySection
+                                    user={user}
+                                    stats={stats}
+                                    loginData={loginData}
+                                    loginError={loginError}
+                                    loadingLogins={loadingLogins}
+                                    failedLogins={failedLogins}
+                                    onRefresh={loadSecurity}
+                                    loadingSecurity={loadingSecurity}
+                                />
+                            )}
+
+                            {activeTab === 'privacy' && (
+                                <PrivacySection
+                                    preferences={preferences}
+                                    updatePreference={updatePreference}
+                                    onSubmit={() =>
+                                        savePreferences(
+                                            'privacy',
+                                            {
+                                                showOnLeaderboard:
+                                                    preferences.showOnLeaderboard,
+                                            },
+                                            'Privacy settings saved.'
+                                        )
+                                    }
+                                    saving={savingSection === 'privacy'}
+                                    notice={notices.privacy}
+                                    user={user}
+                                    stats={stats}
+                                    security={security}
+                                    loginData={loginData}
+                                />
+                            )}
+
+                            {activeTab === 'danger-zone' && (
+                                <DangerZoneSection
+                                    user={user}
+                                    hasPassword={hasPassword}
+                                    form={deactivateForm}
+                                    setForm={setDeactivateForm}
+                                    onSubmit={handleDeactivate}
+                                    deactivating={deactivating}
+                                    error={deactivateError}
+                                    setError={setDeactivateError}
+                                />
+                            )}
                         </div>
-                    </div>
-                    </div>
                     </div>
                 </motion.div>
             </main>
@@ -870,39 +831,1056 @@ export default function ProfilePage() {
     );
 }
 
-function ProfileTabPanel({ tab, preferences, updatePreference, security, loadingSecurity, loginData, user, stats }) {
-    if (tab === 'controls') {
-        return <Card className="mb-5 !p-6"><SectionHeading icon={<Settings size={20} />} title="Controls" subtitle="Tune the game experience to your preferences." /><PreferenceToggle label="Reduce motion" description="Turn off decorative animations." checked={preferences.reducedMotion} onChange={updatePreference('reducedMotion')} /><div className="mt-4"><AudioControls /></div></Card>;
-    }
-    if (tab === 'privacy') {
-        return <Card className="mb-5 !p-6"><SectionHeading icon={<ShieldCheck size={20} />} title="Privacy" subtitle="Choose what other players and the service can see." /><PreferenceToggle label="Public profile and leaderboard" description="Show your display name and scores in public rankings." checked={preferences.showOnLeaderboard} onChange={updatePreference('showOnLeaderboard')} /><div className="mt-5 grid gap-3 sm:grid-cols-3"><InfoTile title="Activity tracking" text="Used to calculate streaks, accuracy and trends." /><InfoTile title="Marketing emails" text="No marketing emails are sent by default." /><InfoTile title="Data retention" text="Your game history stays linked to your account." /></div></Card>;
-    }
-    if (tab === 'security') {
-        return <Card className="mb-5 !p-6"><SectionHeading icon={<KeyRound size={20} />} title="Security" subtitle="Review account protection and linked sign-in methods." />{loadingSecurity ? <AnalyticsLoader /> : security ? <div className="grid gap-3 sm:grid-cols-3"><InfoTile title="Security score" text={`${security.score}% · ${security.level}`} /><InfoTile title="Active devices" text={`${security.activeDevices} recent device(s)`} /><InfoTile title="Failed sign-ins" text={`${security.failedLogins} recent attempt(s)`} /></div> : <p className="font-semibold text-red-600">Security data unavailable.</p>}<p className="mt-5 text-sm font-semibold text-banana-700">Password changes and linked accounts remain available in the Profile tab.</p></Card>;
-    }
-    if (tab === 'activity') {
-        const entries = loginData?.history || [];
-        return <Card className="mb-5 !p-6"><SectionHeading icon={<Activity size={20} />} title="Activity" subtitle="Recent sessions and identity activity." /><div className="grid gap-3 sm:grid-cols-3"><InfoTile title="Games played" text={`${stats?.gamesPlayed || 0}`} /><InfoTile title="Total points" text={`${stats?.totalPoints || 0}`} /><InfoTile title="Account" text={user.email} /></div><h3 className="mt-6 font-display text-xl font-extrabold text-banana-800">Login history</h3><div className="mt-3 space-y-2">{entries.length ? entries.slice(0, 10).map((entry) => <p key={entry.id} className="rounded-xl bg-banana-50 p-3 text-sm font-semibold text-banana-700">{entry.method || 'Sign-in'} · {entry.email || user.email} · {formatDateTime(entry.at)}</p>) : <p className="text-sm font-semibold text-banana-600">No recent login activity.</p>}</div></Card>;
-    }
-    return <Card className="mb-5 !p-6"><SectionHeading icon={<ShieldAlert size={20} />} title="Danger zone" subtitle="Export your data or permanently close your account." /><div className="flex flex-wrap gap-3"><Button variant="secondary" onClick={() => downloadDataExport(user, stats)}><Save size={17} /> Download JSON export</Button><Button variant="danger" onClick={() => window.alert('Account deletion requires password confirmation and is not enabled in this environment.')}>Delete account</Button></div><p className="mt-4 text-sm font-semibold text-banana-600">Deletion is designed as a soft delete with a 30-day recovery window.</p></Card>;
+function ProfileSection({
+    profile,
+    updateProfileField,
+    onSubmit,
+    saving,
+    notice,
+    user,
+    onVerify,
+    emailAction,
+}) {
+    return (
+        <>
+            <Card className="!p-5 md:!p-6">
+                <SectionHeading
+                    icon={<UserRound size={20} />}
+                    title="Account details"
+                    subtitle="Update how you appear across Banana Quiz."
+                />
+
+                <form onSubmit={onSubmit} className="space-y-4">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <Field label="Display name" htmlFor="displayName">
+                            <input
+                                id="displayName"
+                                value={profile.name}
+                                onChange={updateProfileField('name')}
+                                required
+                                minLength={2}
+                                maxLength={60}
+                                className={inputClass}
+                                placeholder="Your name"
+                            />
+                        </Field>
+                        <Field label="Favourite mode" htmlFor="favoriteMode">
+                            <select
+                                id="favoriteMode"
+                                value={profile.favoriteMode}
+                                onChange={updateProfileField('favoriteMode')}
+                                className={inputClass}
+                            >
+                                {MODE_LIST.map((mode) => (
+                                    <option key={mode.id} value={mode.id}>
+                                        {mode.label} — {mode.tagline}
+                                    </option>
+                                ))}
+                            </select>
+                        </Field>
+                    </div>
+
+                    <Field
+                        label="Email"
+                        htmlFor="email"
+                        hint={
+                            user.emailVerified
+                                ? 'Verified'
+                                : 'Verification recommended'
+                        }
+                    >
+                        <div className="flex flex-col gap-2 sm:flex-row">
+                            <input
+                                id="email"
+                                value={user.email}
+                                readOnly
+                                disabled
+                                className={`${inputClass} opacity-60`}
+                            />
+                            {!user.emailVerified && (
+                                <Button
+                                    variant="secondary"
+                                    onClick={onVerify}
+                                    disabled={emailAction.sending}
+                                    className="flex-shrink-0 !py-2.5 !text-sm"
+                                >
+                                    <MailCheck size={16} />
+                                    {emailAction.sending ? 'Sending…' : 'Verify'}
+                                </Button>
+                            )}
+                        </div>
+                        {emailAction.error && (
+                            <p className="mt-2 text-xs font-semibold text-red-600">
+                                {emailAction.error}
+                            </p>
+                        )}
+                    </Field>
+
+                    <Field
+                        label="Avatar image URL"
+                        htmlFor="avatar"
+                        hint="Paste a public https image link. Leave empty for your initials."
+                    >
+                        <div className="flex items-center gap-2">
+                            <Image size={18} className="flex-shrink-0 text-banana-500" />
+                            <input
+                                id="avatar"
+                                type="url"
+                                value={profile.avatar}
+                                onChange={updateProfileField('avatar')}
+                                className={inputClass}
+                                placeholder="https://example.com/avatar.png"
+                            />
+                        </div>
+                    </Field>
+
+                    <Field
+                        label="Bio"
+                        htmlFor="bio"
+                        hint={`${profile.bio.length}/160 characters`}
+                    >
+                        <textarea
+                            id="bio"
+                            value={profile.bio}
+                            onChange={updateProfileField('bio')}
+                            maxLength={160}
+                            rows={3}
+                            className={`${inputClass} resize-none`}
+                            placeholder="Tell other players about your banana-value calculation skills…"
+                        />
+                    </Field>
+
+                    <Notice notice={notice} />
+
+                    <div className="flex justify-end">
+                        <Button type="submit" disabled={saving} className="!py-2.5 !text-base">
+                            <Save size={17} /> {saving ? 'Saving…' : 'Save profile'}
+                        </Button>
+                    </div>
+                </form>
+            </Card>
+
+            <Card className="!p-5">
+                <SectionHeading
+                    icon={<ShieldCheck size={20} />}
+                    title="Sign-in methods"
+                    subtitle="Ways you can access this account."
+                    noMargin
+                />
+                <div className="mt-3 flex flex-wrap gap-2">
+                    {user.providerNames?.map((provider) => (
+                        <span
+                            key={provider}
+                            className="rounded-full bg-banana-100 px-3 py-1 text-sm font-bold capitalize text-banana-800"
+                        >
+                            {provider === 'local' ? 'Email & password' : provider}
+                        </span>
+                    ))}
+                </div>
+                <p className="mt-3 text-xs font-semibold text-banana-600">
+                    Manage passwords in Security. Social providers stay linked automatically.
+                </p>
+            </Card>
+        </>
+    );
 }
 
-function InfoTile({ title, text }) {
-    return <div className="rounded-2xl border-2 border-banana-200 bg-banana-50 p-4"><p className="text-xs font-extrabold uppercase tracking-wide text-banana-600">{title}</p><p className="mt-1 font-bold text-banana-800">{text}</p></div>;
+function AppearanceSection({ preferences, updatePreference, onSubmit, saving, notice }) {
+    return (
+        <Card className="!p-5 md:!p-6">
+            <SectionHeading
+                icon={<Palette size={20} />}
+                title="Appearance & play defaults"
+                subtitle="Choose how the page moves and which mode loads first."
+            />
+
+            <div className="space-y-4">
+                <PreferenceToggle
+                    label="Reduce motion"
+                    description="Turn off decorative floating and wiggling animations."
+                    checked={preferences.reducedMotion}
+                    onChange={updatePreference('reducedMotion')}
+                />
+
+                <div className="border-t border-banana-200 pt-4">
+                    <Field
+                        label="Default game mode"
+                        htmlFor="defaultMode"
+                        hint="Used by the dashboard and play page"
+                    >
+                        <select
+                            id="defaultMode"
+                            value={preferences.defaultMode}
+                            onChange={updatePreference('defaultMode')}
+                            className={inputClass}
+                        >
+                            {MODE_LIST.map((mode) => (
+                                <option key={mode.id} value={mode.id}>
+                                    {mode.label} — {mode.tagline}
+                                </option>
+                            ))}
+                        </select>
+                    </Field>
+                </div>
+
+                <div className="border-t border-banana-200 pt-4">
+                    <p className="mb-3 flex items-center gap-2 font-bold text-banana-800">
+                        <Gamepad2 size={17} /> Sound &amp; music
+                    </p>
+                    <AudioControls />
+                    <p className="mt-2 text-xs font-semibold text-banana-500">
+                        Audio settings are stored on this device.
+                    </p>
+                </div>
+
+                <Notice notice={notice} />
+
+                <div className="flex justify-end">
+                    <Button type="button" onClick={onSubmit} disabled={saving} className="!py-2.5 !text-base">
+                        <Save size={17} /> {saving ? 'Saving…' : 'Save appearance'}
+                    </Button>
+                </div>
+            </div>
+        </Card>
+    );
 }
 
-function AnalyticsLoader() {
-    return <div className="grid gap-3 sm:grid-cols-3">{[1, 2, 3].map((item) => <div key={item} className="h-20 animate-pulse rounded-2xl bg-banana-100" />)}</div>;
+function GameplaySection({ preferences, updatePreference, onSubmit, saving, notice }) {
+    return (
+        <Card className="!p-5 md:!p-6">
+            <SectionHeading
+                icon={<Gamepad2 size={20} />}
+                title="Gameplay & controls"
+                subtitle="Tune how answering, celebrations and the game screen behave."
+            />
+
+            <div className="space-y-4">
+                <PreferenceToggle
+                    label="Auto-submit answers"
+                    description="Submit automatically when you pause after typing. Turn off to use the Submit answer button."
+                    checked={preferences.autoSubmit}
+                    onChange={updatePreference('autoSubmit')}
+                />
+                <PreferenceToggle
+                    label="Celebration animations"
+                    description="Show a confetti burst when an answer is correct."
+                    checked={preferences.celebrations}
+                    onChange={updatePreference('celebrations')}
+                />
+                <PreferenceToggle
+                    label="Show keyboard hints"
+                    description="Display the digits, Backspace and Enter hint under the keypad."
+                    checked={preferences.showKeyboardHints}
+                    onChange={updatePreference('showKeyboardHints')}
+                />
+                <PreferenceToggle
+                    label="Show countdown timer"
+                    description="Display the remaining-time bar. Turn off for a calmer, timer-free view."
+                    checked={preferences.showTimer}
+                    onChange={updatePreference('showTimer')}
+                />
+
+                <div className="grid gap-4 border-t border-banana-200 pt-4 sm:grid-cols-2">
+                    <Field
+                        label="Default quiz count"
+                        htmlFor="defaultQuizCount"
+                        hint="Custom mode"
+                    >
+                        <select
+                            id="defaultQuizCount"
+                            value={preferences.defaultQuizCount}
+                            onChange={updatePreference('defaultQuizCount')}
+                            className={inputClass}
+                        >
+                            {QUIZ_COUNT_OPTIONS.map((count) => (
+                                <option key={count} value={count}>
+                                    {count} quizzes
+                                </option>
+                            ))}
+                        </select>
+                    </Field>
+                    <Field
+                        label="Default time per quiz"
+                        htmlFor="defaultTime"
+                        hint="Custom mode"
+                    >
+                        <select
+                            id="defaultTime"
+                            value={preferences.defaultTime}
+                            onChange={updatePreference('defaultTime')}
+                            className={inputClass}
+                        >
+                            {TIME_LIMIT_OPTIONS.map((seconds) => (
+                                <option key={seconds} value={seconds}>
+                                    {seconds} seconds
+                                </option>
+                            ))}
+                        </select>
+                    </Field>
+                </div>
+
+                <p className="rounded-2xl bg-banana-50 p-3 text-xs font-semibold text-banana-600">
+                    Auto-submit waits about a second after your last digit. Press Enter to submit
+                    immediately, or turn auto-submit off to bring back the Submit answer button.
+                </p>
+
+                <Notice notice={notice} />
+
+                <div className="flex justify-end">
+                    <Button
+                        type="button"
+                        onClick={onSubmit}
+                        disabled={saving}
+                        className="!py-2.5 !text-base"
+                    >
+                        <Save size={17} /> {saving ? 'Saving…' : 'Save gameplay'}
+                    </Button>
+                </div>
+            </div>
+        </Card>
+    );
 }
 
-function downloadDataExport(user, stats) {
-    const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), user, stats }, null, 2)], { type: 'application/json' });
+function NotificationsSection({ preferences, updatePreference, onSubmit, saving, notice }) {
+    return (
+        <Card className="!p-5 md:!p-6">
+            <SectionHeading
+                icon={<Bell size={20} />}
+                title="Email notifications"
+                subtitle="Choose which optional emails you receive."
+            />
+
+            <div className="space-y-4">
+                <PreferenceToggle
+                    label="Account and game emails"
+                    description="Welcome messages and important account activity."
+                    checked={preferences.emailNotifications}
+                    onChange={updatePreference('emailNotifications')}
+                />
+                <PreferenceToggle
+                    label="New sign-in alerts"
+                    description="Email me when my account is used to sign in from a new place."
+                    checked={preferences.loginAlerts}
+                    onChange={updatePreference('loginAlerts')}
+                />
+                <PreferenceToggle
+                    label="Product updates"
+                    description="Occasional news about new modes, features and events."
+                    checked={preferences.productUpdates}
+                    onChange={updatePreference('productUpdates')}
+                />
+
+                <div className="rounded-2xl bg-banana-50 p-4 text-xs font-semibold text-banana-600">
+                    Password reset codes and verification codes are security messages and are
+                    always sent when you request them.
+                </div>
+
+                <Notice notice={notice} />
+
+                <div className="flex justify-end">
+                    <Button type="button" onClick={onSubmit} disabled={saving} className="!py-2.5 !text-base">
+                        <Save size={17} /> {saving ? 'Saving…' : 'Save notifications'}
+                    </Button>
+                </div>
+            </div>
+        </Card>
+    );
+}
+
+function SecuritySection({
+    user,
+    hasPassword,
+    security,
+    loadingSecurity,
+    securityError,
+    passwordForm,
+    setPasswordForm,
+    onPasswordSubmit,
+    savingPassword,
+    passwordNotice,
+    emailAction,
+    onVerify,
+    signingOutOthers,
+    onLogoutOthers,
+    deviceNotice,
+}) {
+    const checks = Array.isArray(security?.checks) ? security.checks : [];
+    const passedChecks = checks.filter((check) => check.passed).length;
+    const securityScore = Math.max(0, Math.min(100, Number(security?.score) || 0));
+
+    return (
+        <>
+            <Card className="!p-5 md:!p-6">
+                <SectionHeading
+                    icon={<MailCheck size={20} />}
+                    title="Email verification"
+                    subtitle="Confirm the address used for account recovery and security alerts."
+                    noMargin
+                />
+
+                {user.emailVerified ? (
+                    <div className="mt-4 flex items-start gap-3 rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-4">
+                        <ShieldCheck
+                            size={22}
+                            className="mt-0.5 flex-shrink-0 text-emerald-600"
+                        />
+                        <div>
+                            <p className="font-display text-lg font-extrabold text-emerald-800">
+                                Verified
+                            </p>
+                            <p className="break-all text-sm font-semibold text-emerald-700">
+                                {user.email}
+                                {user.emailVerifiedAt
+                                    ? ` · confirmed ${formatDate(user.emailVerifiedAt)}`
+                                    : ''}
+                            </p>
+                            <p className="mt-1 text-xs font-semibold text-emerald-700">
+                                Your email can receive password resets and sign-in alerts.
+                            </p>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="mt-4 rounded-2xl border-2 border-amber-200 bg-amber-50 p-4">
+                        <p className="font-display text-lg font-extrabold text-amber-900">
+                            Not verified yet
+                        </p>
+                        <p className="mt-1 text-sm font-semibold text-amber-800">
+                            We send a 6-digit code to{' '}
+                            <strong className="break-all">{user.email}</strong>. Enter it to
+                            unlock recovery emails and add a completed security check.
+                        </p>
+                        <Button
+                            variant="secondary"
+                            onClick={onVerify}
+                            disabled={emailAction.sending}
+                            className="mt-3 !py-2.5 !text-base"
+                        >
+                            <Mail size={17} />
+                            {emailAction.sending ? 'Sending code…' : 'Send verification code'}
+                        </Button>
+                        {emailAction.error && (
+                            <p className="mt-2 text-sm font-semibold text-red-600">
+                                {emailAction.error}
+                            </p>
+                        )}
+                    </div>
+                )}
+            </Card>
+
+            <Card className="!p-5 md:!p-6">
+                <SectionHeading
+                    icon={<KeyRound size={20} />}
+                    title={hasPassword ? 'Change password' : 'Add a password'}
+                    subtitle={
+                        hasPassword
+                            ? 'Use at least 8 characters. Your current password is required.'
+                            : 'Set a password so you can sign in without a social provider.'
+                    }
+                />
+
+                <form onSubmit={onPasswordSubmit} className="space-y-4">
+                    {hasPassword && (
+                        <PasswordInput
+                            id="currentPassword"
+                            label="Current password"
+                            value={passwordForm.currentPassword}
+                            onChange={(event) =>
+                                setPasswordForm((prev) => ({
+                                    ...prev,
+                                    currentPassword: event.target.value,
+                                }))
+                            }
+                            autoComplete="current-password"
+                            maxLength={72}
+                            placeholder="Current password"
+                            inputClassName={inputClass}
+                        />
+                    )}
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <PasswordInput
+                            id="newPassword"
+                            label="New password"
+                            value={passwordForm.newPassword}
+                            onChange={(event) =>
+                                setPasswordForm((prev) => ({
+                                    ...prev,
+                                    newPassword: event.target.value,
+                                }))
+                            }
+                            autoComplete="new-password"
+                            minLength={8}
+                            placeholder="At least 8 characters"
+                            inputClassName={inputClass}
+                        />
+                        <PasswordInput
+                            id="confirmPassword"
+                            label="Confirm new password"
+                            value={passwordForm.confirmPassword}
+                            onChange={(event) =>
+                                setPasswordForm((prev) => ({
+                                    ...prev,
+                                    confirmPassword: event.target.value,
+                                }))
+                            }
+                            autoComplete="new-password"
+                            minLength={8}
+                            placeholder="Repeat new password"
+                            inputClassName={inputClass}
+                        />
+                    </div>
+
+                    <PasswordStrengthMeter
+                        password={passwordForm.newPassword}
+                        email={user?.email}
+                        name={user?.displayName}
+                    />
+
+                    {passwordForm.confirmPassword.length > 0 &&
+                        passwordForm.newPassword !== passwordForm.confirmPassword && (
+                            <p className="text-xs font-semibold text-red-600">
+                                The new passwords do not match yet.
+                            </p>
+                        )}
+
+                    <Notice notice={passwordNotice} />
+
+                    <div className="flex justify-end">
+                        <Button
+                            type="submit"
+                            variant="secondary"
+                            disabled={savingPassword}
+                            className="!py-2.5 !text-base"
+                        >
+                            <ShieldCheck size={17} />{' '}
+                            {savingPassword
+                                ? 'Updating…'
+                                : hasPassword
+                                  ? 'Update password'
+                                  : 'Add password'}
+                        </Button>
+                    </div>
+                </form>
+            </Card>
+
+            <Card className="!p-5 md:!p-6">
+                <SectionHeading
+                    icon={<ShieldCheck size={20} />}
+                    title="Account security overview"
+                    subtitle="Live checks on how protected your account is."
+                />
+
+                {loadingSecurity && !security && (
+                    <p className="py-4 text-center text-xs font-semibold text-banana-500">
+                        Checking your account…
+                    </p>
+                )}
+
+                {securityError && <Notice type="error" text={securityError} />}
+
+                {security && (
+                    <>
+                        <div className="flex items-center gap-3">
+                            <div
+                                className={`flex h-16 w-16 flex-shrink-0 flex-col items-center justify-center rounded-2xl ${
+                                    securityScore >= 75
+                                        ? 'bg-emerald-100 text-emerald-700'
+                                        : securityScore >= 50
+                                          ? 'bg-amber-100 text-amber-700'
+                                          : 'bg-red-100 text-red-700'
+                                }`}
+                            >
+                                <span className="font-display text-xl font-extrabold leading-none">
+                                    {securityScore}%
+                                </span>
+                                <span className="mt-0.5 text-[9px] font-bold uppercase tracking-wide">
+                                    secure
+                                </span>
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <p className="text-sm font-extrabold text-banana-800">
+                                    {security.level || 'Account security'}
+                                </p>
+                                <p className="text-[11px] text-banana-500">
+                                    {passedChecks}/{checks.length} checks passed
+                                </p>
+                                <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-banana-200">
+                                    <div
+                                        className={`h-full rounded-full ${
+                                            securityScore >= 75
+                                                ? 'bg-emerald-500'
+                                                : securityScore >= 50
+                                                  ? 'bg-amber-400'
+                                                  : 'bg-red-500'
+                                        }`}
+                                        style={{ width: `${securityScore}%` }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <ul className="mt-4 space-y-2">
+                            {checks.map((check) => (
+                                <li
+                                    key={check.id}
+                                    title={check.hint}
+                                    className="flex items-start gap-2 text-xs font-semibold"
+                                >
+                                    {check.passed ? (
+                                        <Check
+                                            size={15}
+                                            className="mt-0.5 flex-shrink-0 text-emerald-600"
+                                        />
+                                    ) : (
+                                        <CircleAlert
+                                            size={15}
+                                            className="mt-0.5 flex-shrink-0 text-amber-500"
+                                        />
+                                    )}
+                                    <span
+                                        className={
+                                            check.passed
+                                                ? 'text-emerald-700'
+                                                : 'text-banana-600'
+                                        }
+                                    >
+                                        {check.label}
+                                        <span className="block text-[11px] font-semibold text-banana-500">
+                                            {check.hint}
+                                        </span>
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+
+                        <div className="mt-4 flex flex-wrap gap-4 border-t border-banana-100 pt-3 text-[11px] text-banana-500">
+                            <p className="flex items-center gap-1.5">
+                                <Activity size={12} />
+                                Last sign-in:{' '}
+                                <span className="font-bold text-banana-700">
+                                    {formatRelative(security.lastSuccessAt)}
+                                </span>
+                            </p>
+                            <p className="flex items-center gap-1.5">
+                                <ShieldAlert size={12} />
+                                Failed attempts:{' '}
+                                <span className="font-bold text-banana-700">
+                                    {security.failedLogins}
+                                </span>
+                            </p>
+                        </div>
+                    </>
+                )}
+
+                <div className="mt-4 border-t border-banana-100 pt-4">
+                    <Button
+                        variant="secondary"
+                        onClick={onLogoutOthers}
+                        disabled={signingOutOthers}
+                        className="w-full !py-2.5 !text-base"
+                    >
+                        <LogOut size={17} />{' '}
+                        {signingOutOthers ? 'Signing out…' : 'Sign out other devices'}
+                    </Button>
+                    {deviceNotice && (
+                        <div className="mt-3">
+                            <Notice notice={deviceNotice} />
+                        </div>
+                    )}
+                </div>
+            </Card>
+        </>
+    );
+}
+
+function ActivitySection({
+    user,
+    stats,
+    loginData,
+    loginError,
+    loadingLogins,
+    failedLogins,
+    onRefresh,
+    loadingSecurity,
+}) {
+    const history = Array.isArray(loginData?.history) ? loginData.history : [];
+    const devices = Array.isArray(loginData?.devices) ? loginData.devices : [];
+
+    return (
+        <>
+            <Card className="!p-5 md:!p-6">
+                <div className="mb-4 flex items-start justify-between gap-3">
+                    <SectionHeading
+                        icon={<ListChecks size={20} />}
+                        title="Login history"
+                        subtitle="Every recent sign-in attempt, including failed ones."
+                        noMargin
+                    />
+                    <button
+                        type="button"
+                        onClick={onRefresh}
+                        title="Refresh activity"
+                        className="rounded-xl p-2 text-banana-600 hover:bg-banana-100"
+                    >
+                        <RefreshCw
+                            size={17}
+                            className={loadingLogins || loadingSecurity ? 'animate-spin' : ''}
+                        />
+                    </button>
+                </div>
+
+                {loginError && <Notice type="error" text={loginError} />}
+
+                {loadingLogins && !loginData && (
+                    <p className="py-6 text-center text-sm font-semibold text-banana-500">
+                        Loading sign-ins…
+                    </p>
+                )}
+
+                {loginData && history.length === 0 && (
+                    <p className="py-6 text-center text-sm font-semibold text-banana-500">
+                        No sign-ins recorded yet.
+                    </p>
+                )}
+
+                <ul className="divide-y divide-banana-100">
+                    {history.map((entry) => {
+                        const Icon = DEVICE_ICONS[entry.deviceType] || Monitor;
+                        const failed = entry.success === false;
+                        return (
+                            <li key={entry.id} className="flex items-center gap-3 py-3">
+                                <div
+                                    className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${
+                                        failed
+                                            ? 'bg-red-50 text-red-600'
+                                            : 'bg-banana-100 text-banana-700'
+                                    }`}
+                                >
+                                    <Icon size={18} />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-bold text-banana-800">
+                                        <span className="truncate">{entry.device}</span>
+                                        {entry.current && (
+                                            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-extrabold uppercase text-emerald-700">
+                                                This device
+                                            </span>
+                                        )}
+                                        {failed && (
+                                            <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-extrabold uppercase text-red-700">
+                                                {REASON_LABELS[entry.reason] || 'Failed'}
+                                            </span>
+                                        )}
+                                    </p>
+                                    <p className="break-words text-xs text-banana-500">
+                                        {METHOD_LABELS[entry.method] || entry.method} ·{' '}
+                                        {entry.email || user.email} · {entry.ip} ·{' '}
+                                        {formatDateTime(entry.at)}
+                                    </p>
+                                </div>
+                            </li>
+                        );
+                    })}
+                </ul>
+            </Card>
+
+            <div className="grid gap-5 sm:grid-cols-2">
+                <Card className="!p-5">
+                    <SectionHeading
+                        icon={<CalendarDays size={20} />}
+                        title="Devices"
+                        subtitle="Where you are signed in."
+                        noMargin
+                    />
+                    <div className="mt-3 space-y-2">
+                        {devices.map((device) => {
+                            const Icon = DEVICE_ICONS[device.deviceType] || Monitor;
+                            return (
+                                <div
+                                    key={device.id}
+                                    className={`rounded-xl border-2 p-2.5 ${
+                                        device.current
+                                            ? 'border-emerald-300 bg-emerald-50'
+                                            : 'border-banana-200 bg-white/70'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <Icon size={16} className="text-banana-600" />
+                                        <p className="flex-1 truncate text-sm font-bold text-banana-800">
+                                            {device.device}
+                                        </p>
+                                        {device.current && (
+                                            <Check size={15} className="text-emerald-600" />
+                                        )}
+                                    </div>
+                                    <p className="mt-0.5 text-[11px] text-banana-500">
+                                        {device.logins} sign-in
+                                        {device.logins === 1 ? '' : 's'} · last{' '}
+                                        {formatRelative(device.lastSeenAt)}
+                                    </p>
+                                </div>
+                            );
+                        })}
+                        {loginData && devices.length === 0 && (
+                            <p className="py-3 text-center text-xs font-semibold text-banana-500">
+                                No devices yet.
+                            </p>
+                        )}
+                    </div>
+                </Card>
+
+                <Card className="!p-5">
+                    <SectionHeading
+                        icon={<ShieldAlert size={20} />}
+                        title="Failed sign-ins"
+                        subtitle="Recent attempts that did not get in."
+                        noMargin
+                    />
+                    <div className="mt-3 space-y-2">
+                        {failedLogins.length === 0 && (
+                            <p className="py-2 text-center text-xs font-semibold text-banana-500">
+                                No failed attempts recorded. Nice and quiet.
+                            </p>
+                        )}
+                        {failedLogins.map((entry) => (
+                            <div
+                                key={`failed-${entry.id}`}
+                                className="rounded-xl border-2 border-red-100 bg-red-50/60 p-2.5"
+                            >
+                                <p className="flex items-center gap-2 text-xs font-bold text-red-700">
+                                    <ShieldAlert size={14} className="flex-shrink-0" />
+                                    {REASON_LABELS[entry.reason] || 'Sign-in failed'}
+                                </p>
+                                <p className="mt-0.5 break-words text-[11px] text-banana-500">
+                                    {entry.email || user.email} · {entry.ip} ·{' '}
+                                    {formatRelative(entry.at)}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                </Card>
+            </div>
+
+            <Card className="!p-5">
+                <SectionHeading
+                    icon={<Activity size={20} />}
+                    title="Game activity"
+                    subtitle="A quick summary of your play."
+                    noMargin
+                />
+                <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                    <InfoTile title="Games played" text={`${stats?.gamesPlayed || 0}`} />
+                    <InfoTile title="Total points" text={`${stats?.totalPoints || 0}`} />
+                    <InfoTile
+                        title="Last played"
+                        text={stats?.lastPlayedAt ? formatRelative(stats.lastPlayedAt) : 'Never'}
+                    />
+                </div>
+            </Card>
+        </>
+    );
+}
+
+function PrivacySection({
+    preferences,
+    updatePreference,
+    onSubmit,
+    saving,
+    notice,
+    user,
+    stats,
+    security,
+    loginData,
+}) {
+    return (
+        <>
+            <Card className="!p-5 md:!p-6">
+                <SectionHeading
+                    icon={<Eye size={20} />}
+                    title="Privacy"
+                    subtitle="Choose what other players can see."
+                />
+
+                <div className="space-y-4">
+                    <PreferenceToggle
+                        label="Show me on the leaderboard"
+                        description="Hide your display name, avatar and score from public rankings."
+                        checked={preferences.showOnLeaderboard}
+                        onChange={updatePreference('showOnLeaderboard')}
+                    />
+
+                    <div className="grid gap-3 sm:grid-cols-3">
+                        <InfoTile
+                            title="Activity tracking"
+                            text="Used to calculate streaks, accuracy and trends."
+                        />
+                        <InfoTile
+                            title="Marketing emails"
+                            text="Optional and off by default. Manage them in Notifications."
+                        />
+                        <InfoTile
+                            title="Data retention"
+                            text="Your game history stays linked to your account until deactivation."
+                        />
+                    </div>
+
+                    <Notice notice={notice} />
+
+                    <div className="flex justify-end">
+                        <Button type="button" onClick={onSubmit} disabled={saving} className="!py-2.5 !text-base">
+                            <Save size={17} /> {saving ? 'Saving…' : 'Save privacy'}
+                        </Button>
+                    </div>
+                </div>
+            </Card>
+
+            <Card className="!p-5 md:!p-6">
+                <SectionHeading
+                    icon={<Download size={20} />}
+                    title="Your data"
+                    subtitle="Download a copy of the information this device can see."
+                />
+                <div className="flex flex-wrap gap-3">
+                    <Button
+                        variant="secondary"
+                        onClick={() =>
+                            downloadDataExport({ user, stats, security, loginData })
+                        }
+                        className="!py-2.5 !text-base"
+                    >
+                        <Download size={17} /> Download JSON export
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        onClick={() => {
+                            localStorage.removeItem('banana-cookie-choice');
+                            window.location.reload();
+                        }}
+                        className="!py-2.5 !text-base"
+                    >
+                        <Settings size={17} /> Review cookie choice
+                    </Button>
+                </div>
+                <p className="mt-3 text-xs font-semibold text-banana-600">
+                    The export includes your profile, preferences, statistics, security summary
+                    and recent sign-in devices. It never includes password hashes or session
+                    secrets.
+                </p>
+            </Card>
+        </>
+    );
+}
+
+function DangerZoneSection({
+    user,
+    hasPassword,
+    form,
+    setForm,
+    onSubmit,
+    deactivating,
+    error,
+    setError,
+}) {
+    return (
+        <Card className="!border-red-300 !p-5 md:!p-6">
+            <SectionHeading
+                icon={<ShieldAlert size={20} />}
+                title="Danger zone"
+                subtitle="These actions affect access to your account."
+            />
+
+            <div className="rounded-2xl border-2 border-red-200 bg-red-50/70 p-4">
+                <p className="flex items-center gap-2 font-display text-lg font-extrabold text-red-800">
+                    <Trash2 size={19} /> Deactivate account
+                </p>
+                <p className="mt-1 text-sm font-semibold text-red-700">
+                    Your account will be signed out everywhere and can no longer sign in. Your
+                    scores and history are kept so support can restore the account if you ask.
+                </p>
+
+                <form onSubmit={onSubmit} className="mt-4 space-y-3">
+                    <div>
+                        <label
+                            htmlFor="deactivate-confirm"
+                            className="mb-1 block text-sm font-bold text-red-800"
+                        >
+                            Type <span className="font-mono">DELETE</span> to confirm
+                        </label>
+                        <input
+                            id="deactivate-confirm"
+                            value={form.confirm}
+                            onChange={(event) => {
+                                setForm((prev) => ({ ...prev, confirm: event.target.value }));
+                                setError('');
+                            }}
+                            autoComplete="off"
+                            placeholder="DELETE"
+                            className={`${inputClass} !border-red-200 focus:!border-red-400`}
+                        />
+                    </div>
+
+                    {hasPassword && (
+                        <PasswordInput
+                            id="deactivatePassword"
+                            label="Current password"
+                            value={form.password}
+                            onChange={(event) => {
+                                setForm((prev) => ({
+                                    ...prev,
+                                    password: event.target.value,
+                                }));
+                                setError('');
+                            }}
+                            autoComplete="current-password"
+                            maxLength={72}
+                            placeholder="Confirm with your password"
+                            inputClassName={inputClass}
+                        />
+                    )}
+
+                    {error && (
+                        <p className="rounded-xl bg-red-100 px-3.5 py-2.5 text-sm font-semibold text-red-700">
+                            {error}
+                        </p>
+                    )}
+
+                    <Button
+                        type="submit"
+                        variant="danger"
+                        disabled={deactivating || form.confirm !== 'DELETE'}
+                        className="!py-2.5 !text-base"
+                    >
+                        <Trash2 size={17} />
+                        {deactivating ? 'Deactivating…' : 'Deactivate my account'}
+                    </Button>
+                </form>
+            </div>
+
+            <p className="mt-4 text-xs font-semibold text-banana-600">
+                Signed in as <strong className="break-all">{user.email}</strong>. You can export
+                your data first from Privacy &amp; data.
+            </p>
+        </Card>
+    );
+}
+
+function downloadDataExport({ user, stats, security, loginData }) {
+    const payload = {
+        exportedAt: new Date().toISOString(),
+        user: user || null,
+        stats: stats || null,
+        security: security || null,
+        loginDevices: Array.isArray(loginData?.devices) ? loginData.devices : [],
+        recentSignIns: Array.isArray(loginData?.history) ? loginData.history : [],
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'banana-quiz-data.json';
+    link.download = `banana-quiz-data-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
     link.click();
-    URL.revokeObjectURL(url);
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 function SectionHeading({ icon, title, subtitle, noMargin = false }) {
@@ -948,8 +1926,21 @@ function PreferenceToggle({ label, description, checked, onChange }) {
     );
 }
 
-function Message({ type, text }) {
-    const success = type === 'success';
+function InfoTile({ title, text }) {
+    return (
+        <div className="rounded-2xl border-2 border-banana-200 bg-banana-50 p-4">
+            <p className="text-xs font-extrabold uppercase tracking-wide text-banana-600">
+                {title}
+            </p>
+            <p className="mt-1 font-bold text-banana-800">{text}</p>
+        </div>
+    );
+}
+
+function Notice({ notice, type, text }) {
+    const value = notice || (type && text ? { type, text } : null);
+    if (!value) return null;
+    const success = value.type === 'success';
     return (
         <p
             role="alert"
@@ -957,8 +1948,12 @@ function Message({ type, text }) {
                 success ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
             }`}
         >
-            {success ? <Check size={17} className="mt-0.5 flex-shrink-0" /> : <CircleAlert size={17} className="mt-0.5 flex-shrink-0" />}
-            {text}
+            {success ? (
+                <Check size={17} className="mt-0.5 flex-shrink-0" />
+            ) : (
+                <CircleAlert size={17} className="mt-0.5 flex-shrink-0" />
+            )}
+            {value.text}
         </p>
     );
 }

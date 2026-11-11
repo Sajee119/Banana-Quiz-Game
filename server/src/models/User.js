@@ -34,12 +34,42 @@ const userSchema = new mongoose.Schema(
         },
         favoriteMode: {
             type: String,
-            enum: ['classic', 'blitz', 'zen'],
-            default: 'classic'
+            enum: ['easy', 'hard', 'custom', 'classic', 'blitz', 'zen'],
+            default: 'easy'
         },
         preferences: {
             reducedMotion: { type: Boolean, default: false },
             showOnLeaderboard: { type: Boolean, default: true },
+            emailNotifications: { type: Boolean, default: true },
+            loginAlerts: { type: Boolean, default: true },
+            productUpdates: { type: Boolean, default: false },
+            defaultMode: {
+                type: String,
+                enum: ['easy', 'hard', 'custom'],
+                default: 'easy'
+            },
+            autoSubmit: { type: Boolean, default: true },
+            celebrations: { type: Boolean, default: true },
+            showKeyboardHints: { type: Boolean, default: true },
+            showTimer: { type: Boolean, default: true },
+            defaultQuizCount: {
+                type: Number,
+                enum: [5, 10, 20, 30],
+                default: 10
+            },
+            defaultTime: {
+                type: Number,
+                enum: [10, 15, 20, 30, 45, 60],
+                default: 30
+            },
+        },
+        emailVerified: {
+            type: Boolean,
+            default: false
+        },
+        emailVerifiedAt: {
+            type: Date,
+            default: null
         },
         providers: [
             {
@@ -131,28 +161,44 @@ userSchema.statics.findByEmailWithPassword = function (email) {
     return this.findOne({ email: String(email).trim().toLowerCase() }).select('+passwordHash');
 };
 
-userSchema.statics.registerLocal = async function ({ name, email, password }) {
+userSchema.statics.createVerifiedLocal = async function ({
+    name,
+    email,
+    passwordHash,
+    emailVerifiedAt = new Date(),
+}) {
     const normalizedEmail = String(email).trim().toLowerCase();
     const [firstName, ...rest] = String(name).trim().split(/\s+/);
 
     const user = new this({
         email: normalizedEmail,
-        firstName,
+        firstName: firstName || '',
         lastName: rest.join(' '),
         providers: [{ name: 'local', providerId: normalizedEmail }],
+        // The pending challenge stores a bcrypt hash, so the plain password
+        // never reaches this model.
+        passwordHash,
+        passwordChangedAt: new Date(),
+        emailVerified: true,
+        emailVerifiedAt,
     });
 
-    await user.setPassword(password);
     await user.save();
     return user;
 };
 
 userSchema.statics.findOrCreateByProvider = async function (providerName, providerId, profileData) {
+    const providerVerifiesEmail = providerName === 'google' || providerName === 'facebook';
+
     let user = await this.findOne({
         providers: { $elemMatch: { name: providerName, providerId } },
     });
 
     if (user) {
+        if (providerVerifiesEmail && !user.emailVerified) {
+            user.emailVerified = true;
+            user.emailVerifiedAt = new Date();
+        }
         user.lastLoginAt = new Date();
         await user.save();
         return { user, isNew: false };
@@ -161,10 +207,14 @@ userSchema.statics.findOrCreateByProvider = async function (providerName, provid
     if (profileData.email) {
         user = await this.findOne({ email: profileData.email });
         if (user) {
-        user.providers.push({ name: providerName, providerId });
-        user.lastLoginAt = new Date();
-        await user.save();
-        return { user, isNew: false };
+            user.providers.push({ name: providerName, providerId });
+            if (providerVerifiesEmail && !user.emailVerified) {
+                user.emailVerified = true;
+                user.emailVerifiedAt = new Date();
+            }
+            user.lastLoginAt = new Date();
+            await user.save();
+            return { user, isNew: false };
         }
     }
 
@@ -174,6 +224,8 @@ userSchema.statics.findOrCreateByProvider = async function (providerName, provid
         lastName: profileData.lastName,
         avatar: profileData.avatar,
         providers: [{ name: providerName, providerId }],
+        emailVerified: providerVerifiesEmail,
+        emailVerifiedAt: providerVerifiesEmail ? new Date() : null,
     });
     return { user, isNew: true };
 };

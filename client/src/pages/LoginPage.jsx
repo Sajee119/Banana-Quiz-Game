@@ -52,17 +52,12 @@ const BENEFITS = [
 export default function LoginPage() {
     const { user, loading, signIn } = useAuth();
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
 
-<<<<<<< Updated upstream
     const [mode, setMode] = useState('login');
-=======
     const [mode, setMode] = useState(
         searchParams.get('mode') === 'register' ? 'register' : 'login'
     );
-    const [rememberedLogin] = useState(readRememberedLogin);
-    const [remember, setRemember] = useState(() => Boolean(rememberedLogin));
->>>>>>> Stashed changes
     const [form, setForm] = useState({
         name: '',
         email: rememberedLogin?.email || '',
@@ -80,6 +75,12 @@ export default function LoginPage() {
         if (!loading && user) navigate('/dashboard', { replace: true });
     }, [user, loading, navigate]);
 
+    const requestedMode = searchParams.get('mode');
+    useEffect(() => {
+        if (requestedMode === 'register') setMode('register');
+        else if (requestedMode === 'login') setMode('login');
+    }, [requestedMode]);
+
     const updateField = (field) => (event) => {
         setForm((prev) => ({ ...prev, [field]: event.target.value }));
         if (error) setError('');
@@ -88,6 +89,7 @@ export default function LoginPage() {
     const switchMode = (nextMode) => {
         if (submitting || nextMode === mode) return;
         setMode(nextMode);
+        setSearchParams(nextMode === 'register' ? { mode: 'register' } : {}, { replace: true });
         setError('');
         setForm((prev) => ({ ...prev, password: '', confirmPassword: '' }));
     };
@@ -121,13 +123,30 @@ export default function LoginPage() {
         setSubmitting(true);
         try {
             if (mode === 'register') {
-                await signIn(() =>
-                    authApi.register({
-                        name: form.name,
-                        email: form.email,
-                        password: form.password,
-                    })
-                );
+                const data = await authApi.register({
+                    name: form.name,
+                    email: form.email,
+                    password: form.password,
+                });
+
+                if (data.requiresVerification && data.verificationId) {
+                    navigate(
+                        `/verify-email?verificationId=${encodeURIComponent(
+                            data.verificationId
+                        )}&purpose=registration`,
+                        {
+                            replace: true,
+                            state: {
+                                email: data.email,
+                                devOtp: data.devOtp,
+                                expiresAt: data.expiresAt,
+                            },
+                        }
+                    );
+                    return;
+                }
+
+                await signIn(async () => data);
             } else {
                 await signIn(() =>
                     authApi.login({ email: form.email, password: form.password, remember })
@@ -421,7 +440,9 @@ export default function LoginPage() {
                         </div>
 
                         <p className="mt-6 text-xs text-banana-600">
-                            Passwords are hashed and never stored in plain text.
+                            {isRegister
+                                ? 'We email a 6-digit code to confirm your address before your account is created.'
+                                : 'Passwords are hashed and never stored in plain text.'}
                         </p>
                         <Link
                             to="/"

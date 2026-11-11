@@ -149,7 +149,7 @@ const FAQS = [
     {
         category: 'data',
         q: 'Do you use cookies?',
-        a: 'We use an essential session cookie to keep you signed in. If you tick “Remember me”, the session lasts 30 days and a small first-party cookie saves your email so the form can prefill it. We also save a few preferences in your browser, such as audio settings and your cookie choice. We do not use advertising cookies.',
+        a: 'We use an essential session cookie to keep you signed in. We also save a few preferences in your browser, such as audio settings and your cookie choice. We do not use advertising cookies.',
     },
     {
         category: 'data',

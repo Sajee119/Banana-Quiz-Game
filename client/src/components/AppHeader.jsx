@@ -14,6 +14,7 @@ import BananaLogo from './BananaLogo.jsx';
 import AudioControls from './AudioControls.jsx';
 import Button from './Button.jsx';
 import { useAuth } from '../context/auth-context.js';
+import { useSound } from '../hooks/useSound.js';
 import { initials } from '../lib/format.js';
 
 const NAV = [
@@ -27,6 +28,7 @@ const NAV = [
 
 export default function AppHeader({ className = '' }) {
     const { user, logout, logoutAllDevices, logoutOtherDevices } = useAuth();
+    const { play } = useSound();
     const navigate = useNavigate();
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const [loggingOut, setLoggingOut] = useState(false);
@@ -80,6 +82,7 @@ export default function AppHeader({ className = '' }) {
                             key={to}
                             to={to}
                             title={label}
+                            onClick={() => play('click')}
                             className={({ isActive }) =>
                                 `flex items-center gap-1.5 rounded-xl px-2 py-2 text-sm font-bold transition sm:px-2.5 md:px-3 ${
                                     isActive
@@ -112,6 +115,7 @@ export default function AppHeader({ className = '' }) {
                             <button
                                 type="button"
                                 onClick={() => {
+                                    play('click');
                                     setLogoutError('');
                                     setShowLogoutDialog(true);
                                 }}

@@ -5,6 +5,8 @@
  */
 
 const DEFAULT_PREFERENCES = {
+    theme: 'light',
+    compactMode: false,
     reducedMotion: false,
     showOnLeaderboard: true,
     emailNotifications: true,
@@ -15,6 +17,7 @@ const DEFAULT_PREFERENCES = {
     celebrations: true,
     showKeyboardHints: true,
     showTimer: true,
+    confirmQuit: true,
     defaultQuizCount: 10,
     defaultTime: 30,
 };
@@ -40,6 +43,8 @@ function buildUserPayload(user) {
         emailVerified: Boolean(user.emailVerified) || verifiedByProvider,
         emailVerifiedAt: user.emailVerifiedAt || null,
         preferences: {
+            theme: preferences.theme ?? DEFAULT_PREFERENCES.theme,
+            compactMode: preferences.compactMode ?? DEFAULT_PREFERENCES.compactMode,
             reducedMotion: preferences.reducedMotion ?? DEFAULT_PREFERENCES.reducedMotion,
             showOnLeaderboard:
                 preferences.showOnLeaderboard ?? DEFAULT_PREFERENCES.showOnLeaderboard,
@@ -53,6 +58,7 @@ function buildUserPayload(user) {
             showKeyboardHints:
                 preferences.showKeyboardHints ?? DEFAULT_PREFERENCES.showKeyboardHints,
             showTimer: preferences.showTimer ?? DEFAULT_PREFERENCES.showTimer,
+            confirmQuit: preferences.confirmQuit ?? DEFAULT_PREFERENCES.confirmQuit,
             defaultQuizCount:
                 preferences.defaultQuizCount ?? DEFAULT_PREFERENCES.defaultQuizCount,
             defaultTime: preferences.defaultTime ?? DEFAULT_PREFERENCES.defaultTime,

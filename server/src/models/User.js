@@ -38,6 +38,12 @@ const userSchema = new mongoose.Schema(
             default: 'easy'
         },
         preferences: {
+            theme: {
+                type: String,
+                enum: ['light', 'dark'],
+                default: 'light'
+            },
+            compactMode: { type: Boolean, default: false },
             reducedMotion: { type: Boolean, default: false },
             showOnLeaderboard: { type: Boolean, default: true },
             emailNotifications: { type: Boolean, default: true },
@@ -52,6 +58,7 @@ const userSchema = new mongoose.Schema(
             celebrations: { type: Boolean, default: true },
             showKeyboardHints: { type: Boolean, default: true },
             showTimer: { type: Boolean, default: true },
+            confirmQuit: { type: Boolean, default: true },
             defaultQuizCount: {
                 type: Number,
                 enum: [5, 10, 20, 30],

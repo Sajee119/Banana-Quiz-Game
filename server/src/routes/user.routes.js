@@ -33,6 +33,8 @@ const profileSchema = Joi.object({
             'any.only': 'Choose Standard Easy, Standard Hard or Custom.',
         }),
     preferences: Joi.object({
+        theme: Joi.string().valid('light', 'dark'),
+        compactMode: Joi.boolean(),
         reducedMotion: Joi.boolean(),
         showOnLeaderboard: Joi.boolean(),
         emailNotifications: Joi.boolean(),
@@ -43,6 +45,7 @@ const profileSchema = Joi.object({
         celebrations: Joi.boolean(),
         showKeyboardHints: Joi.boolean(),
         showTimer: Joi.boolean(),
+        confirmQuit: Joi.boolean(),
         defaultQuizCount: Joi.number().valid(5, 10, 20, 30),
         defaultTime: Joi.number().valid(10, 15, 20, 30, 45, 60),
     }).min(1),

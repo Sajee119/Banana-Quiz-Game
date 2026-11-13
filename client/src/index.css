@@ -55,6 +55,108 @@
 
 html, body, #root { height: 100%; }
 
+/* ------------------------------------------------------------------------- */
+/* Theme controls                                                            */
+/* Light is the default. Dark swaps the banana palette and surface colours so  */
+/* every page can keep using the same Tailwind classes.                        */
+/* ------------------------------------------------------------------------- */
+html { color-scheme: light; }
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-banana-50: #1b1610;
+  --color-banana-100: #241d14;
+  --color-banana-200: #35291a;
+  --color-banana-300: #4b3a22;
+  --color-banana-400: #9a6d10;
+  --color-banana-500: #c58a0d;
+  --color-banana-600: #e3a51a;
+  --color-banana-700: #f0be4f;
+  --color-banana-800: #f6d68c;
+  --color-banana-900: #fff0c7;
+
+  --color-amber-50: #20180f;
+  --color-amber-100: #261c10;
+}
+
+html[data-theme='dark'] body {
+  background-image: linear-gradient(to bottom right, #241d14, #1b1610, #261c10);
+}
+
+html[data-theme='dark'] body::before {
+  background-image: radial-gradient(circle, rgba(255, 203, 31, 0.07) 1px, transparent 1px);
+}
+
+/* White cards, inputs and chips become deep bark-brown surfaces. */
+html[data-theme='dark'] .bg-white,
+html[data-theme='dark'] .bg-white\/60,
+html[data-theme='dark'] .bg-white\/70,
+html[data-theme='dark'] .bg-white\/80,
+html[data-theme='dark'] .bg-white\/90 {
+  background-color: rgba(33, 27, 19, 0.94) !important;
+}
+
+html[data-theme='dark'] .text-gray-700 {
+  color: #e9dfc8 !important;
+}
+
+html[data-theme='dark'] .border-gray-200 {
+  border-color: #3b2f1e !important;
+}
+
+html[data-theme='dark'] .theme-knob {
+  background-color: #fff9e8 !important;
+}
+
+/* Keep the dark theme legible on coloured alert panels. */
+html[data-theme='dark'] .bg-red-50,
+html[data-theme='dark'] .bg-red-50\/60,
+html[data-theme='dark'] .bg-red-50\/70 {
+  background-color: rgba(127, 29, 29, 0.25) !important;
+}
+
+html[data-theme='dark'] .bg-emerald-50 {
+  background-color: rgba(6, 78, 59, 0.25) !important;
+}
+
+html[data-theme='dark'] .bg-amber-50 {
+  background-color: rgba(120, 53, 15, 0.28) !important;
+}
+
+html[data-theme='dark'] .bg-orange-50 {
+  background-color: rgba(124, 45, 18, 0.28) !important;
+}
+
+html[data-theme='dark'] .bg-violet-50,
+html[data-theme='dark'] .bg-sky-50,
+html[data-theme='dark'] .bg-pink-50 {
+  background-color: rgba(49, 46, 129, 0.2) !important;
+}
+
+/* Account preference: compact layout keeps more content on screen. */
+html[data-compact='true'] .shadow-game {
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.16), 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+html[data-compact='true'] .rounded-3xl {
+  border-radius: 1rem;
+}
+
+html[data-compact='true'] .p-6 {
+  padding: 1rem !important;
+}
+
+html[data-compact='true'] main.py-8 {
+  padding-top: 1.25rem !important;
+  padding-bottom: 1.25rem !important;
+}
+
+html[data-compact='true'] .gap-5 {
+  gap: 0.75rem;
+}
+
+
 /* Shrinking bar that shows the auto-submit pause running out. */
 .auto-submit-bar {
   transform-origin: left;

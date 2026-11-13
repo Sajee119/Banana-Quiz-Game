@@ -20,6 +20,7 @@ import {
     Mail,
     MailCheck,
     Monitor,
+    Moon,
     Palette,
     RefreshCw,
     Save,
@@ -27,6 +28,7 @@ import {
     ShieldAlert,
     ShieldCheck,
     Smartphone,
+    Sun,
     Tablet,
     Target,
     Trash2,
@@ -54,7 +56,9 @@ import {
     normalizeModeId,
 } from '../lib/format.js';
 import { evaluatePassword } from '../lib/passwordStrength.js';
+import { applyCompactMode, applyTheme, THEME_OPTIONS } from '../lib/theme.js';
 import { usePageTitle } from '../hooks/usePageTitle.js';
+import { useSound } from '../hooks/useSound.js';
 
 const inputClass =
     'w-full rounded-xl border-2 border-banana-200 bg-white px-3.5 py-2.5 font-semibold text-banana-900 placeholder:text-banana-400 focus:border-banana-400 focus:outline-none';
@@ -91,6 +95,8 @@ const TABS = [
 ];
 
 const DEFAULT_PREFERENCES = {
+    theme: 'light',
+    compactMode: false,
     reducedMotion: false,
     showOnLeaderboard: true,
     emailNotifications: true,
@@ -101,6 +107,7 @@ const DEFAULT_PREFERENCES = {
     celebrations: true,
     showKeyboardHints: true,
     showTimer: true,
+    confirmQuit: true,
     defaultQuizCount: 10,
     defaultTime: 30,
 };
@@ -108,6 +115,7 @@ const DEFAULT_PREFERENCES = {
 export default function ProfilePage() {
     usePageTitle('Profile & settings');
     const { user, stats, setUser, setStats } = useAuth();
+    const { play } = useSound();
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -169,6 +177,9 @@ export default function ProfilePage() {
         const storedTime = Number(user.preferences?.defaultTime);
 
         setPreferences({
+            theme: user.preferences?.theme ?? DEFAULT_PREFERENCES.theme,
+            compactMode:
+                user.preferences?.compactMode ?? DEFAULT_PREFERENCES.compactMode,
             reducedMotion:
                 user.preferences?.reducedMotion ?? DEFAULT_PREFERENCES.reducedMotion,
             showOnLeaderboard:
@@ -186,6 +197,7 @@ export default function ProfilePage() {
             showKeyboardHints:
                 user.preferences?.showKeyboardHints ?? DEFAULT_PREFERENCES.showKeyboardHints,
             showTimer: user.preferences?.showTimer ?? DEFAULT_PREFERENCES.showTimer,
+            confirmQuit: user.preferences?.confirmQuit ?? DEFAULT_PREFERENCES.confirmQuit,
             defaultQuizCount: QUIZ_COUNT_OPTIONS.includes(storedQuizCount)
                 ? storedQuizCount
                 : DEFAULT_PREFERENCES.defaultQuizCount,
@@ -235,6 +247,7 @@ export default function ProfilePage() {
     }, [loadSecurity]);
 
     const selectTab = (tabId) => {
+        play('click');
         setNotices({});
         setPasswordNotice(null);
         setDeviceNotice(null);
@@ -254,7 +267,16 @@ export default function ProfilePage() {
     const updatePreference = (field) => (event) => {
         const value = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
         setPreferences((prev) => ({ ...prev, [field]: value }));
+        if (field === 'compactMode') applyCompactMode(value);
         setNotices({});
+        play('toggle');
+    };
+
+    const handleThemeSelect = (theme) => {
+        setPreferences((prev) => ({ ...prev, theme }));
+        applyTheme(theme);
+        setNotices({});
+        play('select');
     };
 
     const saveProfile = async (event) => {
@@ -271,11 +293,13 @@ export default function ProfilePage() {
                 favoriteMode: profile.favoriteMode,
             });
             setUser(data.user);
+            play('success');
             setNotice('profile', {
                 type: 'success',
                 text: data.message || 'Profile updated.',
             });
         } catch (err) {
+            play('error');
             setNotice('profile', {
                 type: 'error',
                 text: err.friendlyMessage || 'Could not save your profile.',
@@ -293,8 +317,10 @@ export default function ProfilePage() {
         try {
             const data = await userApi.updateMe({ preferences: changes });
             setUser(data.user);
+            play('success');
             setNotice(scope, { type: 'success', text: successText });
         } catch (err) {
+            play('error');
             setNotice(scope, {
                 type: 'error',
                 text: err.friendlyMessage || 'Could not save your preferences.',
@@ -344,12 +370,14 @@ export default function ProfilePage() {
                 newPassword: passwordForm.newPassword,
             });
             if (data.user) setUser(data.user);
+            play('success');
             setPasswordNotice({
                 type: 'success',
                 text: data.message || 'Password updated.',
             });
             setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
         } catch (err) {
+            play('error');
             setPasswordNotice({
                 type: 'error',
                 text: err.friendlyMessage || 'Could not update your password.',
@@ -686,6 +714,7 @@ export default function ProfilePage() {
                                     user={user}
                                     onVerify={handleRequestVerification}
                                     emailAction={emailAction}
+                                    play={play}
                                 />
                             )}
 
@@ -693,10 +722,13 @@ export default function ProfilePage() {
                                 <AppearanceSection
                                     preferences={preferences}
                                     updatePreference={updatePreference}
+                                    onThemeSelect={handleThemeSelect}
                                     onSubmit={() =>
                                         savePreferences(
                                             'appearance',
                                             {
+                                                theme: preferences.theme,
+                                                compactMode: preferences.compactMode,
                                                 reducedMotion: preferences.reducedMotion,
                                                 defaultMode: preferences.defaultMode,
                                             },
@@ -721,6 +753,7 @@ export default function ProfilePage() {
                                                 showKeyboardHints:
                                                     preferences.showKeyboardHints,
                                                 showTimer: preferences.showTimer,
+                                                confirmQuit: preferences.confirmQuit,
                                                 defaultQuizCount: Number(
                                                     preferences.defaultQuizCount
                                                 ),
@@ -840,7 +873,69 @@ function ProfileSection({
     user,
     onVerify,
     emailAction,
+    play,
 }) {
+    const [avatarPreview, setAvatarPreview] = useState({
+        status: 'idle',
+        src: '',
+        message: '',
+    });
+
+    useEffect(() => {
+        setAvatarPreview({ status: 'idle', src: '', message: '' });
+    }, [profile.avatar]);
+
+    const previewAvatar = () => {
+        const url = profile.avatar.trim();
+        if (!url) {
+            setAvatarPreview({
+                status: 'error',
+                src: '',
+                message: 'Paste an image URL first, or leave it empty to use your initials.',
+            });
+            play?.('error');
+            return;
+        }
+
+        let parsed;
+        try {
+            parsed = new URL(url);
+        } catch {
+            parsed = null;
+        }
+        if (!parsed || !['http:', 'https:'].includes(parsed.protocol)) {
+            setAvatarPreview({
+                status: 'error',
+                src: '',
+                message: 'Use a complete http or https image link.',
+            });
+            play?.('error');
+            return;
+        }
+
+        setAvatarPreview({ status: 'loading', src: url, message: 'Checking image…' });
+        play?.('click');
+
+        const image = new window.Image();
+        image.onload = () => {
+            setAvatarPreview({
+                status: 'ok',
+                src: url,
+                message: 'Image loaded — save your profile to apply it.',
+            });
+            play?.('success');
+        };
+        image.onerror = () => {
+            setAvatarPreview({
+                status: 'error',
+                src: '',
+                message: 'Could not load that image. Check the link or try another one.',
+            });
+            play?.('error');
+        };
+        image.src = url;
+    };
+
     return (
         <>
             <Card className="!p-5 md:!p-6">
@@ -921,16 +1016,77 @@ function ProfileSection({
                         htmlFor="avatar"
                         hint="Paste a public https image link. Leave empty for your initials."
                     >
-                        <div className="flex items-center gap-2">
-                            <Image size={18} className="flex-shrink-0 text-banana-500" />
-                            <input
-                                id="avatar"
-                                type="url"
-                                value={profile.avatar}
-                                onChange={updateProfileField('avatar')}
-                                className={inputClass}
-                                placeholder="https://example.com/avatar.png"
-                            />
+                        <div className="flex flex-col gap-2 sm:flex-row">
+                            <div className="flex flex-1 items-center gap-2">
+                                <Image size={18} className="flex-shrink-0 text-banana-500" />
+                                <input
+                                    id="avatar"
+                                    type="url"
+                                    value={profile.avatar}
+                                    onChange={updateProfileField('avatar')}
+                                    className={inputClass}
+                                    placeholder="https://example.com/avatar.png"
+                                />
+                            </div>
+                            <Button
+                                variant="secondary"
+                                onClick={previewAvatar}
+                                disabled={avatarPreview.status === 'loading'}
+                                className="flex-shrink-0 !py-2.5 !text-sm"
+                            >
+                                <Eye size={16} />
+                                {avatarPreview.status === 'loading' ? 'Checking…' : 'Preview'}
+                            </Button>
+                        </div>
+
+                        <div
+                            className={`mt-3 flex items-center gap-3 rounded-2xl border-2 p-3 ${
+                                avatarPreview.status === 'error'
+                                    ? 'border-red-200 bg-red-50'
+                                    : avatarPreview.status === 'ok'
+                                      ? 'border-emerald-200 bg-emerald-50'
+                                      : 'border-banana-200 bg-banana-50'
+                            }`}
+                            aria-live="polite"
+                        >
+                            <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-banana-300 bg-banana-100 font-display text-xl font-extrabold text-banana-600">
+                                {avatarPreview.status === 'ok' ? (
+                                    <img
+                                        src={avatarPreview.src}
+                                        alt="Avatar preview"
+                                        className="h-full w-full object-cover"
+                                    />
+                                ) : avatarPreview.status === 'loading' ? (
+                                    <RefreshCw size={20} className="animate-spin text-banana-500" />
+                                ) : profile.avatar.trim() ? (
+                                    <Image size={22} className="text-banana-400" />
+                                ) : (
+                                    initials(profile.name || user.displayName)
+                                )}
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-sm font-extrabold text-banana-800">
+                                    {avatarPreview.status === 'ok'
+                                        ? 'Avatar preview ready'
+                                        : avatarPreview.status === 'error'
+                                          ? 'Avatar preview problem'
+                                          : avatarPreview.status === 'loading'
+                                            ? 'Checking avatar'
+                                            : 'Avatar preview'}
+                                </p>
+                                <p
+                                    className={`text-xs font-semibold ${
+                                        avatarPreview.status === 'error'
+                                            ? 'text-red-700'
+                                            : avatarPreview.status === 'ok'
+                                              ? 'text-emerald-700'
+                                              : 'text-banana-600'
+                                    }`}
+                                >
+                                    {avatarPreview.message ||
+                                        'Preview the image before saving to make sure the link works.'}
+                                </p>
+                            </div>
                         </div>
                     </Field>
 
@@ -985,16 +1141,78 @@ function ProfileSection({
     );
 }
 
-function AppearanceSection({ preferences, updatePreference, onSubmit, saving, notice }) {
+function AppearanceSection({
+    preferences,
+    updatePreference,
+    onThemeSelect,
+    onSubmit,
+    saving,
+    notice,
+}) {
     return (
         <Card className="!p-5 md:!p-6">
             <SectionHeading
                 icon={<Palette size={20} />}
                 title="Appearance & play defaults"
-                subtitle="Choose how the page moves and which mode loads first."
+                subtitle="Choose the theme, density and which mode loads first."
             />
 
             <div className="space-y-4">
+                <div className="rounded-2xl border-2 border-banana-200 bg-banana-50 p-4">
+                    <p className="mb-3 flex items-center gap-2 font-bold text-banana-800">
+                        <Palette size={17} /> Theme
+                    </p>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                        {THEME_OPTIONS.map((option) => {
+                            const selected = preferences.theme === option.id;
+                            const Icon = option.id === 'dark' ? Moon : Sun;
+                            return (
+                                <button
+                                    key={option.id}
+                                    type="button"
+                                    onClick={() => onThemeSelect(option.id)}
+                                    aria-pressed={selected}
+                                    className={`flex items-center gap-3 rounded-xl border-2 px-3 py-2.5 text-left transition ${
+                                        selected
+                                            ? 'border-banana-500 bg-banana-200 shadow-game-sm'
+                                            : 'border-banana-200 bg-white hover:border-banana-300'
+                                    }`}
+                                >
+                                    <span
+                                        className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${
+                                            selected
+                                                ? 'bg-banana-500 text-white'
+                                                : 'bg-banana-100 text-banana-600'
+                                        }`}
+                                    >
+                                        <Icon size={18} />
+                                    </span>
+                                    <span className="min-w-0">
+                                        <span className="block text-sm font-extrabold text-banana-900">
+                                            {option.label}
+                                            {selected ? ' · selected' : ''}
+                                        </span>
+                                        <span className="block text-xs font-semibold text-banana-600">
+                                            {option.description}
+                                        </span>
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                    <p className="mt-2 text-xs font-semibold text-banana-500">
+                        Light is the default. Theme changes preview instantly and save with this
+                        section.
+                    </p>
+                </div>
+
+                <PreferenceToggle
+                    label="Compact layout"
+                    description="Tighter cards and spacing so more of the game fits on screen."
+                    checked={preferences.compactMode}
+                    onChange={updatePreference('compactMode')}
+                />
+
                 <PreferenceToggle
                     label="Reduce motion"
                     description="Turn off decorative floating and wiggling animations."
@@ -1029,7 +1247,8 @@ function AppearanceSection({ preferences, updatePreference, onSubmit, saving, no
                     </p>
                     <AudioControls />
                     <p className="mt-2 text-xs font-semibold text-banana-500">
-                        Audio settings are stored on this device.
+                        Audio settings are stored on this device. The background track loops the
+                        bundled game music.
                     </p>
                 </div>
 
@@ -1078,6 +1297,12 @@ function GameplaySection({ preferences, updatePreference, onSubmit, saving, noti
                     description="Display the remaining-time bar. Turn off for a calmer, timer-free view."
                     checked={preferences.showTimer}
                     onChange={updatePreference('showTimer')}
+                />
+                <PreferenceToggle
+                    label="Confirm before quitting"
+                    description="Ask for confirmation before leaving a game so a stray tap does not end your run."
+                    checked={preferences.confirmQuit}
+                    onChange={updatePreference('confirmQuit')}
                 />
 
                 <div className="grid gap-4 border-t border-banana-200 pt-4 sm:grid-cols-2">

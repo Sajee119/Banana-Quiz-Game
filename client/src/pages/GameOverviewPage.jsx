@@ -3,8 +3,11 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
     ArrowLeft,
     CheckCircle2,
+    ChevronDown,
+    ChevronUp,
     Clock3,
     ImageOff,
+    ListChecks,
     RefreshCw,
     SkipForward,
     Trophy,
@@ -17,6 +20,7 @@ import StatCard from '../components/StatCard.jsx';
 import QuizPerformanceChart from '../components/QuizPerformanceChart.jsx';
 import { formatDateTime, formatDuration, normalizeModeId, MODE_INFO } from '../lib/format.js';
 import { usePageTitle } from '../hooks/usePageTitle.js';
+import { useSound } from '../hooks/useSound.js';
 import { gameApi } from '../api/client.js';
 
 export default function GameOverviewPage() {
@@ -263,6 +267,7 @@ export default function GameOverviewPage() {
                                     key={quiz?.id || `${game.id}-${index}`}
                                     quiz={quiz}
                                     index={index}
+                                    defaultTime={Number(game?.time) || 0}
                                 />
                             ))}
                         </div>
@@ -292,17 +297,25 @@ function quizStatus(quiz) {
     return { label: 'Incorrect', tone: 'bg-red-100 text-red-700', icon: XCircle };
 }
 
-function QuizCard({ quiz, index }) {
+function QuizCard({ quiz, index, defaultTime = 0 }) {
+    const [showDetails, setShowDetails] = useState(false);
+    const { play } = useSound();
     const points = Number(quiz?.pointsAwarded) || 0;
     const status = quizStatus(quiz);
     const StatusIcon = status.icon;
     const positive = quiz?.isCorrect && points > 0;
+    const timeLimit = Number(quiz?.quizTimeSeconds) || defaultTime || 0;
     const responseTime =
         quiz?.status === 'expired'
             ? 'Timed out'
             : quiz?.timeToAnswerMs != null
               ? formatDuration(quiz.timeToAnswerMs)
               : '—';
+
+    const toggleDetails = () => {
+        play(showDetails ? 'pop' : 'select');
+        setShowDetails((value) => !value);
+    };
 
     return (
         <Card className="!p-4">
@@ -347,28 +360,114 @@ function QuizCard({ quiz, index }) {
                     </p>
                 </div>
 
-                <div
-                    className={`rounded-2xl px-4 py-3 text-center font-display text-xl font-extrabold ${
-                        positive
-                            ? 'bg-emerald-100 text-emerald-700'
-                            : quiz?.status === 'expired'
-                              ? 'bg-orange-100 text-orange-700'
-                              : 'bg-red-100 text-red-700'
-                    }`}
-                >
-                    {points > 0 ? '+' : ''}
-                    {points} points
-                    <p className="text-xs font-bold">
-                        {quiz?.status === 'expired'
-                            ? 'No points · timed out'
-                            : quiz?.playerAnswer == null
-                              ? 'No points · skipped'
-                              : positive
-                                ? 'Correct answer'
-                                : 'No points'}
-                    </p>
+                <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center md:flex-col md:items-end">
+                    <div
+                        className={`rounded-2xl px-4 py-3 text-center font-display text-xl font-extrabold ${
+                            positive
+                                ? 'bg-emerald-100 text-emerald-700'
+                                : quiz?.status === 'expired'
+                                  ? 'bg-orange-100 text-orange-700'
+                                  : 'bg-red-100 text-red-700'
+                        }`}
+                    >
+                        {points > 0 ? '+' : ''}
+                        {points} points
+                        <p className="text-xs font-bold">
+                            {quiz?.status === 'expired'
+                                ? 'No points · timed out'
+                                : quiz?.playerAnswer == null
+                                  ? 'No points · skipped'
+                                  : positive
+                                    ? 'Correct answer'
+                                    : 'No points'}
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={toggleDetails}
+                        aria-expanded={showDetails}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-xl border-2 border-banana-200 bg-white px-3 py-1.5 text-xs font-extrabold text-banana-700 transition hover:border-banana-300 hover:bg-banana-50 active:translate-y-0.5"
+                    >
+                        <ListChecks size={14} />
+                        {showDetails ? 'Hide details' : 'Answer details'}
+                        {showDetails ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                    </button>
                 </div>
             </div>
+
+            {showDetails && (
+                <div className="mt-4 border-t-2 border-banana-200 pt-4">
+                    <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <h3 className="font-display text-lg font-extrabold text-banana-900">
+                                Answer details
+                            </h3>
+                            <p className="text-xs font-semibold text-banana-600">
+                                A closer look at one banana puzzle from your history.
+                            </p>
+                        </div>
+                        {quiz?.id && (
+                            <Link
+                                to={`/history/${encodeURIComponent(quiz.id)}`}
+                                className="rounded-xl bg-banana-100 px-2.5 py-1 text-xs font-extrabold text-banana-800 hover:bg-banana-200"
+                            >
+                                Open full answer page
+                            </Link>
+                        )}
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-[220px_1fr]">
+                        <div className="mx-auto h-48 w-full max-w-[240px] flex-shrink-0 overflow-hidden rounded-2xl border-4 border-banana-300 bg-banana-100">
+                            {quiz?.imageUrl ? (
+                                <img
+                                    src={quiz.imageUrl}
+                                    alt={`Quiz ${index + 1} answer detail`}
+                                    className="h-full w-full object-contain"
+                                    loading="lazy"
+                                />
+                            ) : (
+                                <div className="flex h-full w-full items-center justify-center text-banana-400">
+                                    <ImageOff size={40} />
+                                </div>
+                            )}
+                        </div>
+
+                        <dl className="grid grid-cols-2 gap-3">
+                            <Detail
+                                label="Your answer"
+                                value={quiz?.playerAnswer == null ? '—' : quiz.playerAnswer}
+                            />
+                            <Detail label="Correct answer" value={quiz?.solution ?? '—'} />
+                            <Detail
+                                label="Points"
+                                value={`${points > 0 ? '+' : ''}${points}`}
+                            />
+                            <Detail label="Response time" value={responseTime} />
+                            <Detail
+                                label="Time limit"
+                                value={timeLimit ? `${timeLimit}s` : '—'}
+                            />
+                            <Detail
+                                label="Recorded"
+                                value={formatDateTime(quiz?.completedAt || quiz?.createdAt)}
+                            />
+                        </dl>
+                    </div>
+                </div>
+            )}
         </Card>
+    );
+}
+
+function Detail({ label, value }) {
+    return (
+        <div className="rounded-xl bg-banana-50 px-3 py-2">
+            <dt className="text-[10px] font-extrabold uppercase tracking-wide text-banana-500">
+                {label}
+            </dt>
+            <dd className="break-words font-display text-lg font-extrabold text-banana-900">
+                {value}
+            </dd>
+        </div>
     );
 }

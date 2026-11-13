@@ -18,6 +18,7 @@ import Card from '../components/Card.jsx';
 import { gameApi } from '../api/client.js';
 import { useAuth } from '../context/auth-context.js';
 import { usePageTitle } from '../hooks/usePageTitle.js';
+import { useSound } from '../hooks/useSound.js';
 import { normalizeModeId } from '../lib/format.js';
 
 const KEYS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -71,11 +72,13 @@ function readStoredConfig() {
 export default function GamePage() {
     const navigate = useNavigate();
     const { setStats, user } = useAuth();
+    const { play } = useSound();
     const preferences = user?.preferences || {};
     const autoSubmit = preferences.autoSubmit !== false;
     const celebrations = preferences.celebrations !== false;
     const showKeyboardHints = preferences.showKeyboardHints !== false;
     const showTimer = preferences.showTimer !== false;
+    const confirmQuit = preferences.confirmQuit !== false;
     const celebrate = celebrations && !preferences.reducedMotion;
 
     const [config, setConfig] = useState(null);
@@ -87,11 +90,14 @@ export default function GamePage() {
     const [feedback, setFeedback] = useState(null);
     const [error, setError] = useState('');
     const [startError, setStartError] = useState('');
+    const [showQuitConfirm, setShowQuitConfirm] = useState(false);
     const deadline = useRef(0);
     const busyRef = useRef(false);
     const finishedRef = useRef(false);
     const feedbackTimer = useRef(0);
     const autoSubmitTimer = useRef(0);
+    const countdownSoundRef = useRef(0);
+    const startedSoundRef = useRef(false);
 
     usePageTitle('Playing');
 
@@ -156,14 +162,20 @@ export default function GamePage() {
             setSession({ ...data, startedAt: new Date().toISOString() });
             deadline.current = Date.now() + remaining;
             setSeconds(Math.ceil(remaining / 1000));
+            countdownSoundRef.current = 0;
             setEntry('');
+            if (!startedSoundRef.current) {
+                startedSoundRef.current = true;
+                play('gameStart');
+            }
         } catch (err) {
             setStartError(err.friendlyMessage || err.message || 'Could not load the next quiz.');
+            play('error');
         } finally {
             busyRef.current = false;
             setBusy(false);
         }
-    }, [answers.length, config, feedback]);
+    }, [answers.length, config, feedback, play]);
 
     useEffect(() => {
         if (!config || session || feedback || startError || finishedRef.current) return;
@@ -198,16 +210,22 @@ export default function GamePage() {
             setFeedback({ ...result, timedOut, skipped });
             if (result?.stats) setStats(result.stats);
 
+            if (timedOut) play('expire');
+            else if (skipped) play('skip');
+            else if (result?.isCorrect) play(result?.streak >= 3 ? 'streak' : 'correct');
+            else play('wrong');
+
             window.clearTimeout(feedbackTimer.current);
             feedbackTimer.current = window.setTimeout(() => {
                 setFeedback(null);
                 if (next.length >= total) {
                     finishedRef.current = true;
+                    play('gameOver');
                     finishGame();
                 }
             }, FEEDBACK_MS);
         },
-        [answers, config, finishGame, session, setStats]
+        [answers, config, finishGame, play, session, setStats]
     );
 
     const submit = useCallback(
@@ -280,18 +298,28 @@ export default function GamePage() {
 
         const tick = () => {
             const left = Math.max(0, deadline.current - Date.now());
-            setSeconds(Math.ceil(left / 1000));
+            const nextSeconds = Math.ceil(left / 1000);
+            setSeconds(nextSeconds);
+            if (
+                nextSeconds > 0 &&
+                nextSeconds <= 5 &&
+                countdownSoundRef.current !== nextSeconds
+            ) {
+                countdownSoundRef.current = nextSeconds;
+                play('countdown');
+            }
             if (left <= 0) submit(true);
         };
 
         tick();
         const timer = window.setInterval(tick, 200);
         return () => window.clearInterval(timer);
-    }, [feedback, session, submit]);
+    }, [feedback, play, session, submit]);
 
     const appendDigit = useCallback(
         (digit) => {
             if (busyRef.current || feedback) return;
+            play('type');
             setError('');
             setEntry((prev) => {
                 if (prev === '0') return String(digit);
@@ -299,20 +327,22 @@ export default function GamePage() {
                 return `${prev}${digit}`;
             });
         },
-        [feedback]
+        [feedback, play]
     );
 
     const backspace = useCallback(() => {
         if (busyRef.current || feedback) return;
+        play('pop');
         setError('');
         setEntry((prev) => prev.slice(0, -1));
-    }, [feedback]);
+    }, [feedback, play]);
 
     const clearEntry = useCallback(() => {
         if (busyRef.current || feedback) return;
+        play('pop');
         setError('');
         setEntry('');
-    }, [feedback]);
+    }, [feedback, play]);
 
     useEffect(() => {
         const onKeyDown = (event) => {
@@ -388,14 +418,25 @@ export default function GamePage() {
             window.clearTimeout(feedbackTimer.current);
             sessionStorage.removeItem('banana-game-config');
             sessionStorage.removeItem('banana-game-id');
+            play('quit');
             navigate(gameId ? `/game-overview/${encodeURIComponent(gameId)}` : '/history', {
                 replace: true,
             });
         } catch (err) {
+            play('error');
             setError(err.friendlyMessage || 'Could not quit this game.');
             busyRef.current = false;
             setBusy(false);
         }
+    };
+
+    const requestQuit = () => {
+        if (busyRef.current || feedback) return;
+        if (!confirmQuit) {
+            quit();
+            return;
+        }
+        setShowQuitConfirm(true);
     };
 
     if (!config) {
@@ -478,7 +519,7 @@ export default function GamePage() {
                         )}
                         <Button
                             variant="secondary"
-                            onClick={quit}
+                            onClick={requestQuit}
                             disabled={busy || Boolean(feedback)}
                         >
                             <LogOut size={18} /> Quit game
@@ -656,6 +697,58 @@ export default function GamePage() {
                     </div>
                 </Card>
             </main>
+
+            {showQuitConfirm && (
+                <QuitConfirmDialog
+                    busy={busy}
+                    onCancel={() => {
+                        play('pop');
+                        setShowQuitConfirm(false);
+                    }}
+                    onConfirm={() => {
+                        setShowQuitConfirm(false);
+                        quit();
+                    }}
+                />
+            )}
+        </div>
+    );
+}
+
+function QuitConfirmDialog({ busy, onCancel, onConfirm }) {
+    return (
+        <div
+            className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"
+            role="presentation"
+            onMouseDown={(event) => {
+                if (event.target === event.currentTarget && !busy) onCancel();
+            }}
+        >
+            <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="quit-dialog-title"
+                className="w-full max-w-sm rounded-3xl border-4 border-banana-300 bg-banana-50 p-6 shadow-game"
+            >
+                <h2
+                    id="quit-dialog-title"
+                    className="font-display text-2xl font-extrabold text-banana-900"
+                >
+                    Quit this game?
+                </h2>
+                <p className="mt-2 text-sm font-semibold text-banana-700">
+                    Your answered quizzes are saved, but quitting early applies a small penalty and
+                    ends this run. You can turn this confirmation off in Profile → Gameplay.
+                </p>
+                <div className="mt-5 grid gap-2">
+                    <Button variant="danger" onClick={onConfirm} disabled={busy}>
+                        <LogOut size={18} /> {busy ? 'Quitting…' : 'Quit game'}
+                    </Button>
+                    <Button variant="secondary" onClick={onCancel} disabled={busy}>
+                        Keep playing
+                    </Button>
+                </div>
+            </div>
         </div>
     );
 }

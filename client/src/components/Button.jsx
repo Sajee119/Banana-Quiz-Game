@@ -1,3 +1,5 @@
+import { audioEngine } from '../audio/audioEngine.js';
+
 export default function Button({ children, onClick, variant = 'primary', className = '', disabled, type = 'button' }) {
     const base =
         'relative inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-display font-bold text-lg transition-transform active:translate-y-1 select-none disabled:opacity-50 disabled:cursor-not-allowed';
@@ -7,8 +9,14 @@ export default function Button({ children, onClick, variant = 'primary', classNa
         danger: 'bg-gradient-to-b from-red-400 to-red-600 text-white shadow-game-sm hover:brightness-105 active:shadow-none',
         ghost: 'bg-transparent text-banana-700 hover:bg-banana-200/50',
     };
+
+    const handleClick = (event) => {
+        if (!disabled) audioEngine.playSfx('click');
+        onClick?.(event);
+    };
+
     return (
-        <button type={type} onClick={onClick} disabled={disabled} className={`${base} ${styles[variant]} ${className}`}>
+        <button type={type} onClick={handleClick} disabled={disabled} className={`${base} ${styles[variant]} ${className}`}>
             {children}
         </button>
     );

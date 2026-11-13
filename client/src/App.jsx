@@ -23,14 +23,27 @@ import SiteFooter from './components/SiteFooter.jsx';
 import CookieConsent from './components/CookieConsent.jsx';
 import ScrollActivity from './components/ScrollActivity.jsx';
 import { useAuth } from './context/auth-context.js';
+import { applyCompactMode, applyTheme } from './lib/theme.js';
 
 export default function App() {
   const { user } = useAuth();
   const reducedMotion = Boolean(user?.preferences?.reducedMotion);
+  const theme = user?.preferences?.theme;
+  const compactMode = user?.preferences?.compactMode;
 
   useEffect(() => {
     document.documentElement.dataset.reducedMotion = reducedMotion ? 'true' : 'false';
   }, [reducedMotion]);
+
+  useEffect(() => {
+    if (!user) return;
+    applyTheme(theme || 'light');
+  }, [theme, user]);
+
+  useEffect(() => {
+    if (!user) return;
+    applyCompactMode(Boolean(compactMode));
+  }, [compactMode, user]);
 
   return (
     <MotionConfig reducedMotion={reducedMotion ? 'always' : 'never'}>

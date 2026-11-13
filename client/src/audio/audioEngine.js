@@ -1,43 +1,54 @@
 /**
  * Banana Quiz audio engine.
  *
- * Everything is synthesised with the Web Audio API, so there are no external
- * MP3 files to download and nothing can 404. The module is a singleton: music
- * keeps playing while the player moves between pages.
+ * Sound effects are synthesised with the Web Audio API, so they stay tiny and
+ * always match the game's playful tone. Background music streams the bundled
+ * `game-bg-audio.mp3` loop instead of a generated melody.
  *
- * Browsers only allow audio after a user gesture, so `initAudio()` installs
- * one-time unlock listeners. The first tap/click/keypress resumes the audio
- * context and starts the background loop (if music is enabled).
+ * The module is a singleton: music keeps playing while the player moves between
+ * pages. Browsers only allow audio after a user gesture, so `initAudio()`
+ * installs one-time unlock listeners. The first tap/click/keypress resumes the
+ * audio context and starts the background loop (if music is enabled).
  */
 
+import { SAMPLED_SFX } from './sound-effects/manifest.js';
+
 const SETTINGS_KEY = 'bq-audio-settings';
+const MUSIC_URL = new URL('./game-bg-audio.mp3', import.meta.url).href;
 
 const DEFAULT_SETTINGS = {
     sfxEnabled: true,
     musicEnabled: true,
     volume: 0.7,
+    sfxVolume: 0.8,
+    musicVolume: 0.5,
 };
 
-const MUSIC_STEP_SECONDS = 60 / 108 / 2; // eighth notes at 108 BPM
-const MUSIC_LOOKAHEAD_SECONDS = 0.25;
+const clamp = (value, min = 0, max = 1) =>
+    Math.min(max, Math.max(min, Number(value) || 0));
 
-// A cheerful 32-step loop in C major pentatonic.
-const MELODY = [
-    523.25, null, 659.25, null, 783.99, 659.25, 523.25, null,
-    587.33, null, 659.25, null, 523.25, null, 392.0, null,
-    440.0, null, 523.25, null, 659.25, null, 587.33, null,
-    523.25, null, 440.0, null, 392.0, null, 329.63, null,
-];
-const BASS = [130.81, 110.0, 87.31, 98.0, 130.81, 110.0, 98.0, 130.81];
-
+// Every effect is a short score of oscillator notes plus optional noise.
+// Keeping them here makes it easy to add new sounds as the game grows.
 const SFX = {
     click: [{ freq: 720, duration: 0.06, type: 'square', gain: 0.06 }],
     tick: [{ freq: 960, duration: 0.05, type: 'square', gain: 0.05 }],
+    type: [{ freq: 540, duration: 0.045, type: 'triangle', gain: 0.07 }],
+    pop: [{ freq: 680, duration: 0.07, type: 'sine', gain: 0.11 }],
     toggle: [{ freq: 620, duration: 0.06, type: 'triangle', gain: 0.09 }],
+    select: [
+        { freq: 660, duration: 0.06, type: 'triangle', gain: 0.1 },
+        { freq: 880, duration: 0.09, type: 'triangle', gain: 0.09, delay: 0.05 },
+    ],
     correct: [
         { freq: 523.25, duration: 0.09, type: 'triangle', gain: 0.14 },
         { freq: 659.25, duration: 0.09, type: 'triangle', gain: 0.14, delay: 0.07 },
         { freq: 783.99, duration: 0.16, type: 'triangle', gain: 0.15, delay: 0.14 },
+    ],
+    streak: [
+        { freq: 659.25, duration: 0.08, type: 'triangle', gain: 0.13 },
+        { freq: 783.99, duration: 0.08, type: 'triangle', gain: 0.13, delay: 0.06 },
+        { freq: 987.77, duration: 0.08, type: 'triangle', gain: 0.13, delay: 0.12 },
+        { freq: 1318.51, duration: 0.18, type: 'triangle', gain: 0.14, delay: 0.18 },
     ],
     wrong: [
         { freq: 246.94, duration: 0.16, type: 'sawtooth', gain: 0.12 },
@@ -48,11 +59,61 @@ const SFX = {
         { freq: 349.23, duration: 0.12, type: 'square', gain: 0.1, delay: 0.12 },
         { freq: 261.63, duration: 0.24, type: 'square', gain: 0.1, delay: 0.24 },
     ],
+    skip: [
+        { freq: 392.0, duration: 0.08, type: 'triangle', gain: 0.1 },
+        { freq: 523.25, duration: 0.08, type: 'triangle', gain: 0.1, delay: 0.07 },
+        { freq: 659.25, duration: 0.12, type: 'triangle', gain: 0.11, delay: 0.14 },
+    ],
     win: [
         { freq: 523.25, duration: 0.12, type: 'triangle', gain: 0.15 },
         { freq: 659.25, duration: 0.12, type: 'triangle', gain: 0.15, delay: 0.1 },
         { freq: 783.99, duration: 0.12, type: 'triangle', gain: 0.15, delay: 0.2 },
         { freq: 1046.5, duration: 0.3, type: 'triangle', gain: 0.16, delay: 0.3 },
+    ],
+    lose: [
+        { freq: 392.0, duration: 0.16, type: 'triangle', gain: 0.12 },
+        { freq: 329.63, duration: 0.16, type: 'triangle', gain: 0.12, delay: 0.14 },
+        { freq: 261.63, duration: 0.32, type: 'triangle', gain: 0.12, delay: 0.28 },
+    ],
+    success: [
+        { freq: 587.33, duration: 0.09, type: 'sine', gain: 0.13 },
+        { freq: 880.0, duration: 0.16, type: 'sine', gain: 0.13, delay: 0.08 },
+    ],
+    error: [
+        { freq: 220.0, duration: 0.12, type: 'square', gain: 0.1 },
+        { freq: 174.61, duration: 0.18, type: 'square', gain: 0.1, delay: 0.1 },
+    ],
+    achievement: [
+        { freq: 783.99, duration: 0.1, type: 'triangle', gain: 0.13 },
+        { freq: 1046.5, duration: 0.1, type: 'triangle', gain: 0.13, delay: 0.09 },
+        { freq: 1318.51, duration: 0.12, type: 'triangle', gain: 0.14, delay: 0.18 },
+        { freq: 1567.98, duration: 0.26, type: 'triangle', gain: 0.14, delay: 0.28 },
+    ],
+    coin: [
+        { freq: 987.77, duration: 0.05, type: 'square', gain: 0.08 },
+        { freq: 1318.51, duration: 0.12, type: 'square', gain: 0.07, delay: 0.05 },
+    ],
+    gameStart: [
+        { freq: 392.0, duration: 0.1, type: 'triangle', gain: 0.12 },
+        { freq: 523.25, duration: 0.1, type: 'triangle', gain: 0.12, delay: 0.08 },
+        { freq: 659.25, duration: 0.1, type: 'triangle', gain: 0.12, delay: 0.16 },
+        { freq: 783.99, duration: 0.22, type: 'triangle', gain: 0.14, delay: 0.24 },
+        { noise: { duration: 0.25, gain: 0.05, freq: 1800 } },
+    ],
+    gameOver: [
+        { freq: 783.99, duration: 0.12, type: 'triangle', gain: 0.13 },
+        { freq: 659.25, duration: 0.12, type: 'triangle', gain: 0.13, delay: 0.12 },
+        { freq: 523.25, duration: 0.12, type: 'triangle', gain: 0.13, delay: 0.24 },
+        { freq: 392.0, duration: 0.3, type: 'triangle', gain: 0.13, delay: 0.36 },
+    ],
+    quit: [
+        { freq: 329.63, duration: 0.12, type: 'sawtooth', gain: 0.08 },
+        { freq: 220.0, duration: 0.24, type: 'sawtooth', gain: 0.08, delay: 0.1 },
+    ],
+    countdown: [{ freq: 880.0, duration: 0.09, type: 'square', gain: 0.08 }],
+    notify: [
+        { freq: 880.0, duration: 0.08, type: 'sine', gain: 0.1 },
+        { freq: 1174.66, duration: 0.13, type: 'sine', gain: 0.1, delay: 0.07 },
     ],
 };
 
@@ -66,8 +127,16 @@ function loadSettings() {
             musicEnabled: parsed.musicEnabled !== false,
             volume:
                 typeof parsed.volume === 'number'
-                    ? Math.min(1, Math.max(0, parsed.volume))
+                    ? clamp(parsed.volume)
                     : DEFAULT_SETTINGS.volume,
+            sfxVolume:
+                typeof parsed.sfxVolume === 'number'
+                    ? clamp(parsed.sfxVolume)
+                    : DEFAULT_SETTINGS.sfxVolume,
+            musicVolume:
+                typeof parsed.musicVolume === 'number'
+                    ? clamp(parsed.musicVolume)
+                    : DEFAULT_SETTINGS.musicVolume,
         };
     } catch {
         return { ...DEFAULT_SETTINGS };
@@ -81,10 +150,10 @@ class AudioEngine {
         this.ctx = null;
         this.master = null;
         this.sfxGain = null;
-        this.musicGain = null;
-        this.musicTimer = null;
-        this.musicStep = 0;
-        this.nextNoteTime = 0;
+        this.musicAudio = null;
+        this.musicPlaying = false;
+        this.sampleAudio = new Map();
+        this.samplesPreloaded = false;
         this.installed = false;
     }
 
@@ -92,7 +161,7 @@ class AudioEngine {
         return {
             ...this.settings,
             ready: Boolean(this.ctx && this.ctx.state === 'running'),
-            musicPlaying: Boolean(this.musicTimer),
+            musicPlaying: this.musicPlaying,
         };
     }
 
@@ -136,6 +205,54 @@ class AudioEngine {
                 this.unlock();
             }
         });
+
+        this.preloadSamples();
+    }
+
+    /** Create one preloaded Audio element per sampled effect (deduplicated). */
+    preloadSamples() {
+        if (this.samplesPreloaded || typeof Audio === 'undefined') return;
+        this.samplesPreloaded = true;
+        Object.keys(SAMPLED_SFX).forEach((name) => this.getSample(name));
+    }
+
+    getSample(name) {
+        const url = SAMPLED_SFX[name];
+        if (!url) return null;
+
+        let audio = this.sampleAudio.get(url);
+        if (!audio) {
+            try {
+                audio = new Audio(url);
+                audio.preload = 'auto';
+                this.sampleAudio.set(url, audio);
+            } catch {
+                return null;
+            }
+        }
+        return audio;
+    }
+
+    /**
+     * Play a real MP3 effect. Cloning the preloaded element lets short sounds
+     * overlap (for example a streak fanfare over the next question) without
+     * cutting each other off. Returns false when the effect has no sample.
+     */
+    playSample(name) {
+        const base = this.getSample(name);
+        if (!base) return false;
+
+        try {
+            const audio = base.cloneNode(true);
+            audio.volume = clamp(this.settings.volume * this.settings.sfxVolume);
+            const playback = audio.play();
+            if (playback && typeof playback.catch === 'function') {
+                playback.catch(() => {});
+            }
+            return true;
+        } catch {
+            return false;
+        }
     }
 
     ensureContext() {
@@ -150,17 +267,34 @@ class AudioEngine {
             this.master.connect(this.ctx.destination);
 
             this.sfxGain = this.ctx.createGain();
-            this.sfxGain.gain.value = 1;
+            this.sfxGain.gain.value = this.settings.sfxVolume;
             this.sfxGain.connect(this.master);
-
-            this.musicGain = this.ctx.createGain();
-            this.musicGain.gain.value = 0.32;
-            this.musicGain.connect(this.master);
         } catch {
             this.ctx = null;
         }
 
         return this.ctx;
+    }
+
+    ensureMusicAudio() {
+        if (this.musicAudio) return this.musicAudio;
+        if (typeof Audio === 'undefined') return null;
+
+        try {
+            const audio = new Audio(MUSIC_URL);
+            audio.loop = true;
+            audio.preload = 'auto';
+            audio.volume = clamp(this.settings.volume * this.settings.musicVolume);
+            audio.addEventListener('error', () => {
+                this.musicPlaying = false;
+                this.emit();
+            });
+            this.musicAudio = audio;
+        } catch {
+            this.musicAudio = null;
+        }
+
+        return this.musicAudio;
     }
 
     async unlock() {
@@ -173,7 +307,9 @@ class AudioEngine {
                 return;
             }
         }
-        if (this.settings.musicEnabled) this.startMusic();
+        // Already unlocked: don't re-emit state on every tap/keypress.
+        if (!this.settings.musicEnabled || this.musicPlaying) return;
+        this.startMusic();
         this.emit();
     }
 
@@ -194,8 +330,42 @@ class AudioEngine {
         osc.stop(when + duration + 0.03);
     }
 
+    noise(when, duration = 0.2, peak = 0.05, frequency = 1200) {
+        if (!this.ctx) return;
+        const size = Math.max(1, Math.floor(this.ctx.sampleRate * duration));
+        const buffer = this.ctx.createBuffer(1, size, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let index = 0; index < size; index += 1) {
+            data[index] = (Math.random() * 2 - 1) * (1 - index / size);
+        }
+
+        const source = this.ctx.createBufferSource();
+        source.buffer = buffer;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = frequency;
+        filter.Q.value = 0.8;
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.0001, when);
+        gain.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak), when + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, when + duration);
+
+        source.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.sfxGain);
+        source.start(when);
+        source.stop(when + duration + 0.02);
+    }
+
     playSfx(name) {
         if (!this.settings.sfxEnabled) return;
+
+        // Real samples take priority; events without one fall through to the
+        // Web Audio synth below.
+        if (this.playSample(name)) return;
+
         const ctx = this.ensureContext();
         if (!ctx) return;
         if (ctx.state === 'suspended') {
@@ -207,6 +377,15 @@ class AudioEngine {
 
         const now = ctx.currentTime + 0.01;
         notes.forEach((note) => {
+            if (note.noise) {
+                this.noise(
+                    now + (note.delay || 0),
+                    note.noise.duration,
+                    note.noise.gain,
+                    note.noise.freq
+                );
+                return;
+            }
             this.tone(
                 note.freq,
                 now + (note.delay || 0),
@@ -218,40 +397,39 @@ class AudioEngine {
         });
     }
 
-    scheduleMusic() {
-        if (!this.ctx) return;
-        while (this.nextNoteTime < this.ctx.currentTime + MUSIC_LOOKAHEAD_SECONDS) {
-            const step = this.musicStep % MELODY.length;
-            const note = MELODY[step];
-            if (note) {
-                this.tone(note, this.nextNoteTime, 0.22, 'triangle', 0.1, this.musicGain);
-            }
-            if (step % 8 === 0) {
-                const bass = BASS[Math.floor(step / 8) % BASS.length];
-                this.tone(bass, this.nextNoteTime, 0.55, 'sine', 0.16, this.musicGain);
-            }
-            this.nextNoteTime += MUSIC_STEP_SECONDS;
-            this.musicStep += 1;
-        }
-    }
-
     startMusic() {
         const ctx = this.ensureContext();
-        if (!ctx || this.musicTimer) return;
+        if (!ctx || !this.settings.musicEnabled) return;
         if (ctx.state === 'suspended') {
             ctx.resume().catch(() => {});
         }
-        this.nextNoteTime = ctx.currentTime + 0.1;
-        this.musicStep = 0;
-        this.musicTimer = setInterval(() => this.scheduleMusic(), 40);
+
+        const audio = this.ensureMusicAudio();
+        if (!audio) return;
+        if (this.musicPlaying && !audio.paused) return;
+
+        audio.volume = clamp(this.settings.volume * this.settings.musicVolume);
+        this.musicPlaying = true;
+
+        const playback = audio.play();
+        if (playback && typeof playback.catch === 'function') {
+            playback.catch(() => {
+                this.musicPlaying = false;
+                this.emit();
+            });
+        }
         this.emit();
     }
 
     stopMusic(emit = true) {
-        if (this.musicTimer) {
-            clearInterval(this.musicTimer);
-            this.musicTimer = null;
+        if (this.musicAudio) {
+            try {
+                this.musicAudio.pause();
+            } catch {
+                // The element may not be ready yet; nothing to pause.
+            }
         }
+        this.musicPlaying = false;
         if (emit) this.emit();
     }
 
@@ -288,11 +466,34 @@ class AudioEngine {
     }
 
     setVolume(value) {
-        const volume = Math.min(1, Math.max(0, Number(value) || 0));
+        const volume = clamp(value);
         this.settings.volume = volume;
         this.persist();
         if (this.master && this.ctx) {
             this.master.gain.setTargetAtTime(volume, this.ctx.currentTime, 0.02);
+        }
+        if (this.musicAudio) {
+            this.musicAudio.volume = clamp(volume * this.settings.musicVolume);
+        }
+        this.emit();
+    }
+
+    setSfxVolume(value) {
+        const volume = clamp(value);
+        this.settings.sfxVolume = volume;
+        this.persist();
+        if (this.sfxGain && this.ctx) {
+            this.sfxGain.gain.setTargetAtTime(volume, this.ctx.currentTime, 0.02);
+        }
+        this.emit();
+    }
+
+    setMusicVolume(value) {
+        const volume = clamp(value);
+        this.settings.musicVolume = volume;
+        this.persist();
+        if (this.musicAudio) {
+            this.musicAudio.volume = clamp(this.settings.volume * volume);
         }
         this.emit();
     }

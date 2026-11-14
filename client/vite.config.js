@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const serverUrl = env.VITE_SERVER_URL || 'http://localhost:3000';
+  const serverUrl = env.VITE_SERVER_URL || 'https://banana-quiz-game.onrender.com/';
 
   return {
     plugins: [react(), tailwindcss()],

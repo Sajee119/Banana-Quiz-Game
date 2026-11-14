@@ -59,6 +59,10 @@ const userSchema = new mongoose.Schema(
             showKeyboardHints: { type: Boolean, default: true },
             showTimer: { type: Boolean, default: true },
             confirmQuit: { type: Boolean, default: true },
+            dashboardShowTrend: { type: Boolean, default: false },
+            dashboardShowLatestGame: { type: Boolean, default: false },
+            dashboardShowModeMix: { type: Boolean, default: false },
+            dashboardShowThinkingTime: { type: Boolean, default: false },
             defaultQuizCount: {
                 type: Number,
                 enum: [5, 10, 20, 30],

@@ -49,6 +49,7 @@ import { gameApi, userApi } from '../api/client.js';
 import { useSound } from '../hooks/useSound.js';
 import { AchievementIcon } from '../lib/achievementIcons.jsx';
 import { TIER_STYLES } from '../lib/tiers.js';
+import { getDashboardVisibility } from '../lib/dashboardSections.js';
 import {
     MODE_INFO,
     MODE_LIST,
@@ -68,6 +69,15 @@ export default function DashboardPage() {
     const { user, stats } = useAuth();
     const navigate = useNavigate();
     const { play } = useSound();
+
+    const {
+        dashboardShowTrend: showTrend,
+        dashboardShowLatestGame: showLatestGame,
+        dashboardShowModeMix: showModeMix,
+        dashboardShowThinkingTime: showThinkingTime,
+    } = getDashboardVisibility(user?.preferences);
+    const analyticsVisible =
+        showTrend || showLatestGame || showModeMix || showThinkingTime;
 
     const [selectedMode, setSelectedMode] = useState(() =>
         normalizeModeId(user?.preferences?.defaultMode || user?.favoriteMode)
@@ -105,6 +115,8 @@ export default function DashboardPage() {
     }, []);
 
     useEffect(() => {
+        if (!analyticsVisible) return undefined;
+
         let active = true;
         setLoadingAnalytics(true);
         setAnalyticsError('');
@@ -126,7 +138,7 @@ export default function DashboardPage() {
         return () => {
             active = false;
         };
-    }, []);
+    }, [analyticsVisible]);
 
     const level = getLevel(stats?.totalPoints ?? 0);
     const winRate = stats?.gamesPlayed
@@ -293,113 +305,160 @@ export default function DashboardPage() {
                     </div>
                 </section>
 
-                {analyticsError && (
+                {analyticsError && analyticsVisible && (
                     <p className="mb-5 rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
                         {analyticsError}
                     </p>
                 )}
 
-                <section className="mb-8 space-y-5">
-                    <Card className="!p-5">
-                        <SectionTitle
-                            icon={<TrendingUp size={18} />}
-                            title="Score and accuracy trend"
-                            hint={`Last ${trendRange} days`}
-                            action={
-                                <div className="flex gap-1 rounded-xl bg-banana-100 p-1">
-                                    {[7, 14, 30].map((days) => (
-                                        <button
-                                            key={days}
-                                            type="button"
-                                            onClick={() => setTrendRange(days)}
-                                            aria-pressed={trendRange === days}
-                                            className={`rounded-lg px-2.5 py-1 text-xs font-extrabold transition ${
-                                                trendRange === days
-                                                    ? 'bg-white text-banana-800 shadow-game-sm'
-                                                    : 'text-banana-600 hover:text-banana-800'
-                                            }`}
-                                        >
-                                            {days}d
-                                        </button>
-                                    ))}
-                                </div>
-                            }
-                        />
-                        <LazySection
-                            loading={loadingAnalytics}
-                            loaderLabel={`Loading ${trendRange}-day trend`}
-                            skeletonHeight={340}
-                        >
-                            <AccuracyChart games={games} range={trendRange} />
-                        </LazySection>
-                    </Card>
-                    <LazySection
-                        loading={loadingAnalytics}
-                        loaderLabel="Loading latest game performance"
-                        skeletonHeight={360}
-                    >
-                        {latestGame ? (
-                            <QuizPerformanceChart
-                                quizzes={latestGame.quizzes}
-                                timeLimit={latestGame.time}
-                                title="Latest game performance"
-                                subtitle={`${
-                                    MODE_INFO[normalizeModeId(latestGame.mode)]?.label || 'Game'
-                                } · ${formatRelative(latestGame.completedAt || latestGame.startedAt)}`}
-                                action={
-                                    <Link
-                                        to={`/game-overview/${encodeURIComponent(latestGame.id)}`}
-                                        className="flex items-center gap-1 text-sm font-bold text-banana-700 hover:underline"
-                                    >
-                                        View analysis <ChevronRight size={15} />
-                                    </Link>
-                                }
-                            />
-                        ) : (
+                {analyticsVisible ? (
+                    <section className="mb-8 space-y-5">
+                        {showTrend && (
                             <Card className="!p-5">
                                 <SectionTitle
-                                    icon={<BarChart3 size={18} />}
-                                    title="Latest game performance"
-                                    hint="Points and response time per quiz"
+                                    icon={<TrendingUp size={18} />}
+                                    title="Score and accuracy trend"
+                                    hint={`Last ${trendRange} days`}
+                                    action={
+                                        <div className="flex gap-1 rounded-xl bg-banana-100 p-1">
+                                            {[7, 14, 30].map((days) => (
+                                                <button
+                                                    key={days}
+                                                    type="button"
+                                                    onClick={() => setTrendRange(days)}
+                                                    aria-pressed={trendRange === days}
+                                                    className={`rounded-lg px-2.5 py-1 text-xs font-extrabold transition ${
+                                                        trendRange === days
+                                                            ? 'bg-white text-banana-800 shadow-game-sm'
+                                                            : 'text-banana-600 hover:text-banana-800'
+                                                    }`}
+                                                >
+                                                    {days}d
+                                                </button>
+                                            ))}
+                                        </div>
+                                    }
                                 />
-                                <p className="flex min-h-[180px] items-center justify-center text-center text-sm font-bold text-banana-500">
-                                    Play a round and your per-quiz points and response times will
-                                    appear here.
-                                </p>
+                                <LazySection
+                                    loading={loadingAnalytics}
+                                    loaderLabel={`Loading ${trendRange}-day trend`}
+                                    skeletonHeight={340}
+                                >
+                                    <AccuracyChart games={games} range={trendRange} />
+                                </LazySection>
                             </Card>
                         )}
-                    </LazySection>
-                    <div className="grid gap-5 lg:grid-cols-2">
-                        <Card className="!p-5">
-                            <SectionTitle
-                                icon={<BarChart3 size={18} />}
-                                title="Mode mix"
-                                hint="Share of games by mode"
-                            />
+                        {showLatestGame && (
                             <LazySection
                                 loading={loadingAnalytics}
-                                loaderLabel="Loading mode breakdown"
-                                skeletonHeight={340}
+                                loaderLabel="Loading latest game performance"
+                                skeletonHeight={360}
                             >
-                                <ModeChart games={games} />
+                                {latestGame ? (
+                                    <QuizPerformanceChart
+                                        quizzes={latestGame.quizzes}
+                                        timeLimit={latestGame.time}
+                                        title="Latest game performance"
+                                        subtitle={`${
+                                            MODE_INFO[normalizeModeId(latestGame.mode)]?.label ||
+                                            'Game'
+                                        } · ${formatRelative(
+                                            latestGame.completedAt || latestGame.startedAt
+                                        )}`}
+                                        action={
+                                            <Link
+                                                to={`/game-overview/${encodeURIComponent(
+                                                    latestGame.id
+                                                )}`}
+                                                className="flex items-center gap-1 text-sm font-bold text-banana-700 hover:underline"
+                                            >
+                                                View analysis <ChevronRight size={15} />
+                                            </Link>
+                                        }
+                                    />
+                                ) : (
+                                    <Card className="!p-5">
+                                        <SectionTitle
+                                            icon={<BarChart3 size={18} />}
+                                            title="Latest game performance"
+                                            hint="Points and response time per quiz"
+                                        />
+                                        <p className="flex min-h-[180px] items-center justify-center text-center text-sm font-bold text-banana-500">
+                                            Play a round and your per-quiz points and response
+                                            times will appear here.
+                                        </p>
+                                    </Card>
+                                )}
                             </LazySection>
-                        </Card>
-                        <Card className="!p-5">
-                            <SectionTitle
-                                icon={<Brain size={18} />}
-                                title="Thinking time"
-                                hint="How quickly you answer"
-                            />
-                            <LazySection
-                                loading={loadingAnalytics}
-                                loaderLabel="Bucketing response times"
-                                skeletonHeight={340}
+                        )}
+                        {(showModeMix || showThinkingTime) && (
+                            <div
+                                className={`grid gap-5 ${
+                                    showModeMix && showThinkingTime ? 'lg:grid-cols-2' : ''
+                                }`}
                             >
-                                <ThinkingChart games={games} />
-                            </LazySection>
-                        </Card>
-                    </div>
-                </section>
+                                {showModeMix && (
+                                    <Card className="!p-5">
+                                        <SectionTitle
+                                            icon={<BarChart3 size={18} />}
+                                            title="Mode mix"
+                                            hint="Share of games by mode"
+                                        />
+                                        <LazySection
+                                            loading={loadingAnalytics}
+                                            loaderLabel="Loading mode breakdown"
+                                            skeletonHeight={340}
+                                        >
+                                            <ModeChart games={games} />
+                                        </LazySection>
+                                    </Card>
+                                )}
+                                {showThinkingTime && (
+                                    <Card className="!p-5">
+                                        <SectionTitle
+                                            icon={<Brain size={18} />}
+                                            title="Thinking time"
+                                            hint="How quickly you answer"
+                                        />
+                                        <LazySection
+                                            loading={loadingAnalytics}
+                                            loaderLabel="Bucketing response times"
+                                            skeletonHeight={340}
+                                        >
+                                            <ThinkingChart games={games} />
+                                        </LazySection>
+                                    </Card>
+                                )}
+                            </div>
+                        )}
+                    </section>
+                ) : (
+                    <Card className="mb-8 !p-6">
+                        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex items-start gap-3">
+                                <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-banana-100 text-banana-600">
+                                    <BarChart3 size={20} />
+                                </span>
+                                <div>
+                                    <p className="font-display text-lg font-extrabold text-banana-800">
+                                        Dashboard analytics are hidden
+                                    </p>
+                                    <p className="text-sm font-semibold text-banana-600">
+                                        Your trend, latest game, mode mix and thinking-time cards
+                                        are turned off. Add the ones you want from your profile.
+                                    </p>
+                                </div>
+                            </div>
+                            <Button
+                                variant="secondary"
+                                className="flex-shrink-0 !px-4 !py-2 !text-base"
+                                onClick={() => navigate('/profile?tab=appearance')}
+                            >
+                                <Settings size={16} /> Choose cards
+                            </Button>
+                        </div>
+                    </Card>
+                )}
 
                 {/* Mode selection */}
                 <section className="mb-8">

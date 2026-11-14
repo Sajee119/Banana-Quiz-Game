@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import {
     Activity,
     ArrowLeft,
+    BarChart3,
     Bell,
     CalendarDays,
     Check,
@@ -57,6 +58,7 @@ import {
 } from '../lib/format.js';
 import { evaluatePassword } from '../lib/passwordStrength.js';
 import { applyCompactMode, applyTheme, THEME_OPTIONS } from '../lib/theme.js';
+import { DASHBOARD_SECTIONS } from '../lib/dashboardSections.js';
 import { usePageTitle } from '../hooks/usePageTitle.js';
 import { useSound } from '../hooks/useSound.js';
 
@@ -108,6 +110,10 @@ const DEFAULT_PREFERENCES = {
     showKeyboardHints: true,
     showTimer: true,
     confirmQuit: true,
+    dashboardShowTrend: false,
+    dashboardShowLatestGame: false,
+    dashboardShowModeMix: false,
+    dashboardShowThinkingTime: false,
     defaultQuizCount: 10,
     defaultTime: 30,
 };
@@ -198,6 +204,18 @@ export default function ProfilePage() {
                 user.preferences?.showKeyboardHints ?? DEFAULT_PREFERENCES.showKeyboardHints,
             showTimer: user.preferences?.showTimer ?? DEFAULT_PREFERENCES.showTimer,
             confirmQuit: user.preferences?.confirmQuit ?? DEFAULT_PREFERENCES.confirmQuit,
+            dashboardShowTrend:
+                user.preferences?.dashboardShowTrend ??
+                DEFAULT_PREFERENCES.dashboardShowTrend,
+            dashboardShowLatestGame:
+                user.preferences?.dashboardShowLatestGame ??
+                DEFAULT_PREFERENCES.dashboardShowLatestGame,
+            dashboardShowModeMix:
+                user.preferences?.dashboardShowModeMix ??
+                DEFAULT_PREFERENCES.dashboardShowModeMix,
+            dashboardShowThinkingTime:
+                user.preferences?.dashboardShowThinkingTime ??
+                DEFAULT_PREFERENCES.dashboardShowThinkingTime,
             defaultQuizCount: QUIZ_COUNT_OPTIONS.includes(storedQuizCount)
                 ? storedQuizCount
                 : DEFAULT_PREFERENCES.defaultQuizCount,
@@ -731,6 +749,14 @@ export default function ProfilePage() {
                                                 compactMode: preferences.compactMode,
                                                 reducedMotion: preferences.reducedMotion,
                                                 defaultMode: preferences.defaultMode,
+                                                dashboardShowTrend:
+                                                    preferences.dashboardShowTrend,
+                                                dashboardShowLatestGame:
+                                                    preferences.dashboardShowLatestGame,
+                                                dashboardShowModeMix:
+                                                    preferences.dashboardShowModeMix,
+                                                dashboardShowThinkingTime:
+                                                    preferences.dashboardShowThinkingTime,
                                             },
                                             'Appearance settings saved.'
                                         )
@@ -1204,6 +1230,27 @@ function AppearanceSection({
                         Light is the default. Theme changes preview instantly and save with this
                         section.
                     </p>
+                </div>
+
+                <div className="rounded-2xl border-2 border-banana-200 bg-banana-50 p-4">
+                    <p className="mb-1 flex items-center gap-2 font-bold text-banana-800">
+                        <BarChart3 size={17} /> Dashboard cards
+                    </p>
+                    <p className="mb-3 text-xs font-semibold text-banana-600">
+                        Choose which analytics cards appear on your dashboard. All four are
+                        hidden by default.
+                    </p>
+                    <div className="space-y-3">
+                        {DASHBOARD_SECTIONS.map((section) => (
+                            <PreferenceToggle
+                                key={section.key}
+                                label={section.label}
+                                description={section.description}
+                                checked={Boolean(preferences[section.key])}
+                                onChange={updatePreference(section.key)}
+                            />
+                        ))}
+                    </div>
                 </div>
 
                 <PreferenceToggle

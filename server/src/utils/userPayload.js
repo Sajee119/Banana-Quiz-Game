@@ -18,6 +18,10 @@ const DEFAULT_PREFERENCES = {
     showKeyboardHints: true,
     showTimer: true,
     confirmQuit: true,
+    dashboardShowTrend: false,
+    dashboardShowLatestGame: false,
+    dashboardShowModeMix: false,
+    dashboardShowThinkingTime: false,
     defaultQuizCount: 10,
     defaultTime: 30,
 };
@@ -59,6 +63,16 @@ function buildUserPayload(user) {
                 preferences.showKeyboardHints ?? DEFAULT_PREFERENCES.showKeyboardHints,
             showTimer: preferences.showTimer ?? DEFAULT_PREFERENCES.showTimer,
             confirmQuit: preferences.confirmQuit ?? DEFAULT_PREFERENCES.confirmQuit,
+            dashboardShowTrend:
+                preferences.dashboardShowTrend ?? DEFAULT_PREFERENCES.dashboardShowTrend,
+            dashboardShowLatestGame:
+                preferences.dashboardShowLatestGame ??
+                DEFAULT_PREFERENCES.dashboardShowLatestGame,
+            dashboardShowModeMix:
+                preferences.dashboardShowModeMix ?? DEFAULT_PREFERENCES.dashboardShowModeMix,
+            dashboardShowThinkingTime:
+                preferences.dashboardShowThinkingTime ??
+                DEFAULT_PREFERENCES.dashboardShowThinkingTime,
             defaultQuizCount:
                 preferences.defaultQuizCount ?? DEFAULT_PREFERENCES.defaultQuizCount,
             defaultTime: preferences.defaultTime ?? DEFAULT_PREFERENCES.defaultTime,

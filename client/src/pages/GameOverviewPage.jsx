@@ -85,7 +85,7 @@ export default function GameOverviewPage() {
         return (
             <div className="min-h-screen">
                 <AppHeader />
-                <main className="mx-auto max-w-5xl px-4 py-8 md:px-6">
+                <main className="mx-auto w-full max-w-[1560px] px-4 py-8 md:px-6">
                     <div className="mb-6 h-24 animate-pulse rounded-3xl border-2 border-banana-200 bg-white/60" />
                     <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
                         {[...Array(4)].map((_, index) => (
@@ -163,7 +163,7 @@ export default function GameOverviewPage() {
     return (
         <div className="min-h-screen">
             <AppHeader />
-            <main className="mx-auto max-w-5xl px-4 py-8 md:px-6">
+            <main className="mx-auto w-full max-w-[1560px] px-4 py-8 md:px-6">
                 <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
                     <div>
                         <p className="text-sm font-extrabold uppercase tracking-widest text-banana-600">
@@ -201,7 +201,7 @@ export default function GameOverviewPage() {
                     )}
                 </div>
 
-                <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+                <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 2xl:grid-cols-5">
                     <StatCard
                         icon={<Trophy size={18} />}
                         label="Points"

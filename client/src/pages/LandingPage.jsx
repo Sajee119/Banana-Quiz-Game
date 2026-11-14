@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import BananaLogo from '../components/BananaLogo.jsx';
 import Button from '../components/Button.jsx';
+import FullscreenButton from '../components/FullscreenButton.jsx';
 import { useAuth } from '../context/auth-context.js';
 import { userApi } from '../api/client.js';
 import { MODE_LIST } from '../lib/format.js';
@@ -168,7 +169,7 @@ export default function LandingPage() {
 
             {/* Header */}
             <header className="sticky top-0 z-30 border-b-2 border-banana-200/70 bg-banana-50/90 backdrop-blur">
-                <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 md:px-6">
+                <div className="mx-auto flex max-w-[1560px] items-center justify-between gap-3 px-4 py-3 md:px-6">
                     <Link to="/" className="flex items-center gap-2">
                         <BananaLogo size={42} className="animate-wiggle" />
                         <span className="font-display text-2xl font-extrabold text-banana-800">Banana Quiz</span>
@@ -183,6 +184,7 @@ export default function LandingPage() {
                     </nav>
 
                     <div className="flex items-center gap-2">
+                        <FullscreenButton />
                         <Link to="/leaderboard" className="hidden sm:block">
                             <Button variant="ghost" className="!py-2 !text-base">
                                 <Trophy size={17} /> Leaderboard
@@ -199,7 +201,7 @@ export default function LandingPage() {
 
             <main className="relative z-10">
                 {/* Hero */}
-                <section className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-14 pt-12 md:grid-cols-2 md:px-6 md:pb-20 md:pt-16">
+                <section className="mx-auto grid max-w-[1560px] items-center gap-10 px-4 pb-14 pt-12 md:grid-cols-2 md:px-6 md:pb-20 md:pt-16">
                     <div>
                         <motion.span
                             initial={{ y: 12, opacity: 0 }}
@@ -310,7 +312,7 @@ export default function LandingPage() {
 
                 {/* Stat strip */}
                 <section className="border-y-2 border-banana-200 bg-white/60">
-                    <div className="mx-auto grid max-w-6xl grid-cols-2 gap-4 px-4 py-6 md:grid-cols-4 md:px-6">
+                    <div className="mx-auto grid max-w-[1560px] grid-cols-2 gap-4 px-4 py-6 md:grid-cols-4 md:px-6">
                         <StripStat icon={<Gamepad2 size={20} />} value="3" label="Play modes" />
                         <StripStat icon={<Award size={20} />} value="14" label="Achievements" />
                         <StripStat icon={<Smartphone size={20} />} value="100%" label="Mobile friendly" />
@@ -319,7 +321,7 @@ export default function LandingPage() {
                 </section>
 
                 {/* Features */}
-                <section id="features" className="mx-auto max-w-6xl px-4 py-14 md:px-6 md:py-20">
+                <section id="features" className="mx-auto max-w-[1560px] px-4 py-14 md:px-6 md:py-20">
                     <SectionIntro
                         eyebrow="Why play"
                         title="A tiny game with a lot to master"
@@ -347,7 +349,7 @@ export default function LandingPage() {
 
                 {/* Modes */}
                 <section id="modes" className="bg-banana-100/60 py-14 md:py-20">
-                    <div className="mx-auto max-w-6xl px-4 md:px-6">
+                    <div className="mx-auto max-w-[1560px] px-4 md:px-6">
                         <SectionIntro
                             eyebrow="Play your way"
                             title="Three modes, three vibes"
@@ -382,7 +384,7 @@ export default function LandingPage() {
                 </section>
 
                 {/* Achievements teaser */}
-                <section id="achievements" className="mx-auto max-w-6xl px-4 py-14 md:px-6 md:py-20">
+                <section id="achievements" className="mx-auto max-w-[1560px] px-4 py-14 md:px-6 md:py-20">
                     <div className="grid items-center gap-8 md:grid-cols-2">
                         <div>
                             <SectionIntro
@@ -421,7 +423,7 @@ export default function LandingPage() {
 
                 {/* How it works */}
                 <section id="how" className="border-y-2 border-banana-200 bg-white/60 py-14 md:py-20">
-                    <div className="mx-auto max-w-6xl px-4 md:px-6">
+                    <div className="mx-auto max-w-[1560px] px-4 md:px-6">
                         <SectionIntro
                             eyebrow="Getting started"
                             title="From zero to banana hero in three steps"

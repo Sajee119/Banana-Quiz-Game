@@ -191,7 +191,7 @@ export default function LeaderboardPage() {
         <div className="min-h-screen">
             <AppHeader />
 
-            <main className="mx-auto max-w-4xl px-4 py-6 md:px-6 md:py-8">
+            <main className="mx-auto w-full max-w-[1560px] px-4 py-6 md:px-6 md:py-8">
                 <motion.div initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
                     {/* Hero */}
                     <div className="mb-5 rounded-3xl border-4 border-banana-300 bg-gradient-to-br from-banana-100 via-banana-50 to-amber-100 p-5 shadow-game md:p-7">
@@ -233,7 +233,7 @@ export default function LeaderboardPage() {
 
                     {/* Summary stats */}
                     {!loading && entries.length > 0 && (
-                        <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+                        <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
                             <StatCard
                                 icon={<Crown size={18} />}
                                 label="Top score"

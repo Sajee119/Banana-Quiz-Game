@@ -6,10 +6,12 @@ import {
     CheckCircle2,
     Clock3,
     Delete,
+    Flame,
     LogOut,
     RefreshCw,
     SkipForward,
     Sparkles,
+    Trophy,
     XCircle,
 } from 'lucide-react';
 import BananaLogo from '../components/BananaLogo.jsx';
@@ -22,6 +24,7 @@ import { useSound } from '../hooks/useSound.js';
 import { normalizeModeId } from '../lib/format.js';
 
 const KEYS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+const CONFIG_MODE_LABELS = { easy: 'Easy', hard: 'Hard', custom: 'Custom' };
 const FEEDBACK_MS = 900;
 const AUTO_SUBMIT_MS = 900;
 const MAX_ANSWER = 1000;
@@ -490,40 +493,83 @@ export default function GamePage() {
         ? Math.max(0, Math.min(100, (seconds / Math.max(1, config.time)) * 100))
         : 0;
     const entryValue = entry || '—';
+    const score = answers.reduce((sum, item) => sum + (Number(item.points) || 0), 0);
+    const correctCount = answers.filter((item) => item.isCorrect).length;
+    let currentStreak = 0;
+    for (let index = answers.length - 1; index >= 0; index -= 1) {
+        if (!answers[index].isCorrect) break;
+        currentStreak += 1;
+    }
+    const roundProgress = Math.round(
+        (Math.min(answers.length, config.quizCount) / Math.max(1, config.quizCount)) * 100
+    );
 
     return (
-        <div className="min-h-screen bg-banana-50">
+        <div className="min-h-dvh bg-banana-50">
             {celebrate && feedback?.isCorrect && (
                 <CelebrationBurst key={`celebration-${answers.length}`} />
             )}
-            <main className="mx-auto flex min-h-screen max-w-7xl flex-col px-4 py-5 md:px-8">
-                <header className="mb-4 flex items-center justify-between gap-3">
-                    <div>
-                        <p className="font-extrabold uppercase tracking-widest text-banana-600">
-                            Full game
-                        </p>
-                        <h1 className="font-display text-3xl font-extrabold text-banana-900">
-                            Quiz {quizNumber} of {config.quizCount}
-                        </h1>
-                    </div>
-                    <div className="flex flex-wrap items-center justify-end gap-2">
-                        {!showTimer && (
+            <main className="mx-auto flex min-h-dvh w-full max-w-[1560px] flex-col px-3 py-4 sm:px-5 md:px-8">
+                <header className="mb-4 rounded-3xl border-2 border-banana-300 bg-white/80 px-4 py-3 shadow-game-sm backdrop-blur sm:px-5">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                            <p className="font-extrabold uppercase tracking-widest text-banana-600">
+                                Full game · {CONFIG_MODE_LABELS[config.mode] || config.mode}
+                            </p>
+                            <h1 className="font-display text-3xl font-extrabold text-banana-900">
+                                Quiz {quizNumber} of {config.quizCount}
+                            </h1>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <HudChip icon={Trophy} label="Score" value={score} />
+                            <HudChip
+                                icon={CheckCircle2}
+                                label="Correct"
+                                value={correctCount}
+                                tone="emerald"
+                                className="hidden sm:flex"
+                            />
+                            <HudChip
+                                icon={Flame}
+                                label="Streak"
+                                value={currentStreak}
+                                tone="orange"
+                                className="hidden sm:flex"
+                            />
+                            {!showTimer && (
+                                <Button
+                                    variant="secondary"
+                                    className="!px-4 !py-2 !text-sm"
+                                    onClick={skip}
+                                    disabled={busy || Boolean(feedback)}
+                                >
+                                    <SkipForward size={16} /> Skip
+                                </Button>
+                            )}
                             <Button
                                 variant="secondary"
                                 className="!px-4 !py-2 !text-sm"
-                                onClick={skip}
+                                onClick={requestQuit}
                                 disabled={busy || Boolean(feedback)}
                             >
-                                <SkipForward size={16} /> Skip
+                                <LogOut size={18} /> Quit
                             </Button>
-                        )}
-                        <Button
-                            variant="secondary"
-                            onClick={requestQuit}
-                            disabled={busy || Boolean(feedback)}
-                        >
-                            <LogOut size={18} /> Quit game
-                        </Button>
+                        </div>
+                    </div>
+
+                    <div className="mt-3 flex items-center gap-3">
+                        <span className="text-[10px] font-extrabold uppercase tracking-widest text-banana-600">
+                            Progress
+                        </span>
+                        <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-banana-200">
+                            <div
+                                className="h-full rounded-full bg-gradient-to-r from-banana-400 to-banana-600 transition-all"
+                                style={{ width: `${roundProgress}%` }}
+                            />
+                        </div>
+                        <span className="text-xs font-extrabold text-banana-700">
+                            {answers.length}/{config.quizCount}
+                        </span>
                     </div>
                 </header>
 
@@ -549,13 +595,13 @@ export default function GamePage() {
                     </div>
                 )}
 
-                <div className="grid flex-1 gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
-                    <Card className="flex min-h-[520px] items-center justify-center !p-5 md:!p-10">
+                <div className="grid flex-1 gap-5 lg:grid-cols-[minmax(0,1fr)_400px]">
+                    <Card className="flex min-h-[calc(100dvh-280px)] items-center justify-center !p-5 md:!p-8">
                         {session && (
                             <img
                                 src={session.imageUrl}
                                 alt="Calculate the banana value in this puzzle"
-                                className="max-h-[560px] max-w-full rounded-2xl border-4 border-banana-300 object-contain shadow-game-sm"
+                                className="max-h-[calc(100dvh-330px)] max-w-full rounded-2xl border-4 border-banana-300 object-contain shadow-game-sm"
                             />
                         )}
                         {feedback && (
@@ -750,6 +796,24 @@ function QuitConfirmDialog({ busy, onCancel, onConfirm }) {
                 </div>
             </div>
         </div>
+    );
+}
+
+function HudChip({ icon: Icon, label, value, tone = 'banana', className = '' }) {
+    const tones = {
+        banana: 'border-banana-300 bg-banana-100 text-banana-800',
+        emerald: 'border-emerald-300 bg-emerald-100 text-emerald-800',
+        orange: 'border-orange-300 bg-orange-100 text-orange-800',
+    };
+
+    return (
+        <span
+            title={label}
+            className={`flex items-center gap-1.5 rounded-xl border-2 px-2.5 py-1.5 shadow-game-sm ${tones[tone]} ${className}`}
+        >
+            <Icon size={15} />
+            <span className="font-display text-sm font-extrabold leading-none">{value}</span>
+        </span>
     );
 }
 

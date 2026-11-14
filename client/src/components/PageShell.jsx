@@ -12,7 +12,7 @@ export default function PageShell({ icon: Icon, eyebrow, title, subtitle, meta, 
         <div className="min-h-screen">
             <AppHeader />
 
-            <main className="mx-auto max-w-5xl px-4 py-6 md:px-6 md:py-10">
+            <main className="mx-auto max-w-[1560px] px-4 py-6 md:px-6 md:py-10">
                 <div className="relative overflow-hidden rounded-3xl border-4 border-banana-300 bg-gradient-to-br from-banana-100 via-banana-50 to-amber-100 p-5 shadow-game md:p-8">
                     <BananaLogo
                         size={150}

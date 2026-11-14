@@ -83,7 +83,7 @@ export default function AchievementsPage() {
         <div className="min-h-screen">
             <AppHeader />
 
-            <main className="mx-auto max-w-5xl px-4 py-6 md:px-6 md:py-8">
+            <main className="mx-auto w-full max-w-[1560px] px-4 py-6 md:px-6 md:py-8">
                 <motion.div initial={{ y: 14, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
                     <div className="mb-6 rounded-3xl border-4 border-banana-300 bg-gradient-to-br from-banana-100 to-amber-100 p-5 shadow-game md:p-7">
                         <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">

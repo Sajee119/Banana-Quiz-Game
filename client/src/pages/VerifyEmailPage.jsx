@@ -202,7 +202,7 @@ export default function VerifyEmailPage() {
 
     return (
         <div className="flex min-h-screen flex-col px-4 py-5 sm:px-6">
-            <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3">
+            <header className="mx-auto flex w-full max-w-[1560px] items-center justify-between gap-3">
                 <Link to="/" className="flex items-center gap-2">
                     <BananaLogo size={38} className="animate-wiggle" />
                     <span className="font-display text-xl font-extrabold text-banana-800">

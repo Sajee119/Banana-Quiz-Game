@@ -210,9 +210,61 @@ input[type='range']::-moz-range-thumb {
 }
 
 body {
-  @apply font-body bg-gradient-to-br from-banana-100 via-banana-50 to-amber-100 text-banana-900;
+  @apply font-body text-banana-900;
+  background-color: var(--color-banana-50);
+  background-image:
+    radial-gradient(ellipse at 12% -5%, rgba(255, 221, 72, 0.55), transparent 55%),
+    radial-gradient(ellipse at 88% 105%, rgba(245, 168, 0, 0.22), transparent 55%),
+    linear-gradient(135deg, #fff6c2, #fffceb 45%, #ffedb0);
   background-attachment: fixed;
   overflow-x: hidden;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Full-screen game shell                                                     */
+/* App page shells opt into the wide max-width below; narrow flows such as    */
+/* auth cards and error screens keep their own readable widths.               */
+/* ------------------------------------------------------------------------- */
+#root .min-h-screen {
+  min-height: 100dvh;
+}
+
+/* Keep the footer anchored to the bottom of the viewport when a page is short,
+   while still letting it flow below the content on long pages. */
+#root > .min-h-screen {
+  flex: 1 0 auto;
+  min-height: 0;
+}
+
+#root > footer {
+  width: 100%;
+  margin-top: auto;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+/* Chunkier game-style scrollbar. */
+* {
+  scrollbar-color: rgba(217, 133, 0, 0.55) transparent;
+  scrollbar-width: thin;
+}
+
+@media (min-width: 1024px) {
+  /* Soft inner glow so ultrawide screens still feel framed like a game board. */
+  #root::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    box-shadow: inset 0 0 120px rgba(107, 50, 0, 0.07);
+  }
 }
 
 /* Decorative dotted overlay */
@@ -225,4 +277,3 @@ body::before {
   z-index: 0;
 }
 
-#root { position: relative; z-index: 1; }

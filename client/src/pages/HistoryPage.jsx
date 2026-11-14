@@ -128,7 +128,7 @@ export default function HistoryPage() {
     return (
         <div className="min-h-screen">
             <AppHeader />
-            <main className="mx-auto max-w-5xl px-4 py-8 md:px-6">
+            <main className="mx-auto w-full max-w-[1560px] px-4 py-8 md:px-6">
                 <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <p className="mb-1 flex items-center gap-2 text-sm font-extrabold uppercase tracking-wide text-banana-600">
@@ -458,7 +458,7 @@ function HistoryDetail({ sessionId }) {
     return (
         <div className="min-h-screen">
             <AppHeader />
-            <main className="mx-auto max-w-3xl px-4 py-8 md:px-6">
+            <main className="mx-auto w-full max-w-[1200px] px-4 py-8 md:px-6">
                 <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
                     <Link
                         to="/history"

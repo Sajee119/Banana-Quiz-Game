@@ -549,7 +549,7 @@ export default function ProfilePage() {
         <div className="min-h-screen">
             <AppHeader />
 
-            <main className="mx-auto max-w-5xl px-4 py-6 md:px-6 md:py-8">
+            <main className="mx-auto w-full max-w-[1560px] px-4 py-6 md:px-6 md:py-8">
                 <div className="mb-5">
                     <p className="text-sm font-extrabold uppercase tracking-widest text-banana-600">
                         Account centre
@@ -690,7 +690,7 @@ export default function ProfilePage() {
                         </div>
                     </Card>
 
-                    <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                    <div className="mb-6 flex flex-wrap gap-3 [&>*]:grow [&>*]:basis-[calc(50%-0.375rem)] sm:[&>*]:basis-[calc(33.333%-0.5rem)] 2xl:[&>*]:basis-[calc(16.666%-0.625rem)]">
                         {statCards.map((card) => (
                             <StatCard key={card.label} {...card} />
                         ))}

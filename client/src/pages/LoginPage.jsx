@@ -13,6 +13,7 @@ import BananaLogo from '../components/BananaLogo.jsx';
 import Card from '../components/Card.jsx';
 import PasswordInput from '../components/PasswordInput.jsx';
 import PasswordStrengthMeter from '../components/PasswordStrengthMeter.jsx';
+import FullscreenButton from '../components/FullscreenButton.jsx';
 import { authApi } from '../api/client.js';
 import { useAuth } from '../context/auth-context.js';
 import { usePageTitle } from '../hooks/usePageTitle.js';
@@ -168,22 +169,25 @@ export default function LoginPage() {
 
     return (
         <div className="flex min-h-screen flex-col px-4 py-5 sm:px-6">
-            <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3">
+            <header className="mx-auto flex w-full max-w-[1560px] items-center justify-between gap-3">
                 <Link to="/" className="flex items-center gap-2">
                     <BananaLogo size={38} className="animate-wiggle" />
                     <span className="font-display text-xl font-extrabold text-banana-800">
                         Banana Quiz
                     </span>
                 </Link>
-                <Link
-                    to="/leaderboard"
-                    className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-bold text-banana-700 transition hover:bg-banana-200/60"
-                >
-                    <Trophy size={17} /> Leaderboard
-                </Link>
+                <div className="flex items-center gap-2">
+                    <FullscreenButton />
+                    <Link
+                        to="/leaderboard"
+                        className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-bold text-banana-700 transition hover:bg-banana-200/60"
+                    >
+                        <Trophy size={17} /> Leaderboard
+                    </Link>
+                </div>
             </header>
 
-            <div className="mx-auto grid w-full max-w-6xl flex-1 items-center gap-10 py-8 lg:grid-cols-2 lg:gap-14">
+            <div className="mx-auto grid w-full max-w-[1560px] flex-1 items-center gap-10 py-8 lg:grid-cols-2 lg:gap-14">
                 {/* Desktop introduction */}
                 <section className="hidden lg:block">
                     <p className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-banana-600">

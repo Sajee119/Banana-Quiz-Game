@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { MotionConfig } from 'framer-motion';
 import LandingPage from './pages/LandingPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
@@ -27,9 +27,28 @@ import { applyCompactMode, applyTheme } from './lib/theme.js';
 
 export default function App() {
   const { user } = useAuth();
+  const location = useLocation();
   const reducedMotion = Boolean(user?.preferences?.reducedMotion);
   const theme = user?.preferences?.theme;
   const compactMode = user?.preferences?.compactMode;
+
+  // Gameplay and signed-in app screens fill the whole screen; the marketing
+  // footer would break the "arcade cabinet" feel there.
+  const appRoute = [
+    '/dashboard',
+    '/play',
+    '/history',
+    '/achievements',
+    '/profile',
+    '/game-overview',
+  ].some(
+    (path) => location.pathname === path || location.pathname.startsWith(`${path}/`)
+  );
+  const immersiveRoute =
+    appRoute ||
+    ['/login', '/verify-email', '/forgot-password', '/reset-password'].includes(
+      location.pathname
+    );
 
   useEffect(() => {
     document.documentElement.dataset.reducedMotion = reducedMotion ? 'true' : 'false';
@@ -70,7 +89,7 @@ export default function App() {
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      <SiteFooter />
+      {!immersiveRoute && <SiteFooter />}
     </MotionConfig>
   );
 }

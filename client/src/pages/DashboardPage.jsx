@@ -180,7 +180,7 @@ export default function DashboardPage() {
         <div className="min-h-screen">
             <AppHeader />
 
-            <main className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8">
+            <main className="mx-auto w-full max-w-[1560px] px-4 py-6 md:px-6 md:py-8">
                 {/* Welcome */}
                 <motion.section
                     initial={{ y: 16, opacity: 0 }}
@@ -265,7 +265,7 @@ export default function DashboardPage() {
                         title="Player status"
                         hint="Updated after every round"
                     />
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                    <div className="flex flex-wrap gap-3 [&>*]:grow [&>*]:basis-[calc(50%-0.375rem)] sm:[&>*]:basis-[calc(33.333%-0.5rem)] 2xl:[&>*]:basis-[calc(16.666%-0.625rem)]">
                         <StatCard icon={<Trophy size={18} />} label="Total points" value={stats?.totalPoints ?? 0} />
                         <StatCard
                             icon={<Gamepad2 size={18} />}

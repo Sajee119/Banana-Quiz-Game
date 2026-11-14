@@ -1,21 +1,22 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import {
+    Flame,
+    Trophy,
+    X,
     LayoutDashboard,
     Gamepad2,
     Award,
-    Trophy,
-    User,
-    LogOut,
     History,
-    X,
+    LogOut,
 } from 'lucide-react';
 import BananaLogo from './BananaLogo.jsx';
 import AudioControls from './AudioControls.jsx';
 import Button from './Button.jsx';
+import FullscreenButton from './FullscreenButton.jsx';
 import { useAuth } from '../context/auth-context.js';
 import { useSound } from '../hooks/useSound.js';
-import { initials } from '../lib/format.js';
+import { getLevel, initials } from '../lib/format.js';
 
 const NAV = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, authOnly: true },
@@ -27,12 +28,14 @@ const NAV = [
 ];
 
 export default function AppHeader({ className = '' }) {
-    const { user, logout, logoutAllDevices, logoutOtherDevices } = useAuth();
+    const { user, stats, logout, logoutAllDevices, logoutOtherDevices } = useAuth();
     const { play } = useSound();
     const navigate = useNavigate();
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const [loggingOut, setLoggingOut] = useState(false);
     const [logoutError, setLogoutError] = useState('');
+
+    const level = getLevel(stats?.totalPoints ?? 0);
 
     const handleLogout = async (allDevices = false) => {
         if (loggingOut) return;
@@ -67,16 +70,26 @@ export default function AppHeader({ className = '' }) {
     const items = NAV.filter((item) => user || !item.authOnly);
 
     return (
-        <header className={`sticky top-0 z-30 border-b-2 border-banana-200/80 bg-banana-50/90 backdrop-blur ${className}`}>
-            <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-3 py-2.5 sm:gap-3 md:px-6">
-                <Link to={user ? '/dashboard' : '/'} className="flex items-center gap-2">
-                    <BananaLogo size={38} className="animate-wiggle" />
+        <header
+            className={`sticky top-0 z-40 border-b-2 border-banana-300/70 bg-banana-50/85 shadow-[0_2px_0_rgba(107,50,0,0.06)] backdrop-blur-md ${className}`}
+        >
+            <div className="mx-auto flex w-full max-w-[1560px] items-center justify-between gap-2 px-3 py-2 sm:gap-3 sm:px-5 lg:px-8">
+                <Link to={user ? '/dashboard' : '/'} className="flex flex-shrink-0 items-center gap-2">
+                    <BananaLogo size={40} className="animate-wiggle" />
                     <span className="hidden font-display text-xl font-extrabold text-banana-800 sm:inline">
                         Banana Quiz
                     </span>
+                    {user && (
+                        <span className="hidden rounded-full border-2 border-banana-400 bg-banana-300 px-2 py-0.5 font-display text-[11px] font-extrabold uppercase tracking-wide text-banana-900 md:inline-flex">
+                            Lv {level.level}
+                        </span>
+                    )}
                 </Link>
 
-                <nav className="flex items-center gap-0.5 sm:gap-1" aria-label="Main navigation">
+                <nav
+                    className="flex min-w-0 items-center gap-0.5 overflow-x-auto sm:gap-1"
+                    aria-label="Main navigation"
+                >
                     {items.map(({ to, label, icon: Icon }) => (
                         <NavLink
                             key={to}
@@ -84,20 +97,36 @@ export default function AppHeader({ className = '' }) {
                             title={label}
                             onClick={() => play('click')}
                             className={({ isActive }) =>
-                                `flex items-center gap-1.5 rounded-xl px-2 py-2 text-sm font-bold transition sm:px-2.5 md:px-3 ${
+                                `flex flex-shrink-0 items-center gap-1.5 rounded-xl border-2 px-2 py-1.5 text-sm font-bold transition sm:px-2.5 md:px-3 ${
                                     isActive
-                                        ? 'bg-banana-300 text-banana-900 shadow-game-sm'
-                                        : 'text-banana-700 hover:bg-banana-200/60'
+                                        ? 'border-banana-400 bg-banana-300 text-banana-900 shadow-game-sm'
+                                        : 'border-transparent text-banana-700 hover:border-banana-200 hover:bg-banana-200/60'
                                 }`
                             }
                         >
                             <Icon size={18} />
-                            <span className="hidden lg:inline">{label}</span>
+                            <span className="hidden xl:inline">{label}</span>
                         </NavLink>
                     ))}
                 </nav>
 
-                <div className="flex items-center gap-1.5">
+                <div className="flex flex-shrink-0 items-center gap-1.5">
+                    {user && (
+                        <div className="hidden items-center gap-1.5 lg:flex">
+                            <HudStat
+                                icon={Trophy}
+                                label="Total points"
+                                value={stats?.totalPoints ?? 0}
+                            />
+                            <HudStat
+                                icon={Flame}
+                                label="Current streak"
+                                value={stats?.currentStreak ?? 0}
+                                tone="orange"
+                            />
+                        </div>
+                    )}
+                    <FullscreenButton />
                     <AudioControls compact />
                     {user ? (
                         <>
@@ -149,6 +178,23 @@ export default function AppHeader({ className = '' }) {
                 />
             )}
         </header>
+    );
+}
+
+function HudStat({ icon: Icon, label, value, tone = 'banana' }) {
+    const tones = {
+        banana: 'border-banana-300 bg-banana-100 text-banana-800',
+        orange: 'border-orange-300 bg-orange-100 text-orange-800',
+    };
+
+    return (
+        <div
+            title={label}
+            className={`flex items-center gap-1.5 rounded-xl border-2 px-2.5 py-1 shadow-game-sm ${tones[tone]}`}
+        >
+            <Icon size={15} />
+            <span className="font-display text-sm font-extrabold leading-none">{value}</span>
+        </div>
     );
 }
 

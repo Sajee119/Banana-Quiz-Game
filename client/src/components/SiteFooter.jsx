@@ -32,12 +32,13 @@ export default function SiteFooter({ className = '' }) {
 
     return (
         <footer
-            className={`border-t-2 border-banana-200 bg-white/60 ${className}`}
+            className={`border-t-2 border-banana-200 bg-white/60 backdrop-blur-sm ${className}`}
             aria-labelledby="site-footer-title"
         >
-            <div className="mx-auto max-w-6xl px-4 py-10 md:px-6">
-                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-                    <div className="lg:col-span-2">
+            <div className="mx-auto w-full max-w-[1560px] px-4 py-8 md:px-6 md:py-10">
+                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 lg:gap-10">
+                    {/* Brand block */}
+                    <div className="max-w-md md:col-span-2 lg:col-span-1">
                         <Link
                             to={user ? '/dashboard' : '/'}
                             className="inline-flex items-center gap-2"
@@ -50,7 +51,7 @@ export default function SiteFooter({ className = '' }) {
                                 {SITE_NAME}
                             </span>
                         </Link>
-                        <p className="mt-2 max-w-sm text-sm text-banana-600">
+                        <p className="mt-2 text-sm text-banana-600">
                             A free banana-value calculation game for quick breaks and long
                             leaderboard climbs. Solve the puzzle, beat the clock and grow your
                             streak.
@@ -78,8 +79,11 @@ export default function SiteFooter({ className = '' }) {
                         </div>
                     </div>
 
-                    <FooterColumn title="Play" links={playLinks} />
-                    <FooterColumn title="Support & legal" links={SUPPORT_LINKS} />
+                    {/* Link groups share the remaining columns evenly on desktop. */}
+                    <div className="grid grid-cols-2 gap-8 sm:gap-12 md:col-span-2 lg:col-span-2 lg:gap-10">
+                        <FooterColumn title="Play" links={playLinks} />
+                        <FooterColumn title="Support & legal" links={SUPPORT_LINKS} />
+                    </div>
                 </div>
 
                 <div className="mt-8 flex flex-col items-center justify-between gap-3 border-t border-banana-200 pt-4 text-xs font-semibold text-banana-500 sm:flex-row">
@@ -112,7 +116,7 @@ export default function SiteFooter({ className = '' }) {
 
 function FooterColumn({ title, links }) {
     return (
-        <div>
+        <div className="min-w-0">
             <p className="mb-2 font-display text-sm font-extrabold uppercase tracking-wide text-banana-700">
                 {title}
             </p>
@@ -120,11 +124,17 @@ function FooterColumn({ title, links }) {
                 {links.map((link) => (
                     <li key={`${title}-${link.label}`}>
                         {link.href ? (
-                            <a href={link.href} className="transition hover:text-banana-900">
+                            <a
+                                href={link.href}
+                                className="inline-block transition hover:text-banana-900"
+                            >
                                 {link.label}
                             </a>
                         ) : (
-                            <Link to={link.to} className="transition hover:text-banana-900">
+                            <Link
+                                to={link.to}
+                                className="inline-block transition hover:text-banana-900"
+                            >
                                 {link.label}
                             </Link>
                         )}

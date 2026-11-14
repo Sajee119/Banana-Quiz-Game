@@ -23,7 +23,7 @@ const NAV = [
     { to: '/history', label: 'History', icon: History, authOnly: true },
     { to: '/achievements', label: 'Achievements', icon: Award, authOnly: true },
     { to: '/leaderboard', label: 'Leaderboard', icon: Trophy },
-    { to: '/profile', label: 'Account', icon: User, authOnly: true },
+    // { to: '/profile', label: 'Account', icon: User, authOnly: true },
 ];
 
 export default function AppHeader({ className = '' }) {

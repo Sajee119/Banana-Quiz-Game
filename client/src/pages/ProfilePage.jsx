@@ -41,7 +41,7 @@ import AppHeader from '../components/AppHeader.jsx';
 import Card from '../components/Card.jsx';
 import Button from '../components/Button.jsx';
 import AudioControls from '../components/AudioControls.jsx';
-import StatCard from '../components/StatCard.jsx';
+
 import PasswordInput from '../components/PasswordInput.jsx';
 import PasswordStrengthMeter from '../components/PasswordStrengthMeter.jsx';
 import { useAuth } from '../context/auth-context.js';
@@ -63,7 +63,7 @@ import { usePageTitle } from '../hooks/usePageTitle.js';
 import { useSound } from '../hooks/useSound.js';
 
 const inputClass =
-    'w-full rounded-xl border-2 border-banana-200 bg-white px-3.5 py-2.5 font-semibold text-banana-900 placeholder:text-banana-400 focus:border-banana-400 focus:outline-none';
+    'w-full rounded-xl border-2 border-banana-200 bg-white px-3.5 py-2.5 font-semibold text-banana-900 placeholder:text-banana-400 transition focus:border-banana-400 focus:outline-none focus:ring-2 focus:ring-banana-300/60';
 
 const DEVICE_ICONS = {
     mobile: Smartphone,
@@ -502,29 +502,38 @@ export default function ProfilePage() {
 
     const statCards = useMemo(
         () => [
-            { icon: <Trophy size={18} />, label: 'Total points', value: stats?.totalPoints ?? 0 },
+            {
+                icon: <Trophy size={18} />,
+                label: 'Total points',
+                value: stats?.totalPoints ?? 0,
+                hint: 'Across every mode',
+            },
             {
                 icon: <Gamepad2 size={18} />,
                 label: 'Games played',
                 value: stats?.gamesPlayed ?? 0,
+                hint: 'Completed rounds',
                 color: 'from-sky-300 to-sky-500',
             },
             {
                 icon: <Target size={18} />,
                 label: 'Win rate',
                 value: `${winRate}%`,
+                hint: `${stats?.gamesWon ?? 0} wins`,
                 color: 'from-emerald-300 to-emerald-500',
             },
             {
                 icon: <Flame size={18} />,
                 label: 'Current streak',
                 value: stats?.currentStreak ?? 0,
+                hint: `Best ${stats?.bestStreak ?? 0}`,
                 color: 'from-orange-300 to-orange-500',
             },
             {
                 icon: <Crown size={18} />,
                 label: 'Best streak',
                 value: stats?.bestStreak ?? 0,
+                hint: 'Personal record',
                 color: 'from-violet-300 to-violet-500',
             },
             {
@@ -533,6 +542,7 @@ export default function ProfilePage() {
                 value: stats?.fastestAnswerMs
                     ? `${(stats.fastestAnswerMs / 1000).toFixed(1)}s`
                     : '—',
+                hint: 'Quickest correct solve',
                 color: 'from-pink-300 to-pink-500',
             },
         ],
@@ -545,183 +555,99 @@ export default function ProfilePage() {
 
     if (!user) return null;
 
+    const recentActivity = (loginData?.history || []).slice(0, 4);
+
     return (
         <div className="min-h-screen">
             <AppHeader />
 
             <main className="mx-auto w-full max-w-[1560px] px-4 py-6 md:px-6 md:py-8">
-                <div className="mb-5">
-                    <p className="text-sm font-extrabold uppercase tracking-widest text-banana-600">
-                        Account centre
-                    </p>
-                    <h1 className="font-display text-4xl font-extrabold text-banana-900">
-                        Profile &amp; settings
-                    </h1>
-                    <p className="mt-1 text-banana-700">
-                        Manage your public identity, game defaults, notifications, privacy,
-                        security and data.
-                    </p>
-                </div>
-
-                <div className="mb-4 flex items-center justify-between gap-3">
-                    <Link
-                        to="/dashboard"
-                        className="flex items-center gap-1.5 text-sm font-bold text-banana-700 hover:underline"
-                    >
-                        <ArrowLeft size={17} /> Back to dashboard
-                    </Link>
-                    <Link
-                        to="/achievements"
-                        className="flex items-center gap-1.5 text-sm font-bold text-banana-700 hover:underline"
-                    >
-                        <Trophy size={16} /> Achievements
-                    </Link>
-                </div>
+                <section className="mb-6 overflow-hidden rounded-[1.75rem] border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/70 p-5 shadow-game sm:p-6">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                        <div>
+                            <p className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-300 bg-banana-100 px-2.5 py-1 font-display text-[11px] font-bold uppercase tracking-wide text-banana-800">
+                                <Settings size={13} /> Account centre
+                            </p>
+                            <h1 className="mt-2 font-display text-3xl font-extrabold leading-tight text-banana-900 md:text-4xl">
+                                Profile &amp; settings
+                            </h1>
+                            <p className="mt-1 text-sm font-semibold leading-relaxed text-banana-800">
+                                Manage your identity, defaults, notifications, privacy, security and data.
+                            </p>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <Link to="/dashboard">
+                                <Button variant="secondary" className="!py-2 !text-sm">
+                                    <ArrowLeft size={16} /> Dashboard
+                                </Button>
+                            </Link>
+                            <Link to="/achievements">
+                                <Button variant="secondary" className="!py-2 !text-sm">
+                                    <Trophy size={16} /> Achievements
+                                </Button>
+                            </Link>
+                            <Link to="/play">
+                                <Button className="!py-2 !text-sm">
+                                    <Gamepad2 size={16} /> Play a round
+                                </Button>
+                            </Link>
+                        </div>
+                    </div>
+                </section>
 
                 {verifiedBanner && (
-                    <div className="mb-4 flex items-start gap-3 rounded-2xl border-2 border-emerald-300 bg-emerald-50 px-4 py-3">
-                        <MailCheck size={20} className="mt-0.5 flex-shrink-0 text-emerald-600" />
+                    <div className="mb-4 flex items-start gap-3 rounded-xl border border-banana-200 bg-banana-100 px-4 py-3">
+                        <MailCheck size={18} className="mt-0.5 flex-shrink-0 text-banana-700" />
                         <div className="min-w-0 flex-1">
-                            <p className="font-display text-base font-extrabold text-emerald-800">
-                                Email verified
-                            </p>
-                            <p className="text-xs font-semibold text-emerald-700">
-                                Your address is confirmed. Recovery and security emails can now
-                                reach you.
+                            <p className="font-semibold text-banana-900">Email verified</p>
+                            <p className="text-sm text-banana-800">
+                                Your address is confirmed. Recovery and security emails can now reach you.
                             </p>
                         </div>
                         <button
                             type="button"
                             onClick={() => setVerifiedBanner(false)}
-                            className="rounded-lg px-2 py-1 text-xs font-extrabold text-emerald-700 hover:bg-emerald-100"
+                            className="rounded-md px-2 py-1 text-xs font-semibold text-banana-700 hover:bg-banana-200"
                         >
                             Dismiss
                         </button>
                     </div>
                 )}
 
-                {/* Identity card */}
                 <motion.div initial={{ y: 14, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
-                    <Card className="mb-5 !p-5 md:!p-6">
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                            <div className="flex min-w-0 items-center gap-4">
-                                <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl border-4 border-banana-300 bg-banana-100 font-display text-2xl font-extrabold text-banana-600 shadow-game-sm">
-                                    {user.avatar ? (
-                                        <img
-                                            src={user.avatar}
-                                            alt=""
-                                            className="h-full w-full object-cover"
-                                        />
-                                    ) : (
-                                        initials(user.displayName)
-                                    )}
-                                </div>
-                                <div className="min-w-0">
-                                    <h2 className="break-words font-display text-3xl font-extrabold leading-tight text-banana-800">
-                                        {user.displayName}
-                                    </h2>
-                                    <p className="flex min-w-0 flex-wrap items-center gap-1.5 break-all text-sm text-banana-600">
-                                        <Mail size={14} /> {user.email}
-                                    </p>
-                                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                                        {user.providerNames?.map((provider) => (
-                                            <span
-                                                key={provider}
-                                                className="rounded-full bg-banana-200 px-2.5 py-0.5 text-[11px] font-bold capitalize text-banana-800"
+                    <div className="grid items-start gap-4 lg:grid-cols-[2fr_4fr_3fr]">
+                        <aside className="space-y-4 lg:sticky lg:top-24">
+                            <Card className="!p-3 md:!p-4">
+                                <p className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-banana-300 bg-banana-100 px-2 py-0.5 font-display text-[10px] font-bold uppercase tracking-wide text-banana-800">
+                                    <Settings size={12} /> Settings
+                                </p>
+                                <div className="flex flex-wrap gap-1.5 lg:flex-col">
+                                    {TABS.map(({ id, label, icon: Icon }) => {
+                                        const active = activeTab === id;
+                                        return (
+                                            <button
+                                                key={id}
+                                                type="button"
+                                                onClick={() => selectTab(id)}
+                                                aria-current={active ? 'page' : undefined}
+                                                className={`flex items-center gap-2 rounded-xl border-2 px-2.5 py-2 text-left text-sm font-semibold transition-all ${
+                                                    active
+                                                        ? 'border-banana-400 bg-gradient-to-b from-banana-100 to-banana-50 text-banana-900 shadow-game-sm'
+                                                        : 'border-transparent text-banana-800 hover:border-banana-200 hover:bg-banana-50'
+                                                }`}
                                             >
-                                                {provider}
-                                            </span>
-                                        ))}
-                                        {user.emailVerified ? (
-                                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-extrabold text-emerald-700">
-                                                <MailCheck size={12} /> Email verified
-                                            </span>
-                                        ) : (
-                                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-extrabold text-amber-700">
-                                                <CircleAlert size={12} /> Email not verified
-                                            </span>
-                                        )}
-                                    </div>
+                                                <span className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg border ${active ? 'border-banana-300 bg-white text-banana-700' : 'border-banana-200 bg-banana-100 text-banana-700'}`}>
+                                                    <Icon size={14} />
+                                                </span>
+                                                <span className="truncate">{label}</span>
+                                            </button>
+                                        );
+                                    })}
                                 </div>
-                            </div>
-
-                            <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:text-right">
-                                <div>
-                                    <dt className="text-[11px] font-bold uppercase tracking-wide text-banana-500">
-                                        Joined
-                                    </dt>
-                                    <dd className="font-bold text-banana-800">
-                                        {formatDate(user.createdAt)}
-                                    </dd>
-                                </div>
-                                <div>
-                                    <dt className="text-[11px] font-bold uppercase tracking-wide text-banana-500">
-                                        Last login
-                                    </dt>
-                                    <dd className="font-bold text-banana-800">
-                                        {formatRelative(user.lastLoginAt)}
-                                    </dd>
-                                </div>
-                                <div>
-                                    <dt className="text-[11px] font-bold uppercase tracking-wide text-banana-500">
-                                        Favourite mode
-                                    </dt>
-                                    <dd className="font-bold text-banana-800">{favouriteLabel}</dd>
-                                </div>
-                                <div>
-                                    <dt className="text-[11px] font-bold uppercase tracking-wide text-banana-500">
-                                        Email status
-                                    </dt>
-                                    <dd
-                                        className={`font-bold ${
-                                            user.emailVerified
-                                                ? 'text-emerald-700'
-                                                : 'text-amber-700'
-                                        }`}
-                                    >
-                                        {user.emailVerified
-                                            ? user.emailVerifiedAt
-                                                ? `Verified ${formatDate(user.emailVerifiedAt)}`
-                                                : 'Verified'
-                                            : 'Needs verification'}
-                                    </dd>
-                                </div>
-                            </dl>
-                        </div>
-                    </Card>
-
-                    <div className="mb-6 flex flex-wrap gap-3 [&>*]:grow [&>*]:basis-[calc(50%-0.375rem)] sm:[&>*]:basis-[calc(33.333%-0.5rem)] 2xl:[&>*]:basis-[calc(16.666%-0.625rem)]">
-                        {statCards.map((card) => (
-                            <StatCard key={card.label} {...card} />
-                        ))}
-                    </div>
-
-                    <div className="grid gap-5 lg:grid-cols-[220px_1fr]">
-                        <aside
-                            className="h-fit overflow-x-auto rounded-3xl border-4 border-banana-300 bg-white/90 p-2 shadow-game lg:p-3"
-                            aria-label="Profile settings navigation"
-                        >
-                            <div className="flex gap-1 lg:block">
-                                {TABS.map(({ id, label, icon: Icon }) => (
-                                    <button
-                                        key={id}
-                                        type="button"
-                                        onClick={() => selectTab(id)}
-                                        aria-current={activeTab === id ? 'page' : undefined}
-                                        className={`mb-0 flex flex-shrink-0 items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-extrabold transition lg:mb-1 lg:w-full ${
-                                            activeTab === id
-                                                ? 'bg-banana-300 text-banana-900'
-                                                : 'text-banana-700 hover:bg-banana-100'
-                                        }`}
-                                    >
-                                        <Icon size={17} className="flex-shrink-0" />
-                                        <span className="whitespace-nowrap">{label}</span>
-                                    </button>
-                                ))}
-                            </div>
+                            </Card>
                         </aside>
 
-                        <div className="min-w-0 space-y-5">
+                        <div className="space-y-4">
                             {activeTab === 'profile' && (
                                 <ProfileSection
                                     profile={profile}
@@ -749,14 +675,10 @@ export default function ProfilePage() {
                                                 compactMode: preferences.compactMode,
                                                 reducedMotion: preferences.reducedMotion,
                                                 defaultMode: preferences.defaultMode,
-                                                dashboardShowTrend:
-                                                    preferences.dashboardShowTrend,
-                                                dashboardShowLatestGame:
-                                                    preferences.dashboardShowLatestGame,
-                                                dashboardShowModeMix:
-                                                    preferences.dashboardShowModeMix,
-                                                dashboardShowThinkingTime:
-                                                    preferences.dashboardShowThinkingTime,
+                                                dashboardShowTrend: preferences.dashboardShowTrend,
+                                                dashboardShowLatestGame: preferences.dashboardShowLatestGame,
+                                                dashboardShowModeMix: preferences.dashboardShowModeMix,
+                                                dashboardShowThinkingTime: preferences.dashboardShowThinkingTime,
                                             },
                                             'Appearance settings saved.'
                                         )
@@ -776,13 +698,10 @@ export default function ProfilePage() {
                                             {
                                                 autoSubmit: preferences.autoSubmit,
                                                 celebrations: preferences.celebrations,
-                                                showKeyboardHints:
-                                                    preferences.showKeyboardHints,
+                                                showKeyboardHints: preferences.showKeyboardHints,
                                                 showTimer: preferences.showTimer,
                                                 confirmQuit: preferences.confirmQuit,
-                                                defaultQuizCount: Number(
-                                                    preferences.defaultQuizCount
-                                                ),
+                                                defaultQuizCount: Number(preferences.defaultQuizCount),
                                                 defaultTime: Number(preferences.defaultTime),
                                             },
                                             'Gameplay settings saved.'
@@ -801,8 +720,7 @@ export default function ProfilePage() {
                                         savePreferences(
                                             'notifications',
                                             {
-                                                emailNotifications:
-                                                    preferences.emailNotifications,
+                                                emailNotifications: preferences.emailNotifications,
                                                 loginAlerts: preferences.loginAlerts,
                                                 productUpdates: preferences.productUpdates,
                                             },
@@ -854,10 +772,7 @@ export default function ProfilePage() {
                                     onSubmit={() =>
                                         savePreferences(
                                             'privacy',
-                                            {
-                                                showOnLeaderboard:
-                                                    preferences.showOnLeaderboard,
-                                            },
+                                            { showOnLeaderboard: preferences.showOnLeaderboard },
                                             'Privacy settings saved.'
                                         )
                                     }
@@ -883,6 +798,94 @@ export default function ProfilePage() {
                                 />
                             )}
                         </div>
+
+                        <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+                            <Card className="!p-4 md:!p-5">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-banana-100 font-display text-lg text-banana-900">
+                                        {user.avatar ? (
+                                            <img src={user.avatar} alt="" className="h-full w-full object-cover" />
+                                        ) : (
+                                            initials(user.displayName)
+                                        )}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="truncate font-display text-lg text-banana-900">{user.displayName}</p>
+                                        <p className="truncate text-xs text-banana-800">{user.email}</p>
+                                    </div>
+                                </div>
+                                <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm">
+                                    <div>
+                                        <dt className="text-banana-700">Joined</dt>
+                                        <dd className="text-banana-900">{formatDate(user.createdAt)}</dd>
+                                    </div>
+                                    <div>
+                                        <dt className="text-banana-700">Favourite</dt>
+                                        <dd className="text-banana-900">{favouriteLabel}</dd>
+                                    </div>
+                                    <div>
+                                        <dt className="text-banana-700">Email</dt>
+                                        <dd className={user.emailVerified ? 'text-status-ok' : 'text-status-warning'}>
+                                            {user.emailVerified ? 'Verified' : 'Needs verification'}
+                                        </dd>
+                                    </div>
+                                    <div>
+                                        <dt className="text-banana-700">Win rate</dt>
+                                        <dd className="text-banana-900">{winRate}%</dd>
+                                    </div>
+                                </dl>
+                                <div className="mt-3 grid grid-cols-3 gap-2">
+                                    {statCards.slice(0, 3).map((card) => (
+                                        <div key={card.label} className="rounded-lg border border-banana-200 bg-banana-50 px-2 py-2">
+                                            <p className="text-[10px] text-banana-700">{card.label}</p>
+                                            <p className="font-display text-sm leading-tight text-banana-900 tabular-nums">{card.value}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </Card>
+
+                            <Card className="!p-4 md:!p-5">
+                                <header className="mb-3 flex items-baseline justify-between gap-2">
+                                    <h2 className="font-display text-lg text-banana-900">Recent activity</h2>
+                                    <span className="text-xs text-banana-800 tabular-nums">
+                                        {recentActivity.length || 0} items
+                                    </span>
+                                </header>
+                                {loadingLogins ? (
+                                    <p className="text-sm text-banana-800">Loading recent activity…</p>
+                                ) : loginError ? (
+                                    <p className="text-sm text-banana-800">{loginError}</p>
+                                ) : recentActivity.length === 0 ? (
+                                    <p className="text-sm text-banana-800">No recent sign-in activity yet.</p>
+                                ) : (
+                                    <ul className="divide-y divide-banana-200">
+                                        {recentActivity.map((entry, index) => {
+                                            const DeviceIcon =
+                                                DEVICE_ICONS[entry?.deviceType || 'unknown'] || Monitor;
+                                            return (
+                                                <li key={entry?.id || index} className="flex items-start gap-3 py-2.5">
+                                                    <span className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-banana-100 text-banana-700">
+                                                        <DeviceIcon size={14} />
+                                                    </span>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="text-sm font-semibold text-banana-900">
+                                                            {entry?.success === false ? 'Failed sign-in' : 'Sign-in'}
+                                                            <span className="font-medium text-banana-800">
+                                                                {' '}· {METHOD_LABELS[entry?.method] || entry?.method || 'Account'}
+                                                            </span>
+                                                        </p>
+                                                        <p className="text-xs text-banana-800">
+                                                            {formatRelative(entry?.createdAt || entry?.at || entry?.timestamp)} ·{' '}
+                                                            {entry?.location || entry?.city || 'Unknown location'}
+                                                        </p>
+                                                    </div>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                )}
+                            </Card>
+                        </aside>
                     </div>
                 </motion.div>
             </main>
@@ -1044,7 +1047,7 @@ function ProfileSection({
                     >
                         <div className="flex flex-col gap-2 sm:flex-row">
                             <div className="flex flex-1 items-center gap-2">
-                                <Image size={18} className="flex-shrink-0 text-banana-500" />
+                                <Image size={18} className="flex-shrink-0 text-banana-800" />
                                 <input
                                     id="avatar"
                                     type="url"
@@ -1075,7 +1078,7 @@ function ProfileSection({
                             }`}
                             aria-live="polite"
                         >
-                            <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-banana-300 bg-banana-100 font-display text-xl font-extrabold text-banana-600">
+                            <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-banana-300 bg-banana-100 font-display text-xl font-extrabold text-banana-800">
                                 {avatarPreview.status === 'ok' ? (
                                     <img
                                         src={avatarPreview.src}
@@ -1083,7 +1086,7 @@ function ProfileSection({
                                         className="h-full w-full object-cover"
                                     />
                                 ) : avatarPreview.status === 'loading' ? (
-                                    <RefreshCw size={20} className="animate-spin text-banana-500" />
+                                    <RefreshCw size={20} className="animate-spin text-banana-800" />
                                 ) : profile.avatar.trim() ? (
                                     <Image size={22} className="text-banana-400" />
                                 ) : (
@@ -1105,8 +1108,8 @@ function ProfileSection({
                                         avatarPreview.status === 'error'
                                             ? 'text-red-700'
                                             : avatarPreview.status === 'ok'
-                                              ? 'text-emerald-700'
-                                              : 'text-banana-600'
+                                              ? 'text-status-ok'
+                                              : 'text-banana-800'
                                     }`}
                                 >
                                     {avatarPreview.message ||
@@ -1153,13 +1156,13 @@ function ProfileSection({
                     {user.providerNames?.map((provider) => (
                         <span
                             key={provider}
-                            className="rounded-full bg-banana-100 px-3 py-1 text-sm font-bold capitalize text-banana-800"
+                            className="rounded-full border-2 border-banana-200 bg-banana-100 px-3 py-1 text-sm font-bold capitalize text-banana-800"
                         >
                             {provider === 'local' ? 'Email & password' : provider}
                         </span>
                     ))}
                 </div>
-                <p className="mt-3 text-xs font-semibold text-banana-600">
+                <p className="mt-3 text-xs font-semibold text-banana-800">
                     Manage passwords in Security. Social providers stay linked automatically.
                 </p>
             </Card>
@@ -1208,7 +1211,7 @@ function AppearanceSection({
                                         className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${
                                             selected
                                                 ? 'bg-banana-500 text-white'
-                                                : 'bg-banana-100 text-banana-600'
+                                                : 'bg-banana-100 text-banana-700'
                                         }`}
                                     >
                                         <Icon size={18} />
@@ -1218,7 +1221,7 @@ function AppearanceSection({
                                             {option.label}
                                             {selected ? ' · selected' : ''}
                                         </span>
-                                        <span className="block text-xs font-semibold text-banana-600">
+                                        <span className="block text-xs font-semibold text-banana-800">
                                             {option.description}
                                         </span>
                                     </span>
@@ -1226,7 +1229,7 @@ function AppearanceSection({
                             );
                         })}
                     </div>
-                    <p className="mt-2 text-xs font-semibold text-banana-500">
+                    <p className="mt-2 text-xs font-semibold text-banana-800">
                         Light is the default. Theme changes preview instantly and save with this
                         section.
                     </p>
@@ -1236,7 +1239,7 @@ function AppearanceSection({
                     <p className="mb-1 flex items-center gap-2 font-bold text-banana-800">
                         <BarChart3 size={17} /> Dashboard cards
                     </p>
-                    <p className="mb-3 text-xs font-semibold text-banana-600">
+                    <p className="mb-3 text-xs font-semibold text-banana-800">
                         Choose which analytics cards appear on your dashboard. All four are
                         hidden by default.
                     </p>
@@ -1293,7 +1296,7 @@ function AppearanceSection({
                         <Gamepad2 size={17} /> Sound &amp; music
                     </p>
                     <AudioControls />
-                    <p className="mt-2 text-xs font-semibold text-banana-500">
+                    <p className="mt-2 text-xs font-semibold text-banana-800">
                         Audio settings are stored on this device. The background track loops the
                         bundled game music.
                     </p>
@@ -1391,7 +1394,7 @@ function GameplaySection({ preferences, updatePreference, onSubmit, saving, noti
                     </Field>
                 </div>
 
-                <p className="rounded-2xl bg-banana-50 p-3 text-xs font-semibold text-banana-600">
+                <p className="rounded-2xl border-2 border-banana-200 bg-banana-50 p-3 text-xs font-semibold text-banana-800">
                     Auto-submit waits about a second after your last digit. Press Enter to submit
                     immediately, or turn auto-submit off to bring back the Submit answer button.
                 </p>
@@ -1442,7 +1445,7 @@ function NotificationsSection({ preferences, updatePreference, onSubmit, saving,
                     onChange={updatePreference('productUpdates')}
                 />
 
-                <div className="rounded-2xl bg-banana-50 p-4 text-xs font-semibold text-banana-600">
+                <div className="rounded-2xl border-2 border-banana-200 bg-banana-50 p-4 text-xs font-semibold text-banana-800">
                     Password reset codes and verification codes are security messages and are
                     always sent when you request them.
                 </div>
@@ -1491,7 +1494,7 @@ function SecuritySection({
                 />
 
                 {user.emailVerified ? (
-                    <div className="mt-4 flex items-start gap-3 rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-4">
+                    <div className="mt-4 flex items-start gap-3 rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-4 shadow-game-sm">
                         <ShieldCheck
                             size={22}
                             className="mt-0.5 flex-shrink-0 text-emerald-600"
@@ -1512,8 +1515,8 @@ function SecuritySection({
                         </div>
                     </div>
                 ) : (
-                    <div className="mt-4 rounded-2xl border-2 border-amber-200 bg-amber-50 p-4">
-                        <p className="font-display text-lg font-extrabold text-amber-900">
+                    <div className="mt-4 rounded-2xl border-2 border-amber-200 bg-amber-50 p-4 shadow-game-sm">
+                        <p className="font-display text-lg font-extrabold text-amber-800">
                             Not verified yet
                         </p>
                         <p className="mt-1 text-sm font-semibold text-amber-800">
@@ -1642,7 +1645,7 @@ function SecuritySection({
                 />
 
                 {loadingSecurity && !security && (
-                    <p className="py-4 text-center text-xs font-semibold text-banana-500">
+                    <p className="py-4 text-center text-xs font-semibold text-banana-800">
                         Checking your account…
                     </p>
                 )}
@@ -1653,12 +1656,12 @@ function SecuritySection({
                     <>
                         <div className="flex items-center gap-3">
                             <div
-                                className={`flex h-16 w-16 flex-shrink-0 flex-col items-center justify-center rounded-2xl ${
+                                className={`flex h-16 w-16 flex-shrink-0 flex-col items-center justify-center rounded-2xl border-2 shadow-game-sm ${
                                     securityScore >= 75
-                                        ? 'bg-emerald-100 text-emerald-700'
+                                        ? 'border-emerald-300 bg-emerald-100 text-emerald-700'
                                         : securityScore >= 50
-                                          ? 'bg-amber-100 text-amber-700'
-                                          : 'bg-red-100 text-red-700'
+                                          ? 'border-amber-300 bg-amber-100 text-amber-800'
+                                          : 'border-red-300 bg-red-100 text-red-700'
                                 }`}
                             >
                                 <span className="font-display text-xl font-extrabold leading-none">
@@ -1672,7 +1675,7 @@ function SecuritySection({
                                 <p className="text-sm font-extrabold text-banana-800">
                                     {security.level || 'Account security'}
                                 </p>
-                                <p className="text-[11px] text-banana-500">
+                                <p className="text-[11px] text-banana-800">
                                     {passedChecks}/{checks.length} checks passed
                                 </p>
                                 <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-banana-200">
@@ -1705,18 +1708,18 @@ function SecuritySection({
                                     ) : (
                                         <CircleAlert
                                             size={15}
-                                            className="mt-0.5 flex-shrink-0 text-amber-500"
+                                            className="mt-0.5 flex-shrink-0 text-amber-600"
                                         />
                                     )}
                                     <span
                                         className={
                                             check.passed
-                                                ? 'text-emerald-700'
-                                                : 'text-banana-600'
+                                                ? 'text-status-ok'
+                                                : 'text-banana-800'
                                         }
                                     >
                                         {check.label}
-                                        <span className="block text-[11px] font-semibold text-banana-500">
+                                        <span className="block text-[11px] font-semibold text-banana-800">
                                             {check.hint}
                                         </span>
                                     </span>
@@ -1724,7 +1727,7 @@ function SecuritySection({
                             ))}
                         </ul>
 
-                        <div className="mt-4 flex flex-wrap gap-4 border-t border-banana-100 pt-3 text-[11px] text-banana-500">
+                        <div className="mt-4 flex flex-wrap gap-4 border-t border-banana-100 pt-3 text-[11px] text-banana-800">
                             <p className="flex items-center gap-1.5">
                                 <Activity size={12} />
                                 Last sign-in:{' '}
@@ -1791,7 +1794,7 @@ function ActivitySection({
                         type="button"
                         onClick={onRefresh}
                         title="Refresh activity"
-                        className="rounded-xl p-2 text-banana-600 hover:bg-banana-100"
+                        className="rounded-xl p-2 text-banana-700 hover:bg-banana-100"
                     >
                         <RefreshCw
                             size={17}
@@ -1803,13 +1806,13 @@ function ActivitySection({
                 {loginError && <Notice type="error" text={loginError} />}
 
                 {loadingLogins && !loginData && (
-                    <p className="py-6 text-center text-sm font-semibold text-banana-500">
+                    <p className="py-6 text-center text-sm font-semibold text-banana-800">
                         Loading sign-ins…
                     </p>
                 )}
 
                 {loginData && history.length === 0 && (
-                    <p className="py-6 text-center text-sm font-semibold text-banana-500">
+                    <p className="py-6 text-center text-sm font-semibold text-banana-800">
                         No sign-ins recorded yet.
                     </p>
                 )}
@@ -1821,10 +1824,10 @@ function ActivitySection({
                         return (
                             <li key={entry.id} className="flex items-center gap-3 py-3">
                                 <div
-                                    className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${
+                                    className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border-2 ${
                                         failed
-                                            ? 'bg-red-50 text-red-600'
-                                            : 'bg-banana-100 text-banana-700'
+                                            ? 'border-red-200 bg-red-50 text-red-600'
+                                            : 'border-banana-200 bg-banana-100 text-banana-700'
                                     }`}
                                 >
                                     <Icon size={18} />
@@ -1843,7 +1846,7 @@ function ActivitySection({
                                             </span>
                                         )}
                                     </p>
-                                    <p className="break-words text-xs text-banana-500">
+                                    <p className="break-words text-xs text-banana-800">
                                         {METHOD_LABELS[entry.method] || entry.method} ·{' '}
                                         {entry.email || user.email} · {entry.ip} ·{' '}
                                         {formatDateTime(entry.at)}
@@ -1876,7 +1879,7 @@ function ActivitySection({
                                     }`}
                                 >
                                     <div className="flex items-center gap-2">
-                                        <Icon size={16} className="text-banana-600" />
+                                        <Icon size={16} className="text-banana-700" />
                                         <p className="flex-1 truncate text-sm font-bold text-banana-800">
                                             {device.device}
                                         </p>
@@ -1884,7 +1887,7 @@ function ActivitySection({
                                             <Check size={15} className="text-emerald-600" />
                                         )}
                                     </div>
-                                    <p className="mt-0.5 text-[11px] text-banana-500">
+                                    <p className="mt-0.5 text-[11px] text-banana-800">
                                         {device.logins} sign-in
                                         {device.logins === 1 ? '' : 's'} · last{' '}
                                         {formatRelative(device.lastSeenAt)}
@@ -1893,7 +1896,7 @@ function ActivitySection({
                             );
                         })}
                         {loginData && devices.length === 0 && (
-                            <p className="py-3 text-center text-xs font-semibold text-banana-500">
+                            <p className="py-3 text-center text-xs font-semibold text-banana-800">
                                 No devices yet.
                             </p>
                         )}
@@ -1909,7 +1912,7 @@ function ActivitySection({
                     />
                     <div className="mt-3 space-y-2">
                         {failedLogins.length === 0 && (
-                            <p className="py-2 text-center text-xs font-semibold text-banana-500">
+                            <p className="py-2 text-center text-xs font-semibold text-banana-800">
                                 No failed attempts recorded. Nice and quiet.
                             </p>
                         )}
@@ -1922,7 +1925,7 @@ function ActivitySection({
                                     <ShieldAlert size={14} className="flex-shrink-0" />
                                     {REASON_LABELS[entry.reason] || 'Sign-in failed'}
                                 </p>
-                                <p className="mt-0.5 break-words text-[11px] text-banana-500">
+                                <p className="mt-0.5 break-words text-[11px] text-banana-800">
                                     {entry.email || user.email} · {entry.ip} ·{' '}
                                     {formatRelative(entry.at)}
                                 </p>
@@ -2032,7 +2035,7 @@ function PrivacySection({
                         <Settings size={17} /> Review cookie choice
                     </Button>
                 </div>
-                <p className="mt-3 text-xs font-semibold text-banana-600">
+                <p className="mt-3 text-xs font-semibold text-banana-800">
                     The export includes your profile, preferences, statistics, security summary
                     and recent sign-in devices. It never includes password hashes or session
                     secrets.
@@ -2053,7 +2056,11 @@ function DangerZoneSection({
     setError,
 }) {
     return (
-        <Card className="!border-red-300 !p-5 md:!p-6">
+        <Card className="relative overflow-hidden !border-red-300 !p-5 md:!p-6">
+            <div
+                aria-hidden="true"
+                className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-red-300 via-red-400 to-red-600"
+            />
             <SectionHeading
                 icon={<ShieldAlert size={20} />}
                 title="Danger zone"
@@ -2061,7 +2068,7 @@ function DangerZoneSection({
             />
 
             <div className="rounded-2xl border-2 border-red-200 bg-red-50/70 p-4">
-                <p className="flex items-center gap-2 font-display text-lg font-extrabold text-red-800">
+                <p className="flex items-center gap-2 font-display text-lg font-extrabold text-red-700">
                     <Trash2 size={19} /> Deactivate account
                 </p>
                 <p className="mt-1 text-sm font-semibold text-red-700">
@@ -2073,7 +2080,7 @@ function DangerZoneSection({
                     <div>
                         <label
                             htmlFor="deactivate-confirm"
-                            className="mb-1 block text-sm font-bold text-red-800"
+                            className="mb-1 block text-sm font-bold text-red-700"
                         >
                             Type <span className="font-mono">DELETE</span> to confirm
                         </label>
@@ -2110,7 +2117,7 @@ function DangerZoneSection({
                     )}
 
                     {error && (
-                        <p className="rounded-xl bg-red-100 px-3.5 py-2.5 text-sm font-semibold text-red-700">
+                        <p className="rounded-2xl border-2 border-red-300 bg-red-50 px-3.5 py-2.5 text-sm font-semibold text-red-700">
                             {error}
                         </p>
                     )}
@@ -2127,7 +2134,7 @@ function DangerZoneSection({
                 </form>
             </div>
 
-            <p className="mt-4 text-xs font-semibold text-banana-600">
+            <p className="mt-4 text-xs font-semibold text-banana-800">
                 Signed in as <strong className="break-all">{user.email}</strong>. You can export
                 your data first from Privacy &amp; data.
             </p>
@@ -2158,11 +2165,17 @@ function downloadDataExport({ user, stats, security, loginData }) {
 function SectionHeading({ icon, title, subtitle, noMargin = false }) {
     return (
         <div className={noMargin ? '' : 'mb-4'}>
-            <h2 className="flex items-center gap-2 font-display text-xl font-extrabold text-banana-800">
-                <span className="text-banana-500">{icon}</span>
+            <h2 className="flex items-center gap-2.5 font-display text-xl font-extrabold text-banana-800">
+                <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-200 text-banana-700">
+                    {icon}
+                </span>
                 {title}
             </h2>
-            {subtitle && <p className="text-xs text-banana-600">{subtitle}</p>}
+            {subtitle && (
+                <p className="mt-1 text-xs font-semibold text-banana-800 sm:text-sm">
+                    {subtitle}
+                </p>
+            )}
         </div>
     );
 }
@@ -2170,11 +2183,15 @@ function SectionHeading({ icon, title, subtitle, noMargin = false }) {
 function Field({ label, htmlFor, hint, children }) {
     return (
         <div>
-            <div className="mb-1 flex items-center justify-between gap-2">
-                <label htmlFor={htmlFor} className="text-sm font-bold text-banana-700">
+            <div className="mb-1.5 flex flex-wrap items-center justify-between gap-1.5">
+                <label htmlFor={htmlFor} className="text-sm font-extrabold text-banana-800">
                     {label}
                 </label>
-                {hint && <span className="text-[11px] text-banana-500">{hint}</span>}
+                {hint && (
+                    <span className="rounded-full border-2 border-banana-200 bg-banana-50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-banana-800">
+                        {hint}
+                    </span>
+                )}
             </div>
             {children}
         </div>
@@ -2183,16 +2200,24 @@ function Field({ label, htmlFor, hint, children }) {
 
 function PreferenceToggle({ label, description, checked, onChange }) {
     return (
-        <label className="flex cursor-pointer items-center justify-between gap-3">
-            <span>
-                <span className="block text-sm font-bold text-banana-800">{label}</span>
-                <span className="block text-xs text-banana-600">{description}</span>
+        <label
+            className={`flex cursor-pointer items-start justify-between gap-3 rounded-2xl border-2 px-3.5 py-3 transition ${
+                checked
+                    ? 'border-banana-300 bg-banana-50 shadow-game-sm'
+                    : 'border-banana-200 bg-white/70 hover:border-banana-300'
+            }`}
+        >
+            <span className="min-w-0">
+                <span className="block text-sm font-extrabold text-banana-800">{label}</span>
+                <span className="mt-0.5 block text-xs font-semibold text-banana-800">
+                    {description}
+                </span>
             </span>
             <input
                 type="checkbox"
                 checked={checked}
                 onChange={onChange}
-                className="h-5 w-5 flex-shrink-0 accent-banana-500"
+                className="mt-0.5 h-5 w-5 flex-shrink-0 cursor-pointer accent-banana-500"
             />
         </label>
     );
@@ -2200,11 +2225,11 @@ function PreferenceToggle({ label, description, checked, onChange }) {
 
 function InfoTile({ title, text }) {
     return (
-        <div className="rounded-2xl border-2 border-banana-200 bg-banana-50 p-4">
-            <p className="text-xs font-extrabold uppercase tracking-wide text-banana-600">
+        <div className="rounded-2xl border-2 border-banana-200 bg-banana-50 p-4 shadow-game-sm">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-banana-800">
                 {title}
             </p>
-            <p className="mt-1 font-bold text-banana-800">{text}</p>
+            <p className="mt-1 font-bold leading-snug text-banana-800">{text}</p>
         </div>
     );
 }
@@ -2216,8 +2241,10 @@ function Notice({ notice, type, text }) {
     return (
         <p
             role="alert"
-            className={`flex items-start gap-2 rounded-xl px-3.5 py-2.5 text-sm font-semibold ${
-                success ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+            className={`flex items-start gap-2.5 rounded-2xl border-2 px-3.5 py-2.5 text-sm font-semibold ${
+                success
+                    ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
+                    : 'border-red-300 bg-red-50 text-red-700'
             }`}
         >
             {success ? (

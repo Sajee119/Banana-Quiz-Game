@@ -19,6 +19,12 @@ import { useAuth } from '../context/auth-context.js';
 import { usePageTitle } from '../hooks/usePageTitle.js';
 import { evaluatePassword } from '../lib/passwordStrength.js';
 
+const inputClass =
+    'w-full rounded-2xl border-2 border-banana-200 bg-white px-4 py-3 font-semibold text-banana-900 placeholder:text-banana-400 transition focus:border-banana-400 focus:outline-none focus:ring-2 focus:ring-banana-300/60';
+
+const ALERT_CLASS =
+    'rounded-2xl border-2 px-4 py-3 text-sm font-semibold shadow-game-sm';
+
 export default function ResetPasswordPage() {
     usePageTitle('Reset password');
 
@@ -125,11 +131,17 @@ export default function ResetPasswordPage() {
     if (status === 'validating') {
         return (
             <AuthShell
+                eyebrow="Reset password"
                 title="Checking your link"
                 subtitle="Just a moment while we verify this reset link."
             >
-                <div className="flex justify-center py-6 text-banana-500">
-                    <Loader2 size={34} className="animate-spin" />
+                <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-banana-100 bg-banana-50/70 px-4 py-10">
+                    <span className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-banana-300 bg-banana-200 text-banana-700">
+                        <Loader2 size={30} className="animate-spin" />
+                    </span>
+                    <p className="text-sm font-semibold text-banana-700">
+                        Verifying your secure link…
+                    </p>
                 </div>
             </AuthShell>
         );
@@ -138,25 +150,22 @@ export default function ResetPasswordPage() {
     if (status === 'error') {
         return (
             <AuthShell
+                eyebrow="Reset password"
                 title="Could not check link"
                 subtitle="The reset link itself may still be fine."
             >
-                <div className="mb-5 flex justify-center">
-                    <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
-                        <ShieldAlert size={30} />
-                    </span>
-                </div>
+                <StatusIcon icon={ShieldAlert} tone="warning" />
 
                 <p
                     role="alert"
                     aria-live="polite"
-                    className="mb-5 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800"
+                    className={`${ALERT_CLASS} mt-5 mb-5 border-amber-200 bg-amber-50 text-amber-800`}
                 >
                     {error}
                 </p>
 
-                <div className="space-y-3">
-                    <Button onClick={retryValidation} className="w-full !py-3 !text-base">
+                <div className="space-y-2.5">
+                    <Button onClick={retryValidation} className="w-full !py-3.5 !text-base">
                         <RefreshCw size={17} /> Try again
                     </Button>
                     <Link to="/forgot-password" className="block">
@@ -164,13 +173,9 @@ export default function ResetPasswordPage() {
                             <KeyRound size={17} /> Request a new link
                         </Button>
                     </Link>
-                    <Link
-                        to="/login"
-                        className="inline-flex items-center gap-1 text-xs font-bold text-banana-600 underline hover:text-banana-800"
-                    >
-                        <ArrowLeft size={13} /> Back to sign in
-                    </Link>
                 </div>
+
+                <BackToSignIn />
             </AuthShell>
         );
     }
@@ -178,34 +183,30 @@ export default function ResetPasswordPage() {
     if (status === 'invalid') {
         return (
             <AuthShell
+                eyebrow="Reset password"
                 title="Link expired"
                 subtitle="Reset links are single-use and expire automatically."
             >
-                <div className="mb-5 flex justify-center">
-                    <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50 text-red-600">
-                        <ShieldAlert size={30} />
-                    </span>
-                </div>
+                <StatusIcon icon={ShieldAlert} tone="danger" />
 
                 <p
                     role="alert"
                     aria-live="polite"
-                    className="mb-5 rounded-2xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700"
+                    className={`${ALERT_CLASS} mt-5 mb-5 border-red-200 bg-red-50 text-red-700`}
                 >
                     {error}
                 </p>
 
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                     <Link to="/forgot-password" className="block">
-                        <Button className="w-full !py-3 !text-base">
+                        <Button className="w-full !py-3.5 !text-base">
                             <KeyRound size={17} /> Request a new link
                         </Button>
                     </Link>
-                    <Link
-                        to="/login"
-                        className="inline-flex items-center gap-1 text-xs font-bold text-banana-600 underline hover:text-banana-800"
-                    >
-                        <ArrowLeft size={13} /> Back to sign in
+                    <Link to="/login" className="block">
+                        <Button variant="secondary" className="w-full !py-3 !text-base">
+                            <ArrowLeft size={17} /> Back to sign in
+                        </Button>
                     </Link>
                 </div>
             </AuthShell>
@@ -215,22 +216,19 @@ export default function ResetPasswordPage() {
     if (done) {
         return (
             <AuthShell
+                eyebrow="Reset password"
                 title="Password reset"
                 subtitle="Your new password is ready to use."
             >
-                <div className="mb-5 flex justify-center">
-                    <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
-                        <CheckCircle2 size={30} />
-                    </span>
-                </div>
+                <StatusIcon icon={CheckCircle2} tone="success" />
 
-                <p className="mb-5 text-sm text-banana-700">
+                <p className="mt-5 rounded-2xl border-2 border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold leading-relaxed text-emerald-800">
                     For your security, every other device has been signed out. Sign in again with
                     your new password.
                 </p>
 
-                <Link to="/login" className="block">
-                    <Button className="w-full !py-3 !text-base">
+                <Link to="/login" className="mt-5 block">
+                    <Button className="w-full !py-3.5 !text-base">
                         <ArrowLeft size={17} /> Go to sign in
                     </Button>
                 </Link>
@@ -247,16 +245,17 @@ export default function ResetPasswordPage() {
 
     return (
         <AuthShell
+            eyebrow="Reset password"
             title="Choose a new password"
             subtitle="Pick something strong that you have not used before."
             footer={
-                <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-xs text-banana-600">
+                <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-xs font-semibold text-banana-600">
                     <ShieldCheck size={14} /> This link can only be used once.
                 </p>
             }
         >
             {expiresLabel && (
-                <p className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-banana-100 px-3 py-1 text-xs font-bold text-banana-700">
+                <p className="mb-4 inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-banana-100 px-3 py-1 text-xs font-bold text-banana-700">
                     <Clock3 size={13} /> Link valid until {expiresLabel}
                 </p>
             )}
@@ -265,7 +264,7 @@ export default function ResetPasswordPage() {
                 <p
                     role="alert"
                     aria-live="polite"
-                    className="mb-4 rounded-2xl bg-red-50 px-4 py-3 text-left text-sm font-semibold text-red-700"
+                    className={`${ALERT_CLASS} mb-4 border-red-200 bg-red-50 text-red-700`}
                 >
                     {error}
                 </p>
@@ -280,6 +279,7 @@ export default function ResetPasswordPage() {
                     autoComplete="new-password"
                     minLength={8}
                     placeholder="At least 8 characters"
+                    inputClassName={inputClass}
                 />
                 <PasswordStrengthMeter password={form.password} />
 
@@ -291,6 +291,7 @@ export default function ResetPasswordPage() {
                     autoComplete="new-password"
                     minLength={8}
                     placeholder="Repeat your new password"
+                    inputClassName={inputClass}
                 />
                 {form.confirmPassword.length > 0 &&
                     form.password !== form.confirmPassword && (
@@ -299,17 +300,40 @@ export default function ResetPasswordPage() {
                         </p>
                     )}
 
-                <Button type="submit" disabled={submitting} className="w-full !py-3 !text-base">
-                    <KeyRound size={17} /> {submitting ? 'Saving…' : 'Set new password'}
+                <Button type="submit" disabled={submitting} className="w-full !py-4 !text-lg">
+                    <KeyRound size={18} /> {submitting ? 'Saving…' : 'Set new password'}
                 </Button>
             </form>
 
-            <Link
-                to="/login"
-                className="mt-5 inline-flex items-center gap-1 text-xs font-bold text-banana-600 underline hover:text-banana-800"
-            >
-                <ArrowLeft size={13} /> Back to sign in
-            </Link>
+            <BackToSignIn />
         </AuthShell>
+    );
+}
+
+function StatusIcon({ icon: Icon, tone = 'info' }) {
+    const tones = {
+        info: 'border-banana-300 bg-banana-100 text-banana-700',
+        success: 'border-emerald-300 bg-emerald-100 text-emerald-700',
+        warning: 'border-amber-300 bg-amber-100 text-amber-700',
+        danger: 'border-red-300 bg-red-100 text-red-600',
+    };
+
+    return (
+        <div
+            className={`mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border-2 shadow-game-sm ${tones[tone]}`}
+        >
+            <Icon size={30} />
+        </div>
+    );
+}
+
+function BackToSignIn() {
+    return (
+        <Link
+            to="/login"
+            className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-banana-600 underline hover:text-banana-800"
+        >
+            <ArrowLeft size={13} /> Back to sign in
+        </Link>
     );
 }

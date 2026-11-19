@@ -21,6 +21,9 @@ import {
     BarChart3,
     Brain,
     TrendingUp,
+    CircleCheck,
+    Headphones,
+    ArrowRight,
 } from 'lucide-react';
 import {
     Bar,
@@ -39,10 +42,10 @@ import {
     YAxis,
 } from 'recharts';
 import AppHeader from '../components/AppHeader.jsx';
+import BananaLogo from '../components/BananaLogo.jsx';
 import Card from '../components/Card.jsx';
 import Button from '../components/Button.jsx';
 import AudioControls from '../components/AudioControls.jsx';
-import StatCard from '../components/StatCard.jsx';
 import QuizPerformanceChart from '../components/QuizPerformanceChart.jsx';
 import { useAuth } from '../context/auth-context.js';
 import { gameApi, userApi } from '../api/client.js';
@@ -181,57 +184,108 @@ export default function DashboardPage() {
             <AppHeader />
 
             <main className="mx-auto w-full max-w-[1560px] px-4 py-6 md:px-6 md:py-8">
-                {/* Welcome */}
+                {/* Player HUD */}
                 <motion.section
                     initial={{ y: 16, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    className="mb-6 overflow-hidden rounded-3xl border-4 border-banana-300 bg-gradient-to-br from-banana-100 via-banana-50 to-amber-100 p-5 shadow-game md:p-7"
+                    className="relative mb-6 overflow-hidden rounded-[1.75rem] border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/70 p-4 shadow-game sm:p-6 md:p-7"
                 >
-                    <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl border-4 border-banana-400 bg-banana-200 font-display text-2xl font-extrabold text-banana-700 shadow-game-sm">
-                                {user.avatar ? (
-                                    <img src={user.avatar} alt="" className="h-full w-full object-cover" />
-                                ) : (
-                                    initials(user.displayName)
-                                )}
+                    <div
+                        aria-hidden="true"
+                        className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full border-[18px] border-banana-300/40"
+                    />
+                    <div
+                        aria-hidden="true"
+                        className="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full border-[18px] border-white/50"
+                    />
+                    <BananaLogo
+                        size={190}
+                        aria-hidden="true"
+                        className="pointer-events-none absolute -bottom-10 right-6 rotate-12 opacity-10"
+                    />
+
+                    <div className="relative flex flex-wrap gap-5 xl:flex-row xl:items-center xl:justify-between">
+                        <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center">
+                            <div className="relative flex-shrink-0 self-start">
+                                <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border-2 border-banana-400 bg-gradient-to-b from-banana-200 to-banana-300 font-display text-2xl font-extrabold text-banana-800 shadow-game-sm sm:h-24 sm:w-24">
+                                    {user.avatar ? (
+                                        <img
+                                            src={user.avatar}
+                                            alt=""
+                                            className="h-full w-full object-cover"
+                                        />
+                                    ) : (
+                                        initials(user.displayName)
+                                    )}
+                                </div>
+                                <span className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border-2 border-banana-900/20 bg-banana-900 px-2.5 py-0.5 font-display text-[11px] font-extrabold uppercase tracking-wide text-banana-100 shadow-game-sm">
+                                    Lv {level.level}
+                                </span>
                             </div>
-                            <div>
-                                <p className="text-xs font-bold uppercase tracking-widest text-banana-600">
-                                    Welcome back
+
+                            <div className="min-w-0">
+                                <p className="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.2em] text-banana-600">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                    Player online
                                 </p>
-                                <h1 className="font-display text-3xl font-extrabold leading-tight text-banana-800 md:text-4xl">
+                                <h1 className="mt-1 break-words font-display text-3xl font-extrabold leading-tight text-banana-900 sm:text-4xl">
                                     {user.displayName}
                                 </h1>
-                                <p className="break-all text-sm text-banana-600">{user.email}</p>
-                                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-bold">
-                                    <span className="rounded-full bg-banana-300 px-2.5 py-1 text-banana-900">
-                                        Level {level.level} · {level.title}
+                                <p className="break-all text-sm font-semibold text-banana-600">
+                                    {user.email}
+                                </p>
+                                <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-[11px] font-extrabold">
+                                    <span className="inline-flex items-center gap-1 rounded-full border-2 border-banana-300 bg-white/80 px-2.5 py-1 text-banana-800">
+                                        <Crown size={12} /> {level.title}
                                     </span>
-                                    <span className="rounded-full bg-white/80 px-2.5 py-1 text-banana-700">
-                                        Member since {formatDate(user.createdAt)}
+                                    <span className="inline-flex items-center gap-1 rounded-full border-2 border-banana-200 bg-white/60 px-2.5 py-1 text-banana-700">
+                                        <CalendarDays size={12} /> Since{' '}
+                                        {formatDate(user.createdAt)}
                                     </span>
+                                    {user.emailVerified ? (
+                                        <span className="inline-flex items-center gap-1 rounded-full border-2 border-emerald-300 bg-emerald-100 px-2.5 py-1 text-emerald-700">
+                                            <ShieldCheck size={12} /> Verified
+                                        </span>
+                                    ) : (
+                                        <span className="inline-flex items-center gap-1 rounded-full border-2 border-amber-300 bg-amber-50 px-2.5 py-1 text-banana-800">
+                                            <Mail size={12} /> Unverified
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex flex-col gap-3 md:w-64">
-                            <div>
-                                <div className="mb-1 flex justify-between text-xs font-bold text-banana-700">
-                                    <span>Level {level.level}</span>
-                                    <span>
-                                        {level.intoLevel}/{level.needed} pts
-                                    </span>
+                        <div className="w-full rounded-2xl border-2 border-banana-300 bg-white/80 p-4 shadow-game-sm xl:max-w-sm">
+                            <div className="flex items-center justify-between gap-3">
+                                <div className="min-w-0">
+                                    <p className="text-[11px] font-extrabold uppercase tracking-widest text-banana-500">
+                                        Next level
+                                    </p>
+                                    <p className="truncate font-display text-2xl font-extrabold leading-tight text-banana-800">
+                                        {level.title}
+                                    </p>
+                                    <p className="mt-0.5 text-xs font-semibold text-banana-600">
+                                        {level.intoLevel}/{level.needed} pts earned this level
+                                    </p>
                                 </div>
-                                <div className="h-3 overflow-hidden rounded-full bg-white/80">
+                                <LevelRing progress={level.progress} />
+                            </div>
+
+                            <div className="mt-3">
+                                <div className="h-3 overflow-hidden rounded-full border-2 border-banana-200 bg-banana-100">
                                     <div
-                                        className="h-full rounded-full bg-gradient-to-r from-banana-400 to-banana-600 transition-all"
+                                        className="h-full rounded-full bg-banana-500"
                                         style={{ width: `${Math.max(3, level.progress)}%` }}
                                     />
                                 </div>
+                                <div className="mt-1 flex justify-between text-[11px] font-bold text-banana-600">
+                                    <span>Level {level.level}</span>
+                                    <span>Level {level.level + 1}</span>
+                                </div>
                             </div>
-                            <Button onClick={startRound} className="!py-3">
-                                <Play size={18} /> Play {selectedInfo.label}
+
+                            <Button onClick={startRound} className="mt-3 w-full !py-3 !text-base">
+                                <Play size={17} /> Play {MODE_SHORT[selectedMode]}
                             </Button>
                         </div>
                     </div>
@@ -240,67 +294,88 @@ export default function DashboardPage() {
                 {!user.emailVerified && (
                     <Link
                         to="/profile?tab=security"
-                        className="mb-6 flex items-center gap-3 rounded-2xl border-2 border-amber-300 bg-amber-50 px-4 py-3 text-left shadow-game-sm transition hover:bg-amber-100"
+                        className="group mb-6 flex items-center gap-3 rounded-2xl border-2 border-amber-300 bg-amber-50 px-4 py-3 text-left shadow-game-sm transition hover:-translate-y-0.5 hover:bg-amber-100 hover:shadow-game"
                     >
-                        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-amber-200 text-amber-800">
-                            <Mail size={19} />
+                        <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border-2 border-amber-300 bg-amber-200 text-amber-800">
+                            <Mail size={20} />
                         </span>
                         <span className="min-w-0 flex-1">
-                            <span className="block font-display text-base font-extrabold text-amber-900">
+                            <span className="block text-[10px] font-extrabold uppercase tracking-widest text-banana-700">
+                                Quest · Secure your account
+                            </span>
+                            <span className="block font-display text-base font-extrabold text-banana-900">
                                 Verify your email address
                             </span>
-                            <span className="block text-xs font-semibold text-amber-700">
-                                Confirm it from your profile to secure your account and enable
-                                recovery emails.
+                            <span className="block text-xs font-semibold text-banana-700">
+                                Confirm it from your profile to enable recovery emails and keep
+                                your streak safe.
                             </span>
                         </span>
-                        <ChevronRight size={18} className="flex-shrink-0 text-amber-600" />
+                        <span className="hidden flex-shrink-0 items-center gap-1 rounded-full border-2 border-amber-300 bg-white/70 px-3 py-1 text-xs font-extrabold text-banana-800 sm:inline-flex">
+                            Verify <ChevronRight size={14} />
+                        </span>
+                        <ChevronRight
+                            size={18}
+                            className="flex-shrink-0 text-banana-600 transition group-hover:translate-x-0.5 sm:hidden"
+                        />
                     </Link>
                 )}
 
                 {/* Player status */}
-                <section className="mb-8">
+                <section className="mb-6">
                     <SectionTitle
                         icon={<Sparkles size={18} />}
                         title="Player status"
                         hint="Updated after every round"
+                        action={
+                            <Link
+                                to="/leaderboard"
+                                className="inline-flex items-center gap-1 rounded-lg border border-banana-200 bg-white px-2.5 py-1 text-xs font-semibold text-banana-700 transition hover:bg-banana-50"
+                            >
+                                <Trophy size={13} /> Rankings
+                            </Link>
+                        }
                     />
-                    <div className="flex flex-wrap gap-3 [&>*]:grow [&>*]:basis-[calc(50%-0.375rem)] sm:[&>*]:basis-[calc(33.333%-0.5rem)] 2xl:[&>*]:basis-[calc(16.666%-0.625rem)]">
-                        <StatCard icon={<Trophy size={18} />} label="Total points" value={stats?.totalPoints ?? 0} />
-                        <StatCard
-                            icon={<Gamepad2 size={18} />}
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+                        <PlayerStat
+                            icon={<Trophy size={14} />}
+                            label="Total points"
+                            value={stats?.totalPoints ?? 0}
+                            hint={`${level.title} tier`}
+                        />
+                        <PlayerStat
+                            icon={<Gamepad2 size={14} />}
                             label="Games played"
                             value={stats?.gamesPlayed ?? 0}
-                            color="from-sky-300 to-sky-500"
+                            hint={`${stats?.gamesWon ?? 0} won`}
                         />
-                        <StatCard
-                            icon={<Target size={18} />}
+                        <PlayerStat
+                            icon={<Target size={14} />}
                             label="Win rate"
                             value={`${winRate}%`}
                             hint={`${stats?.gamesWon ?? 0} correct`}
-                            color="from-emerald-300 to-emerald-500"
                         />
-                        <StatCard
-                            icon={<Flame size={18} />}
+                        <PlayerStat
+                            icon={<Flame size={14} />}
                             label="Current streak"
                             value={stats?.currentStreak ?? 0}
-                            color="from-orange-300 to-orange-500"
+                            hint="Keep it alive"
                         />
-                        <StatCard
-                            icon={<Crown size={18} />}
+                        <PlayerStat
+                            icon={<Crown size={14} />}
                             label="Best streak"
                             value={stats?.bestStreak ?? 0}
-                            color="from-violet-300 to-violet-500"
+                            hint="Personal record"
                         />
-                        <StatCard
-                            icon={<Zap size={18} />}
+                        <PlayerStat
+                            icon={<Zap size={14} />}
                             label="Fastest answer"
                             value={
                                 stats?.fastestAnswerMs
                                     ? `${(stats.fastestAnswerMs / 1000).toFixed(1)}s`
                                     : '—'
                             }
-                            color="from-pink-300 to-pink-500"
+                            hint="Across all modes"
                         />
                     </div>
                 </section>
@@ -312,160 +387,161 @@ export default function DashboardPage() {
                 )}
 
                 {analyticsVisible ? (
-                    <section className="mb-8 space-y-5">
-                        {showTrend && (
-                            <Card className="!p-5">
-                                <SectionTitle
-                                    icon={<TrendingUp size={18} />}
-                                    title="Score and accuracy trend"
-                                    hint={`Last ${trendRange} days`}
-                                    action={
-                                        <div className="flex gap-1 rounded-xl bg-banana-100 p-1">
+                    <section className="mb-6">
+                        <SectionTitle
+                            icon={<BarChart3 size={18} />}
+                            title="Performance lab"
+                            hint="Your last 100 games"
+                            action={
+                                <Link
+                                    to="/history"
+                                    className="inline-flex items-center gap-1 text-xs font-semibold text-banana-700 hover:underline"
+                                >
+                                    Game history <ArrowRight size={14} />
+                                </Link>
+                            }
+                        />
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                            {showTrend && (
+                                <Card className="!p-3">
+                                    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                                        <h3 className="flex items-center gap-1.5 text-sm font-semibold text-banana-900">
+                                            <TrendingUp size={14} className="text-banana-700" />
+                                            Score & accuracy
+                                        </h3>
+                                        <div className="flex gap-0.5 rounded-md bg-banana-100 p-0.5">
                                             {[7, 14, 30].map((days) => (
                                                 <button
                                                     key={days}
                                                     type="button"
                                                     onClick={() => setTrendRange(days)}
                                                     aria-pressed={trendRange === days}
-                                                    className={`rounded-lg px-2.5 py-1 text-xs font-extrabold transition ${
+                                                    className={`rounded px-1.5 py-0.5 text-[10px] font-semibold transition ${
                                                         trendRange === days
-                                                            ? 'bg-white text-banana-800 shadow-game-sm'
-                                                            : 'text-banana-600 hover:text-banana-800'
+                                                            ? 'bg-white text-banana-900'
+                                                            : 'text-banana-700 hover:text-banana-900'
                                                     }`}
                                                 >
                                                     {days}d
                                                 </button>
                                             ))}
                                         </div>
-                                    }
-                                />
-                                <LazySection
-                                    loading={loadingAnalytics}
-                                    loaderLabel={`Loading ${trendRange}-day trend`}
-                                    skeletonHeight={340}
-                                >
-                                    <AccuracyChart games={games} range={trendRange} />
-                                </LazySection>
-                            </Card>
-                        )}
-                        {showLatestGame && (
-                            <LazySection
-                                loading={loadingAnalytics}
-                                loaderLabel="Loading latest game performance"
-                                skeletonHeight={360}
-                            >
-                                {latestGame ? (
-                                    <QuizPerformanceChart
-                                        quizzes={latestGame.quizzes}
-                                        timeLimit={latestGame.time}
-                                        title="Latest game performance"
-                                        subtitle={`${
-                                            MODE_INFO[normalizeModeId(latestGame.mode)]?.label ||
-                                            'Game'
-                                        } · ${formatRelative(
-                                            latestGame.completedAt || latestGame.startedAt
-                                        )}`}
-                                        action={
+                                    </div>
+                                    <LazySection
+                                        loading={loadingAnalytics}
+                                        loaderLabel="Loading trend"
+                                        skeletonHeight={170}
+                                    >
+                                        <AccuracyChart games={games} range={trendRange} compact />
+                                    </LazySection>
+                                </Card>
+                            )}
+                            {showLatestGame && (
+                                <Card className="!p-3">
+                                    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                                        <h3 className="flex items-center gap-1.5 text-sm font-semibold text-banana-900">
+                                            <BarChart3 size={14} className="text-banana-700" />
+                                            Latest game
+                                        </h3>
+                                        {latestGame && (
                                             <Link
-                                                to={`/game-overview/${encodeURIComponent(
-                                                    latestGame.id
-                                                )}`}
-                                                className="flex items-center gap-1 text-sm font-bold text-banana-700 hover:underline"
+                                                to={`/game-overview/${encodeURIComponent(latestGame.id)}`}
+                                                className="text-[11px] font-semibold text-banana-700 hover:underline"
                                             >
-                                                View analysis <ChevronRight size={15} />
+                                                Open
                                             </Link>
-                                        }
-                                    />
-                                ) : (
-                                    <Card className="!p-5">
-                                        <SectionTitle
-                                            icon={<BarChart3 size={18} />}
-                                            title="Latest game performance"
-                                            hint="Points and response time per quiz"
-                                        />
-                                        <p className="flex min-h-[180px] items-center justify-center text-center text-sm font-bold text-banana-500">
-                                            Play a round and your per-quiz points and response
-                                            times will appear here.
-                                        </p>
-                                    </Card>
-                                )}
-                            </LazySection>
-                        )}
-                        {(showModeMix || showThinkingTime) && (
-                            <div
-                                className={`grid gap-5 ${
-                                    showModeMix && showThinkingTime ? 'lg:grid-cols-2' : ''
-                                }`}
-                            >
-                                {showModeMix && (
-                                    <Card className="!p-5">
-                                        <SectionTitle
-                                            icon={<BarChart3 size={18} />}
-                                            title="Mode mix"
-                                            hint="Share of games by mode"
-                                        />
-                                        <LazySection
-                                            loading={loadingAnalytics}
-                                            loaderLabel="Loading mode breakdown"
-                                            skeletonHeight={340}
-                                        >
-                                            <ModeChart games={games} />
-                                        </LazySection>
-                                    </Card>
-                                )}
-                                {showThinkingTime && (
-                                    <Card className="!p-5">
-                                        <SectionTitle
-                                            icon={<Brain size={18} />}
-                                            title="Thinking time"
-                                            hint="How quickly you answer"
-                                        />
-                                        <LazySection
-                                            loading={loadingAnalytics}
-                                            loaderLabel="Bucketing response times"
-                                            skeletonHeight={340}
-                                        >
-                                            <ThinkingChart games={games} />
-                                        </LazySection>
-                                    </Card>
-                                )}
-                            </div>
-                        )}
+                                        )}
+                                    </div>
+                                    <LazySection
+                                        loading={loadingAnalytics}
+                                        loaderLabel="Loading latest game"
+                                        skeletonHeight={170}
+                                    >
+                                        {latestGame ? (
+                                            <QuizPerformanceChart
+                                                quizzes={latestGame.quizzes}
+                                                timeLimit={latestGame.time}
+                                                compact
+                                            />
+                                        ) : (
+                                            <p className="flex h-[170px] items-center justify-center text-center text-xs text-banana-700">
+                                                Play a round to see per-quiz points and response time.
+                                            </p>
+                                        )}
+                                    </LazySection>
+                                </Card>
+                            )}
+                            {showModeMix && (
+                                <Card className="!p-3">
+                                    <div className="mb-2 flex items-center gap-1.5">
+                                        <BarChart3 size={14} className="text-banana-700" />
+                                        <h3 className="text-sm font-semibold text-banana-900">Mode mix</h3>
+                                    </div>
+                                    <LazySection
+                                        loading={loadingAnalytics}
+                                        loaderLabel="Loading modes"
+                                        skeletonHeight={170}
+                                    >
+                                        <ModeChart games={games} compact />
+                                    </LazySection>
+                                </Card>
+                            )}
+                            {showThinkingTime && (
+                                <Card className="!p-3">
+                                    <div className="mb-2 flex items-center gap-1.5">
+                                        <Brain size={14} className="text-banana-700" />
+                                        <h3 className="text-sm font-semibold text-banana-900">Thinking time</h3>
+                                    </div>
+                                    <LazySection
+                                        loading={loadingAnalytics}
+                                        loaderLabel="Loading response times"
+                                        skeletonHeight={170}
+                                    >
+                                        <ThinkingChart games={games} compact />
+                                    </LazySection>
+                                </Card>
+                            )}
+                        </div>
                     </section>
                 ) : (
-                    <Card className="mb-8 !p-6">
+                    <Card className="mb-6 !p-5">
                         <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
                             <div className="flex items-start gap-3">
-                                <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-banana-100 text-banana-600">
-                                    <BarChart3 size={20} />
+                                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-banana-200 bg-banana-100 text-banana-700">
+                                    <BarChart3 size={18} />
                                 </span>
                                 <div>
-                                    <p className="font-display text-lg font-extrabold text-banana-800">
-                                        Dashboard analytics are hidden
-                                    </p>
-                                    <p className="text-sm font-semibold text-banana-600">
-                                        Your trend, latest game, mode mix and thinking-time cards
-                                        are turned off. Add the ones you want from your profile.
+                                    <p className="font-display text-lg text-banana-900">Performance lab is hidden</p>
+                                    <p className="text-sm text-banana-800">
+                                        Turn on trend, latest game, mode mix or thinking time cards.
                                     </p>
                                 </div>
                             </div>
                             <Button
                                 variant="secondary"
-                                className="flex-shrink-0 !px-4 !py-2 !text-base"
+                                className="flex-shrink-0 !px-4 !py-2 !text-sm"
                                 onClick={() => navigate('/profile?tab=appearance')}
                             >
-                                <Settings size={16} /> Choose cards
+                                <Settings size={15} /> Choose cards
                             </Button>
                         </div>
                     </Card>
                 )}
 
                 {/* Mode selection */}
-                <section className="mb-8">
+                <section className="mb-6">
                     <SectionTitle
                         icon={<Gamepad2 size={18} />}
                         title="Choose a play mode"
-                        hint="Each mode changes the timer and scoring"
+                        hint={`${selectedInfo.label} selected`}
+                        action={
+                            <Link
+                                to="/play"
+                                className="inline-flex items-center gap-1 text-xs font-semibold text-banana-700 hover:underline"
+                            >
+                                Open mode select <ArrowRight size={14} />
+                            </Link>
+                        }
                     />
                     <div className="grid gap-3 md:grid-cols-3">
                         {MODE_LIST.map((mode) => {
@@ -480,143 +556,256 @@ export default function DashboardPage() {
                                         play('click');
                                     }}
                                     aria-pressed={active}
-                                    className={`rounded-2xl border-4 p-4 text-left transition ${
+                                    className={`flex flex-col rounded-2xl border-2 p-4 text-left shadow-game-sm transition-all ${
                                         active
-                                            ? 'border-banana-500 bg-banana-100 shadow-game-sm'
-                                            : 'border-banana-200 bg-white/80 hover:border-banana-300'
+                                            ? '-translate-y-0.5 border-banana-500 bg-gradient-to-b from-banana-100 to-banana-50 shadow-game'
+                                            : 'border-banana-300 bg-gradient-to-b from-white to-banana-50/60 hover:-translate-y-0.5 hover:border-banana-400 hover:shadow-game'
                                     }`}
                                 >
-                                    <div className="mb-2 flex items-center justify-between">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-banana-300 to-banana-500 text-white">
-                                            <Icon size={20} />
-                                        </div>
-                                        <span className="rounded-full bg-banana-200 px-2 py-0.5 text-[11px] font-extrabold text-banana-800">
-                                            {mode.multiplier === 'Practice'
-                                                ? 'Practice'
-                                                : `${mode.multiplier} pts`}
+                                    <div className="mb-2 flex items-start justify-between gap-2">
+                                        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-banana-100 text-banana-700">
+                                            <Icon size={18} />
                                         </span>
+                                        {active && (
+                                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
+                                                <CircleCheck size={11} /> Selected
+                                            </span>
+                                        )}
                                     </div>
-                                    <h3 className="font-display text-xl font-extrabold text-banana-800">
+                                    <h3 className="font-display text-lg leading-tight text-banana-900">
                                         {mode.label}
                                     </h3>
-                                    <p className="text-xs font-bold uppercase tracking-wide text-banana-500">
-                                        {mode.time} per puzzle
-                                    </p>
-                                    <p className="mt-1 text-sm text-banana-700">
-                                        {mode.description}
-                                    </p>
+                                    <p className="text-xs text-banana-700">{mode.tagline}</p>
+                                    <p className="mt-1 flex-1 text-sm text-banana-800">{mode.description}</p>
+                                    <div className="mt-3 flex flex-wrap gap-1.5 text-[11px] text-banana-700">
+                                        <span className="rounded-md bg-banana-100 px-2 py-0.5">{mode.time}</span>
+                                        <span className="rounded-md bg-banana-100 px-2 py-0.5">
+                                            {mode.multiplier === 'Practice' ? 'Practice' : `${mode.multiplier} points`}
+                                        </span>
+                                    </div>
                                 </button>
                             );
                         })}
                     </div>
                 </section>
 
-                <div className="grid gap-5 lg:grid-cols-3">
+                <div className="grid items-start gap-5 lg:grid-cols-3">
                     {/* Achievements preview */}
-                    <Card className="!p-5 lg:col-span-2">
-                        <div className="mb-4 flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-2">
-                                <Award className="text-banana-500" size={22} />
-                                <div>
-                                    <h2 className="font-display text-xl font-extrabold text-banana-800">
-                                        Achievements
-                                    </h2>
-                                    <p className="text-xs text-banana-600">
-                                        {summary
-                                            ? `${summary.unlocked ?? 0} of ${summary.total ?? 0} unlocked`
-                                            : 'Loading your badges…'}
-                                    </p>
+                    <div className="space-y-5 lg:col-span-2">
+                        <Card className="!p-5">
+                            <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                                <div className="flex items-center gap-3">
+                                    <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-banana-300 bg-banana-200 text-banana-700">
+                                        <Award size={24} />
+                                    </span>
+                                    <div>
+                                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-banana-500">
+                                            Trophy cabinet
+                                        </p>
+                                        <h2 className="font-display text-xl font-extrabold text-banana-800">
+                                            Achievements
+                                        </h2>
+                                        <p className="text-xs font-semibold text-banana-600">
+                                            {summary
+                                                ? `${summary.unlocked ?? 0} of ${summary.total ?? 0} unlocked`
+                                                : 'Loading your badges…'}
+                                        </p>
+                                    </div>
                                 </div>
+                                <Link
+                                    to="/achievements"
+                                    className="inline-flex items-center gap-1 rounded-xl border-2 border-banana-200 bg-white/70 px-3 py-1.5 text-xs font-extrabold text-banana-700 transition hover:border-banana-300 hover:bg-banana-100"
+                                >
+                                    View all <ChevronRight size={14} />
+                                </Link>
                             </div>
-                            <Link
-                                to="/achievements"
-                                className="flex items-center gap-1 text-sm font-bold text-banana-700 hover:underline"
-                            >
-                                View all <ChevronRight size={16} />
-                            </Link>
-                        </div>
-
-                        {!achievements && (
-                            <div className="py-8 text-center text-sm font-semibold text-banana-600">
-                                Loading achievements…
-                            </div>
-                        )}
-
-                        {achievements && achievements.length === 0 && (
-                            <p className="py-6 text-center text-sm text-banana-600">
-                                Play a round to start earning badges.
-                            </p>
-                        )}
-
-                        <div className="grid gap-3 sm:grid-cols-2">
-                            {preview.map((achievement) => {
-                                const tier = TIER_STYLES[achievement?.tier] || TIER_STYLES.bronze;
-                                const progress = Math.max(
-                                    0,
-                                    Math.min(100, Number(achievement?.progress) || 0)
-                                );
-                                return (
-                                    <div
-                                        key={achievement.id}
-                                        className={`rounded-2xl border-2 p-3 ${
-                                            achievement.unlocked
-                                                ? `${tier.ring} bg-banana-50`
-                                                : 'border-banana-200 bg-white/60'
-                                        }`}
-                                    >
-                                        <div className="flex items-start gap-2.5">
-                                            <div
-                                                className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-white ${
-                                                    achievement.unlocked
-                                                        ? `bg-gradient-to-br ${tier.gradient}`
-                                                        : 'bg-banana-200 text-banana-500'
-                                                }`}
-                                            >
-                                                <AchievementIcon name={achievement.icon} size={18} />
-                                            </div>
-                                            <div className="min-w-0 flex-1">
-                                                <div className="flex items-center justify-between gap-2">
-                                                    <p className="truncate text-sm font-extrabold text-banana-800">
-                                                        {achievement.title}
-                                                    </p>
-                                                    <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${tier.chip}`}>
-                                                        {tier.label}
-                                                    </span>
+    
+                            {summary && Number(summary.total) > 0 && (
+                                <div className="mb-4">
+                                    <div className="h-3 overflow-hidden rounded-full border-2 border-banana-200 bg-banana-100">
+                                        <div
+                                            className="h-full rounded-full bg-banana-500"
+                                            style={{
+                                                width: `${Math.max(
+                                                    2,
+                                                    Math.round(
+                                                        ((summary.unlocked ?? 0) /
+                                                            (summary.total || 1)) *
+                                                            100
+                                                    )
+                                                )}%`,
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+    
+                            {!achievements && (
+                                <div className="py-8 text-center text-sm font-semibold text-banana-600">
+                                    Loading achievements…
+                                </div>
+                            )}
+    
+                            {achievements && achievements.length === 0 && (
+                                <p className="py-6 text-center text-sm text-banana-600">
+                                    Play a round to start earning badges.
+                                </p>
+                            )}
+    
+                            <div className="grid gap-3 sm:grid-cols-2">
+                                {preview.map((achievement) => {
+                                    const tier = TIER_STYLES[achievement?.tier] || TIER_STYLES.bronze;
+                                    const progress = Math.max(
+                                        0,
+                                        Math.min(100, Number(achievement?.progress) || 0)
+                                    );
+                                    return (
+                                        <div
+                                            key={achievement.id}
+                                            className={`relative overflow-hidden rounded-2xl border-2 p-3 transition ${
+                                                achievement.unlocked
+                                                    ? `${tier.ring} bg-banana-50 shadow-game-sm`
+                                                    : 'border-banana-200 bg-white/60'
+                                            }`}
+                                        >
+                                            {achievement.unlocked && (
+                                                <div
+                                                    aria-hidden="true"
+                                                    className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${tier.gradient}`}
+                                                />
+                                            )}
+                                            <div className="flex items-start gap-2.5">
+                                                <div
+                                                    className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-white ${
+                                                        achievement.unlocked
+                                                            ? `bg-gradient-to-br ${tier.gradient} shadow-game-sm`
+                                                            : 'bg-banana-200 text-banana-500'
+                                                    }`}
+                                                >
+                                                    <AchievementIcon name={achievement.icon} size={19} />
                                                 </div>
-                                                <p className="line-clamp-2 text-xs text-banana-600">
-                                                    {achievement.description}
-                                                </p>
-                                                <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-banana-200">
-                                                    <div
-                                                        className={`h-full rounded-full ${
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <p className="truncate text-sm font-extrabold text-banana-800">
+                                                            {achievement.title}
+                                                        </p>
+                                                        <span
+                                                            className="inline-flex flex-shrink-0 items-center gap-1 rounded-full border-2 border-banana-200 bg-banana-100 px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-banana-700"
+                                                        >
+                                                            <span
+                                                                aria-hidden="true"
+                                                                className={`h-1.5 w-1.5 rounded-full bg-gradient-to-br ${tier.gradient}`}
+                                                            />
+                                                            {tier.label}
+                                                        </span>
+                                                    </div>
+                                                    <p className="line-clamp-2 text-xs font-semibold text-banana-600">
+                                                        {achievement.description}
+                                                    </p>
+                                                    <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-banana-200">
+                                                        <div
+                                                            className={`h-full rounded-full ${
+                                                                achievement.unlocked
+                                                                    ? 'bg-gradient-to-r from-banana-400 to-banana-600'
+                                                                    : 'bg-banana-300'
+                                                            }`}
+                                                            style={{ width: `${Math.max(4, progress)}%` }}
+                                                        />
+                                                    </div>
+                                                    <p
+                                                        className={`mt-1 flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wide ${
                                                             achievement.unlocked
-                                                                ? 'bg-gradient-to-r from-banana-400 to-banana-600'
-                                                                : 'bg-banana-300'
+                                                                ? 'text-emerald-800'
+                                                                : 'text-banana-500'
                                                         }`}
-                                                        style={{ width: `${Math.max(4, progress)}%` }}
-                                                    />
+                                                    >
+                                                        {achievement.unlocked ? (
+                                                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-1.5 py-0.5">
+                                                                <CircleCheck size={11} /> Unlocked
+                                                            </span>
+                                                        ) : (
+                                                            `${Math.round(progress)}% complete`
+                                                        )}
+                                                    </p>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </Card>
+                                    );
+                                })}
+                            </div>
+                        </Card>
+
+                        <Card className="!p-5">
+                            <div className="mb-3 flex items-center gap-2.5">
+                                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-200 text-banana-700">
+                                    <Sparkles size={19} />
+                                </span>
+                                <div>
+                                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-banana-500">
+                                        Shortcuts
+                                    </p>
+                                    <h2 className="font-display text-xl font-extrabold text-banana-800">
+                                        Jump back in
+                                    </h2>
+                                </div>
+                            </div>
+                            <div className="grid gap-2 sm:grid-cols-2">
+                                {[
+                                    { to: '/history', label: 'Game history', icon: CalendarDays },
+                                    { to: '/achievements', label: 'Achievements', icon: Award },
+                                    { to: '/leaderboard', label: 'Leaderboard', icon: Trophy },
+                                    { to: '/profile', label: 'Account settings', icon: Settings },
+                                ].map(({ to, label, icon: Icon }) => (
+                                    <Link
+                                        key={to}
+                                        to={to}
+                                        className="group flex items-center gap-2.5 rounded-xl border-2 border-banana-100 bg-banana-50/70 px-3 py-2 text-sm font-extrabold text-banana-800 transition hover:border-banana-300 hover:bg-banana-100"
+                                    >
+                                        <Icon size={16} className="text-banana-500" />
+                                        <span className="flex-1">{label}</span>
+                                        <ChevronRight
+                                            size={15}
+                                            className="text-banana-400 transition group-hover:translate-x-0.5"
+                                        />
+                                    </Link>
+                                ))}
+                            </div>
+                        </Card>
+                    </div>
 
                     {/* Controls + account */}
                     <div className="space-y-5">
                         <Card className="!p-5">
-                            <h2 className="mb-4 font-display text-xl font-extrabold text-banana-800">
-                                Controls
-                            </h2>
+                            <div className="mb-4 flex items-center gap-2.5">
+                                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-200 text-banana-700">
+                                    <Headphones size={19} />
+                                </span>
+                                <div>
+                                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-banana-500">
+                                        Audio &amp; feedback
+                                    </p>
+                                    <h2 className="font-display text-xl font-extrabold text-banana-800">
+                                        Controls
+                                    </h2>
+                                </div>
+                            </div>
                             <AudioControls />
                         </Card>
 
                         <Card className="!p-5">
-                            <h2 className="mb-3 font-display text-xl font-extrabold text-banana-800">
-                                Account at a glance
-                            </h2>
+                            <div className="mb-3 flex items-center gap-2.5">
+                                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-200 text-banana-700">
+                                    <ShieldCheck size={19} />
+                                </span>
+                                <div>
+                                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-banana-500">
+                                        Your account
+                                    </p>
+                                    <h2 className="font-display text-xl font-extrabold text-banana-800">
+                                        At a glance
+                                    </h2>
+                                </div>
+                            </div>
                             <dl className="space-y-2.5 text-sm">
                                 <div className="flex items-center justify-between gap-3">
                                     <dt className="flex items-center gap-2 text-banana-600">
@@ -656,16 +845,75 @@ export default function DashboardPage() {
     );
 }
 
+function PlayerStat({ icon, label, value, hint }) {
+    return (
+        <div className="rounded-xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/80 px-3 py-2.5 shadow-game-sm">
+            <div className="flex items-center gap-1.5 text-banana-700">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-banana-300 bg-banana-100 text-banana-700 shadow-[inset_0_-1px_0_rgba(109,74,14,0.08)]">
+                    {icon}
+                </span>
+                <p className="truncate text-[11px] font-bold text-banana-800">{label}</p>
+            </div>
+            <p className="mt-1.5 font-display text-xl leading-none text-banana-900 tabular-nums">{value}</p>
+            {hint && <p className="mt-0.5 truncate text-[11px] text-banana-700">{hint}</p>}
+        </div>
+    );
+}
+
+function LevelRing({ progress }) {
+    const pct = Math.max(0, Math.min(100, Math.round(Number(progress) || 0)));
+    const radius = 26;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (pct / 100) * circumference;
+
+    return (
+        <div
+            className="relative h-16 w-16 flex-shrink-0"
+            role="img"
+            aria-label={`${pct}% towards the next level`}
+        >
+            <svg viewBox="0 0 64 64" className="h-full w-full -rotate-90">
+                <circle
+                    cx="32"
+                    cy="32"
+                    r={radius}
+                    fill="none"
+                    strokeWidth="6"
+                    className="stroke-banana-200"
+                />
+                <circle
+                    cx="32"
+                    cy="32"
+                    r={radius}
+                    fill="none"
+                    strokeWidth="6"
+                    strokeLinecap="round"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={offset}
+                    className="stroke-banana-500"
+                />
+            </svg>
+            <span className="absolute inset-0 flex items-center justify-center font-display text-sm font-extrabold text-banana-800">
+                {pct}%
+            </span>
+        </div>
+    );
+}
+
 function SectionTitle({ icon, title, hint, action = null }) {
     return (
-        <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
-            <h2 className="flex items-center gap-2 font-display text-xl font-extrabold text-banana-800">
-                <span className="text-banana-500">{icon}</span>
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+            <h2 className="flex items-center gap-2.5 font-display text-xl font-extrabold text-banana-800">
+                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border-2 border-banana-300 bg-banana-200 text-banana-700">
+                    {icon}
+                </span>
                 {title}
             </h2>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2">
                 {hint && (
-                    <p className="hidden text-xs font-semibold text-banana-500 sm:block">{hint}</p>
+                    <p className="hidden rounded-full border-2 border-banana-200 bg-white/70 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-banana-600 sm:block">
+                        {hint}
+                    </p>
                 )}
                 {action}
             </div>
@@ -696,10 +944,10 @@ function LazySection({ loading, loaderLabel, skeletonHeight, children }) {
                 className="flex flex-col items-center justify-center"
             >
                 <div
-                    className="w-full animate-pulse rounded-2xl bg-banana-100"
-                    style={{ height: skeletonHeight - 35 }}
+                    className="w-full rounded-lg bg-banana-100"
+                    style={{ height: Math.max(60, skeletonHeight - 24) }}
                 />
-                <p className="mt-3 text-xs font-bold text-banana-500">{loaderLabel}</p>
+                <p className="mt-2 text-[11px] text-banana-600">{loaderLabel}</p>
             </div>
         );
     }
@@ -719,94 +967,104 @@ function gameCorrectCount(game) {
     return quizzes.filter((quiz) => quiz?.isCorrect).length;
 }
 
-function AccuracyChart({ games, range = 14 }) {
+function AccuracyChart({ games, range = 14, compact = false }) {
     const rows = trendRows(games, range);
     const activeDays = rows.filter((row) => row.games > 0).length;
 
     if (!activeDays) {
-        return <EmptyState text={`No games in the last ${range} days`} />;
+        return <EmptyState text={`No games in the last ${range} days`} compact={compact} />;
     }
 
     const windowPoints = rows.reduce((sum, row) => sum + row.score, 0);
     const attempts = rows.reduce((sum, row) => sum + row.attempts, 0);
     const correct = rows.reduce((sum, row) => sum + row.correct, 0);
     const windowAccuracy = attempts ? Math.round((correct / attempts) * 100) : null;
+    const chartHeight = compact ? 170 : 280;
 
     return (
         <div>
-            <div className="mb-4 grid grid-cols-3 gap-2">
-                <TrendStat
-                    label="Window points"
-                    value={`${windowPoints > 0 ? '+' : ''}${windowPoints}`}
-                    tone="text-banana-700"
-                />
-                <TrendStat
-                    label="Accuracy"
-                    value={windowAccuracy == null ? '—' : `${windowAccuracy}%`}
-                    tone="text-emerald-600"
-                />
-                <TrendStat
-                    label="Active days"
-                    value={`${activeDays}/${range}`}
-                    tone="text-sky-600"
-                />
-            </div>
+            {!compact && (
+                <div className="mb-4 grid grid-cols-3 gap-2">
+                    <TrendStat
+                        label="Window points"
+                        value={`${windowPoints > 0 ? '+' : ''}${windowPoints}`}
+                        tone="text-banana-700"
+                    />
+                    <TrendStat
+                        label="Accuracy"
+                        value={windowAccuracy == null ? '—' : `${windowAccuracy}%`}
+                        tone="text-emerald-600"
+                    />
+                    <TrendStat
+                        label="Active days"
+                        value={`${activeDays}/${range}`}
+                        tone="text-sky-600"
+                    />
+                </div>
+            )}
 
-            <ChartFrame label={`Score and accuracy over the last ${range} days`}>
-                <ComposedChart data={rows} margin={{ top: 8, right: 4, bottom: 0, left: -16 }}>
+            <ChartFrame label={`Score and accuracy over the last ${range} days`} height={chartHeight}>
+                <ComposedChart data={rows} margin={{ top: 6, right: 0, bottom: 0, left: compact ? -24 : -16 }}>
                     <defs>
                         <linearGradient id="trendBarFill" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#facc15" stopOpacity=".95" />
-                            <stop offset="100%" stopColor="#f59e0b" stopOpacity=".55" />
+                            <stop offset="0%" stopColor="#e8b635" stopOpacity=".95" />
+                            <stop offset="100%" stopColor="#a87200" stopOpacity=".55" />
                         </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f5d875" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e3e1d7" />
                     <XAxis
                         dataKey="label"
                         interval={range > 14 ? 4 : 0}
-                        tick={{ fontSize: 11, fill: '#b56000' }}
+                        tick={{ fontSize: compact ? 10 : 11, fill: '#4a4236' }}
                         axisLine={false}
                         tickLine={false}
                     />
                     <YAxis
                         yAxisId="score"
                         allowDecimals={false}
-                        tick={{ fontSize: 12, fill: '#b56000' }}
+                        tick={{ fontSize: compact ? 10 : 12, fill: '#4a4236' }}
                         axisLine={false}
                         tickLine={false}
+                        width={compact ? 24 : 32}
                     />
                     <YAxis
                         yAxisId="accuracy"
                         orientation="right"
                         domain={[0, 100]}
                         unit="%"
-                        tick={{ fontSize: 12, fill: '#b56000' }}
+                        tick={{ fontSize: compact ? 10 : 12, fill: '#4a4236' }}
                         axisLine={false}
                         tickLine={false}
+                        width={compact ? 24 : 32}
                     />
                     <Tooltip content={<TrendTooltip />} />
-                    <Legend wrapperStyle={{ fontSize: 12, color: '#b56000' }} />
+                    {!compact && <Legend wrapperStyle={{ fontSize: 12, color: '#4a4236' }} />}
                     <Bar
                         yAxisId="score"
                         dataKey="score"
                         name="Daily points"
                         fill="url(#trendBarFill)"
-                        radius={[6, 6, 0, 0]}
-                        maxBarSize={28}
+                        radius={[4, 4, 0, 0]}
+                        maxBarSize={compact ? 14 : 28}
                     />
                     <Line
                         yAxisId="accuracy"
                         type="monotone"
                         dataKey="accuracy"
                         stroke="#34d399"
-                        strokeWidth={2.5}
-                        dot={{ r: 3, fill: '#34d399' }}
-                        activeDot={{ r: 5 }}
+                        strokeWidth={2}
+                        dot={compact ? false : { r: 3, fill: '#34d399' }}
+                        activeDot={{ r: 4 }}
                         connectNulls
                         name="Accuracy %"
                     />
                 </ComposedChart>
             </ChartFrame>
+            {compact && (
+                <p className="mt-1 text-[10px] text-banana-700">
+                    {windowPoints > 0 ? '+' : ''}{windowPoints} pts · {windowAccuracy == null ? '—' : `${windowAccuracy}%`} accuracy
+                </p>
+            )}
         </div>
     );
 }
@@ -860,7 +1118,7 @@ function TrendTooltip({ active, payload }) {
     );
 }
 
-function ModeChart({ games }) {
+function ModeChart({ games, compact = false }) {
     const list = Array.isArray(games) ? games : [];
     const stats = new Map();
 
@@ -880,61 +1138,67 @@ function ModeChart({ games }) {
         }))
         .sort((a, b) => b.games - a.games);
 
-    if (!rows.length) return <EmptyState text="No completed games by mode yet." />;
+    if (!rows.length) return <EmptyState text="No completed games by mode yet." compact={compact} />;
 
     const total = rows.reduce((sum, row) => sum + row.games, 0);
     const top = rows[0];
+    const chartHeight = compact ? 170 : 230;
 
     return (
         <div>
-            <div className="mb-4 grid grid-cols-3 gap-2">
-                <TrendStat label="Total games" value={total} tone="text-banana-700" />
-                <TrendStat label="Top mode" value={top.label} tone="text-emerald-600" />
-                <TrendStat
-                    label="Modes played"
-                    value={`${rows.length}/${MODE_LIST.length}`}
-                    tone="text-sky-600"
-                />
-            </div>
+            {!compact && (
+                <div className="mb-4 grid grid-cols-3 gap-2">
+                    <TrendStat label="Total games" value={total} tone="text-banana-700" />
+                    <TrendStat label="Top mode" value={top.label} tone="text-emerald-600" />
+                    <TrendStat
+                        label="Modes played"
+                        value={`${rows.length}/${MODE_LIST.length}`}
+                        tone="text-sky-600"
+                    />
+                </div>
+            )}
 
-            <ChartFrame label="Games by mode" height={230}>
-                <BarChart data={rows} margin={{ top: 20, right: 8, bottom: 0, left: -16 }}>
-                    <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f5d875" />
+            <ChartFrame label="Games by mode" height={chartHeight}>
+                <BarChart data={rows} margin={{ top: compact ? 8 : 20, right: 4, bottom: 0, left: compact ? -24 : -16 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e3e1d7" />
                     <XAxis
                         dataKey="label"
-                        tick={{ fontSize: 12, fill: '#b56000' }}
+                        tick={{ fontSize: compact ? 10 : 12, fill: '#4a4236' }}
                         axisLine={false}
                         tickLine={false}
                     />
                     <YAxis
                         allowDecimals={false}
-                        tick={{ fontSize: 12, fill: '#b56000' }}
+                        tick={{ fontSize: compact ? 10 : 12, fill: '#4a4236' }}
                         axisLine={false}
                         tickLine={false}
+                        width={compact ? 24 : 32}
                     />
                     <Tooltip
                         content={<ModeTooltip total={total} />}
-                        cursor={{ fill: 'rgba(250,204,21,.12)' }}
+                        cursor={{ fill: 'rgba(232,182,53,.12)' }}
                     />
-                    <Bar dataKey="games" name="Games" radius={[8, 8, 0, 0]} maxBarSize={64}>
+                    <Bar dataKey="games" name="Games" radius={[4, 4, 0, 0]} maxBarSize={compact ? 28 : 64}>
                         {rows.map((row) => (
-                            <Cell key={row.id} fill={MODE_COLORS[row.id] || '#facc15'} />
+                            <Cell key={row.id} fill={MODE_COLORS[row.id] || '#e8b635'} />
                         ))}
-                        <LabelList
-                            dataKey="games"
-                            position="top"
-                            style={{ fontSize: 12, fontWeight: 800, fill: '#b56000' }}
-                        />
+                        {!compact && (
+                            <LabelList
+                                dataKey="games"
+                                position="top"
+                                style={{ fontSize: 12, fontWeight: 600, fill: '#4a4236' }}
+                            />
+                        )}
                     </Bar>
                 </BarChart>
             </ChartFrame>
 
-            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11px] font-bold text-banana-600">
+            <div className={`mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 ${compact ? 'text-[10px]' : 'text-[11px] font-bold'} text-banana-700`}>
                 {rows.map((row) => (
-                    <span key={row.id} className="flex items-center gap-1.5">
+                    <span key={row.id} className="flex items-center gap-1">
                         <span
-                            className="h-2.5 w-2.5 rounded-sm"
-                            style={{ background: MODE_COLORS[row.id] || '#facc15' }}
+                            className="h-2 w-2 rounded-sm"
+                            style={{ background: MODE_COLORS[row.id] || '#e8b635' }}
                         />
                         {row.label} · {row.games}
                     </span>
@@ -974,7 +1238,7 @@ function ModeTooltip({ active, payload, total }) {
     );
 }
 
-function ThinkingChart({ games }) {
+function ThinkingChart({ games, compact = false }) {
     const list = Array.isArray(games) ? games : [];
     const buckets = THINKING_BUCKETS.map((bucket) => ({ ...bucket, value: 0 }));
     let totalMs = 0;
@@ -993,30 +1257,33 @@ function ThinkingChart({ games }) {
         });
 
     if (!answered) {
-        return <EmptyState text="Answer a few puzzles to see your time profile." />;
+        return <EmptyState text="Answer a few puzzles to see your time profile." compact={compact} />;
     }
 
     const rows = buckets.filter((row) => row.value > 0);
     const avgSeconds = Math.round((totalMs / answered / 1000) * 10) / 10;
     const top = [...buckets].sort((a, b) => b.value - a.value)[0];
+    const chartHeight = compact ? 170 : 230;
 
     return (
         <div>
-            <div className="mb-4 grid grid-cols-3 gap-2">
-                <TrendStat label="Answered" value={answered} tone="text-banana-700" />
-                <TrendStat label="Avg time" value={`${avgSeconds}s`} tone="text-sky-600" />
-                <TrendStat label="Most common" value={top.label} tone="text-emerald-600" />
-            </div>
+            {!compact && (
+                <div className="mb-4 grid grid-cols-3 gap-2">
+                    <TrendStat label="Answered" value={answered} tone="text-banana-700" />
+                    <TrendStat label="Avg time" value={`${avgSeconds}s`} tone="text-sky-600" />
+                    <TrendStat label="Most common" value={top.label} tone="text-emerald-600" />
+                </div>
+            )}
 
-            <ChartFrame label="Answer-time profile" height={230}>
+            <ChartFrame label="Answer-time profile" height={chartHeight}>
                 <PieChart>
                     <Pie
                         data={rows}
                         dataKey="value"
                         nameKey="name"
-                        innerRadius={54}
-                        outerRadius={88}
-                        paddingAngle={3}
+                        innerRadius={compact ? 38 : 54}
+                        outerRadius={compact ? 62 : 88}
+                        paddingAngle={2}
                         stroke="transparent"
                     >
                         {rows.map((row) => (
@@ -1026,41 +1293,39 @@ function ThinkingChart({ games }) {
                     <Tooltip content={<ThinkingTooltip total={answered} />} />
                     <text
                         x="50%"
-                        y="46%"
+                        y="48%"
                         textAnchor="middle"
                         dominantBaseline="middle"
-                        style={{ fontSize: 22, fontWeight: 800, fill: '#8a4b00' }}
+                        style={{ fontSize: compact ? 14 : 22, fontWeight: 600, fill: '#24211b' }}
                     >
                         {avgSeconds}s
                     </text>
-                    <text
-                        x="50%"
-                        y="55%"
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        style={{
-                            fontSize: 9,
-                            fontWeight: 700,
-                            letterSpacing: 1.2,
-                            fill: '#b56000',
-                        }}
-                    >
-                        AVG TIME
-                    </text>
+                    {!compact && (
+                        <text
+                            x="50%"
+                            y="57%"
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                            style={{ fontSize: 9, fontWeight: 600, fill: '#4a4236' }}
+                        >
+                            avg time
+                        </text>
+                    )}
                 </PieChart>
             </ChartFrame>
 
-            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11px] font-bold text-banana-600">
+            <div className={`mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 ${compact ? 'text-[10px]' : 'text-[11px] font-bold'} text-banana-700`}>
                 {buckets.map((bucket) => (
-                    <span key={bucket.name} className="flex items-center gap-1.5">
+                    <span key={bucket.name} className="flex items-center gap-1">
                         <span
-                            className="h-2.5 w-2.5 rounded-sm"
+                            className="h-2 w-2 rounded-sm"
                             style={{ background: bucket.color }}
                         />
                         {bucket.label} · {bucket.value}
                     </span>
                 ))}
             </div>
+            {compact && <p className="mt-0.5 text-[10px] text-banana-700">Avg {avgSeconds}s · {answered} answers</p>}
         </div>
     );
 }
@@ -1101,9 +1366,9 @@ function ChartFrame({ label, height = 280, children }) {
     );
 }
 
-function EmptyState({ text }) {
+function EmptyState({ text, compact = false }) {
     return (
-        <p className="flex min-h-[220px] items-center justify-center text-sm font-bold text-banana-500">
+        <p className={`flex items-center justify-center text-center ${compact ? 'h-[170px] text-xs' : 'min-h-[220px] text-sm'} text-banana-700`}>
             {text}
         </p>
     );

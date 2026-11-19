@@ -1,19 +1,12 @@
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import {
-    ArrowLeft,
-    Award,
-    Flame,
-    ShieldCheck,
-    Sparkles,
-    Trophy,
-} from 'lucide-react';
+import { Award, Flame, ShieldCheck, Sparkles, Trophy } from 'lucide-react';
 import BananaLogo from '../components/BananaLogo.jsx';
-import Card from '../components/Card.jsx';
+import Button from '../components/Button.jsx';
 import PasswordInput from '../components/PasswordInput.jsx';
 import PasswordStrengthMeter from '../components/PasswordStrengthMeter.jsx';
-import FullscreenButton from '../components/FullscreenButton.jsx';
+import PublicPageHeader from '../components/PublicPageHeader.jsx';
 import { authApi } from '../api/client.js';
 import { useAuth } from '../context/auth-context.js';
 import { usePageTitle } from '../hooks/usePageTitle.js';
@@ -25,7 +18,7 @@ import {
 } from '../lib/rememberMe.js';
 
 const inputClass =
-    'w-full rounded-2xl border-2 border-banana-200 bg-white px-4 py-3 font-semibold text-banana-900 placeholder:text-banana-400 focus:border-banana-400 focus:outline-none';
+    'w-full rounded-2xl border-2 border-banana-200 bg-white px-4 py-3 font-semibold text-banana-900 placeholder:text-banana-400 transition focus:border-banana-400 focus:outline-none focus:ring-2 focus:ring-banana-300/60';
 
 const BENEFITS = [
     {
@@ -168,296 +161,340 @@ export default function LoginPage() {
     const oauthRememberQuery = remember ? '?remember=1' : '';
 
     return (
-        <div className="flex min-h-screen flex-col px-4 py-5 sm:px-6">
-            <header className="mx-auto flex w-full max-w-[1560px] items-center justify-between gap-3">
-                <Link to="/" className="flex items-center gap-2">
-                    <BananaLogo size={38} className="animate-wiggle" />
-                    <span className="font-display text-xl font-extrabold text-banana-800">
-                        Banana Quiz
-                    </span>
-                </Link>
-                <div className="flex items-center gap-2">
-                    <FullscreenButton />
-                    <Link
-                        to="/leaderboard"
-                        className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-bold text-banana-700 transition hover:bg-banana-200/60"
-                    >
-                        <Trophy size={17} /> Leaderboard
-                    </Link>
-                </div>
-            </header>
+        <div className="flex min-h-screen flex-col px-3 py-4 sm:px-6 sm:py-5">
+            <PublicPageHeader />
 
-            <div className="mx-auto grid w-full max-w-[1560px] flex-1 items-center gap-10 py-8 lg:grid-cols-2 lg:gap-14">
-                {/* Desktop introduction */}
-                <section className="hidden lg:block">
-                    <p className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-banana-600">
-                        <Sparkles size={15} /> Free browser game
-                    </p>
-                    <h2 className="mt-2 font-display text-5xl font-extrabold leading-[1.05] text-banana-800">
-                        Save your streak.
-                        <br />
-                        <span className="text-banana-500">Climb the board.</span>
-                    </h2>
-                    <p className="mt-4 max-w-md text-lg text-banana-700">
-                        One account keeps your points, achievements and best runs together on
-                        every device.
-                    </p>
-
-                    <ul className="mt-7 space-y-4">
-                        {BENEFITS.map(({ icon: Icon, title, text }) => (
-                            <li key={title} className="flex gap-3">
-                                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-banana-200 text-banana-700">
-                                    <Icon size={19} />
-                                </span>
-                                <span>
-                                    <span className="block font-display text-lg font-extrabold leading-tight text-banana-800">
-                                        {title}
-                                    </span>
-                                    <span className="block text-sm text-banana-600">{text}</span>
-                                </span>
-                            </li>
-                        ))}
-                    </ul>
-                </section>
-
-                <motion.div
-                    initial={{ y: 30, opacity: 0 }}
+            <main className="mx-auto flex w-full max-w-[1560px] flex-1 flex-col py-4 sm:py-6">
+                <motion.section
+                    initial={{ y: 24, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    className="mx-auto w-full max-w-md"
+                    className="grid w-full flex-1 overflow-hidden rounded-[1.75rem] border-2 border-banana-400 bg-gradient-to-b from-white to-banana-50/70 shadow-game lg:grid-cols-[1.05fr_1fr]"
                 >
-                    <Card className="text-center">
-                        <BananaLogo size={92} className="mx-auto mb-3 animate-wiggle" />
-                        <p className="mb-1 font-display text-sm font-extrabold uppercase tracking-widest text-banana-500">
-                            Banana Quiz
-                        </p>
-                        <h1 className="mb-2 font-display text-4xl font-extrabold text-banana-800">
-                            {isRegister ? 'Join the bunch!' : 'Welcome back!'}
-                        </h1>
-                        <p className="mb-6 text-banana-700">
-                            {isRegister
-                                ? 'Create a free account to save your scores and streaks.'
-                                : 'Sign in to pick up where you left off.'}
-                        </p>
+                    {/* Desktop introduction panel */}
+                    <aside className="banana-promo-panel relative hidden overflow-hidden border-r-2 border-banana-400/30 bg-gradient-to-br from-banana-300 via-banana-400 to-amber-500 p-8 lg:flex lg:flex-col xl:p-10">
+                        <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full border-[20px] border-white/20" />
+                        <div className="pointer-events-none absolute -bottom-28 -left-24 h-80 w-80 rounded-full border-[20px] border-white/15" />
+                        <BananaLogo
+                            size={240}
+                            aria-hidden="true"
+                            className="pointer-events-none absolute -bottom-12 -right-10 rotate-12 opacity-15"
+                        />
 
-                        <div
-                            role="tablist"
-                            aria-label="Sign in or create an account"
-                            className="mb-5 grid grid-cols-2 gap-1 rounded-2xl bg-banana-100 p-1"
-                        >
-                            <button
-                                type="button"
-                                role="tab"
-                                aria-selected={mode === 'login'}
-                                disabled={submitting}
-                                onClick={() => switchMode('login')}
-                                className={`rounded-xl px-3 py-2 text-sm font-bold transition disabled:cursor-not-allowed ${
-                                    mode === 'login'
-                                        ? 'bg-white text-banana-800 shadow-game-sm'
-                                        : 'text-banana-600 hover:text-banana-800'
-                                }`}
-                            >
-                                Sign In
-                            </button>
-                            <button
-                                type="button"
-                                role="tab"
-                                aria-selected={mode === 'register'}
-                                disabled={submitting}
-                                onClick={() => switchMode('register')}
-                                className={`rounded-xl px-3 py-2 text-sm font-bold transition disabled:cursor-not-allowed ${
-                                    mode === 'register'
-                                        ? 'bg-white text-banana-800 shadow-game-sm'
-                                        : 'text-banana-600 hover:text-banana-800'
-                                }`}
-                            >
-                                Create Account
-                            </button>
+                        <div className="relative flex flex-1 flex-col">
+                            <span className="inline-flex w-fit items-center gap-2 rounded-full border-2 border-banana-900/20 bg-banana-900/10 px-3 py-1 text-xs font-extrabold uppercase tracking-widest text-banana-900">
+                                <Sparkles size={14} /> Free browser game
+                            </span>
+
+                            <h2 className="mt-6 font-display text-4xl font-extrabold leading-[1.03] text-banana-900 xl:text-5xl">
+                                Your bunch is
+                                <br />
+                                <span className="text-white drop-shadow-[0_3px_0_rgba(107,50,0,0.28)]">
+                                    waiting for you.
+                                </span>
+                            </h2>
+                            <p className="mt-4 max-w-md text-lg font-semibold text-banana-900/80">
+                                One account keeps your points, achievements and best runs
+                                together on every device.
+                            </p>
+
+                            <ul className="mt-7 grid gap-3 sm:grid-cols-2">
+                                {BENEFITS.map(({ icon: Icon, title, text }) => (
+                                    <li
+                                        key={title}
+                                        className="flex gap-3 rounded-2xl border-2 border-white/50 bg-banana-50/70 p-3.5 backdrop-blur-sm"
+                                    >
+                                        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-500/30 bg-white/80 text-banana-700">
+                                            <Icon size={19} />
+                                        </span>
+                                        <span className="min-w-0">
+                                            <span className="block font-display text-base font-extrabold leading-tight text-banana-900">
+                                                {title}
+                                            </span>
+                                            <span className="mt-0.5 block text-xs font-semibold leading-snug text-banana-900/75">
+                                                {text}
+                                            </span>
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <div className="relative mt-auto flex flex-wrap items-center gap-2 pt-8 text-[11px] font-extrabold uppercase tracking-wide text-banana-900/75">
+                                <span className="rounded-full border-2 border-white/50 bg-banana-50/70 px-3 py-1.5">
+                                    3 game modes
+                                </span>
+                                <span className="rounded-full border-2 border-white/50 bg-banana-50/70 px-3 py-1.5">
+                                    14 achievements
+                                </span>
+                                <span className="rounded-full border-2 border-white/50 bg-banana-50/70 px-3 py-1.5">
+                                    Global leaderboard
+                                </span>
+                            </div>
+                        </div>
+                    </aside>
+
+                    {/* Auth panel */}
+                    <div className="relative flex flex-col justify-center bg-white/90 p-5 sm:p-8 lg:p-10 xl:p-12">
+                        {/* Compact brand strip for small screens */}
+                        <div className="mb-5 flex items-center gap-3 rounded-2xl border-2 border-banana-400 bg-gradient-to-br from-banana-200 to-banana-300 p-3.5 shadow-game-sm lg:hidden">
+                            <BananaLogo size={46} className="animate-wiggle" />
+                            <div className="min-w-0">
+                                <p className="font-display text-lg font-extrabold leading-none text-banana-900">
+                                    Banana Quiz
+                                </p>
+                                <p className="mt-0.5 text-xs font-bold text-banana-800">
+                                    Calculate fast. Climb the board.
+                                </p>
+                            </div>
                         </div>
 
-                        {error && (
-                            <p
-                                role="alert"
-                                aria-live="polite"
-                                className="mb-4 rounded-2xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700"
-                            >
-                                {error}
+                        <div className="mx-auto w-full max-w-md">
+                            <p className="font-display text-xs font-extrabold uppercase tracking-[0.2em] text-banana-500">
+                                Banana Quiz account
                             </p>
-                        )}
+                            <h1 className="mt-1 font-display text-3xl font-extrabold leading-tight text-banana-800 sm:text-4xl">
+                                {isRegister ? 'Join the bunch!' : 'Welcome back!'}
+                            </h1>
+                            <p className="mt-2 text-sm font-semibold text-banana-700 sm:text-base">
+                                {isRegister
+                                    ? 'Create a free account to save your scores and streaks.'
+                                    : 'Sign in to pick up where you left off.'}
+                            </p>
 
-                        <form onSubmit={handleSubmit} className="space-y-3 text-left">
-                            {isRegister && (
+                            <div
+                                role="tablist"
+                                aria-label="Sign in or create an account"
+                                className="mt-5 grid grid-cols-2 gap-1.5 rounded-2xl border-2 border-banana-200 bg-banana-100/80 p-1.5"
+                            >
+                                <button
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={mode === 'login'}
+                                    disabled={submitting}
+                                    onClick={() => switchMode('login')}
+                                    className={`rounded-xl border-2 px-3 py-2.5 font-display text-sm font-extrabold transition disabled:cursor-not-allowed ${
+                                        mode === 'login'
+                                            ? 'border-banana-400 bg-white text-banana-900 shadow-game-sm'
+                                            : 'border-transparent text-banana-700 hover:bg-white/60'
+                                    }`}
+                                >
+                                    Sign In
+                                </button>
+                                <button
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={mode === 'register'}
+                                    disabled={submitting}
+                                    onClick={() => switchMode('register')}
+                                    className={`rounded-xl border-2 px-3 py-2.5 font-display text-sm font-extrabold transition disabled:cursor-not-allowed ${
+                                        mode === 'register'
+                                            ? 'border-banana-400 bg-white text-banana-900 shadow-game-sm'
+                                            : 'border-transparent text-banana-700 hover:bg-white/60'
+                                    }`}
+                                >
+                                    Create Account
+                                </button>
+                            </div>
+
+                            {error && (
+                                <p
+                                    role="alert"
+                                    aria-live="polite"
+                                    className="mt-4 rounded-2xl border-2 border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700"
+                                >
+                                    {error}
+                                </p>
+                            )}
+
+                            <form onSubmit={handleSubmit} className="mt-4 space-y-3.5 text-left">
+                                {isRegister && (
+                                    <div>
+                                        <label
+                                            htmlFor="name"
+                                            className="mb-1 block text-sm font-bold text-banana-700"
+                                        >
+                                            Display name
+                                        </label>
+                                        <input
+                                            id="name"
+                                            name="name"
+                                            type="text"
+                                            required
+                                            minLength={2}
+                                            maxLength={60}
+                                            autoComplete="name"
+                                            placeholder="Your name"
+                                            value={form.name}
+                                            onChange={updateField('name')}
+                                            className={inputClass}
+                                        />
+                                    </div>
+                                )}
+
                                 <div>
-                                    <label htmlFor="name" className="mb-1 block text-sm font-bold text-banana-700">
-                                        Display name
+                                    <label
+                                        htmlFor="email"
+                                        className="mb-1 block text-sm font-bold text-banana-700"
+                                    >
+                                        Email
                                     </label>
                                     <input
-                                        id="name"
-                                        name="name"
-                                        type="text"
+                                        id="email"
+                                        name="email"
+                                        type="email"
                                         required
-                                        minLength={2}
-                                        maxLength={60}
-                                        autoComplete="name"
-                                        placeholder="Your name"
-                                        value={form.name}
-                                        onChange={updateField('name')}
+                                        maxLength={254}
+                                        inputMode="email"
+                                        autoComplete="email"
+                                        autoCapitalize="none"
+                                        spellCheck={false}
+                                        placeholder="you@example.com"
+                                        value={form.email}
+                                        onChange={updateField('email')}
                                         className={inputClass}
                                     />
                                 </div>
-                            )}
 
-                            <div>
-                                <label htmlFor="email" className="mb-1 block text-sm font-bold text-banana-700">
-                                    Email
-                                </label>
-                                <input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    required
-                                    maxLength={254}
-                                    inputMode="email"
-                                    autoComplete="email"
-                                    autoCapitalize="none"
-                                    spellCheck={false}
-                                    placeholder="you@example.com"
-                                    value={form.email}
-                                    onChange={updateField('email')}
-                                    className={inputClass}
+                                <PasswordInput
+                                    id="password"
+                                    label="Password"
+                                    value={form.password}
+                                    onChange={updateField('password')}
+                                    autoComplete={isRegister ? 'new-password' : 'current-password'}
+                                    minLength={isRegister ? 8 : undefined}
+                                    placeholder={
+                                        isRegister ? 'At least 8 characters' : 'Your password'
+                                    }
+                                    labelAction={
+                                        !isRegister ? (
+                                            <Link
+                                                to="/forgot-password"
+                                                className="text-xs font-bold text-banana-600 underline hover:text-banana-800"
+                                            >
+                                                Forgot password?
+                                            </Link>
+                                        ) : null
+                                    }
                                 />
+
+                                {isRegister && (
+                                    <>
+                                        <PasswordStrengthMeter
+                                            password={form.password}
+                                            email={form.email}
+                                            name={form.name}
+                                        />
+                                        <PasswordInput
+                                            id="confirmPassword"
+                                            label="Confirm password"
+                                            value={form.confirmPassword}
+                                            onChange={updateField('confirmPassword')}
+                                            autoComplete="new-password"
+                                            minLength={8}
+                                            placeholder="Repeat your password"
+                                        />
+                                        {form.confirmPassword.length > 0 &&
+                                            form.password !== form.confirmPassword && (
+                                                <p className="text-xs font-semibold text-red-600">
+                                                    The passwords do not match yet.
+                                                </p>
+                                            )}
+                                    </>
+                                )}
+
+                                {!isRegister && (
+                                    <label
+                                        htmlFor="remember"
+                                        className="flex cursor-pointer items-start gap-3 rounded-2xl border-2 border-banana-100 bg-banana-50/70 px-3 py-2.5 transition hover:border-banana-200 hover:bg-banana-50"
+                                    >
+                                        <input
+                                            id="remember"
+                                            name="remember"
+                                            type="checkbox"
+                                            checked={remember}
+                                            onChange={(event) => setRemember(event.target.checked)}
+                                            disabled={submitting}
+                                            className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-2 border-banana-400 accent-banana-500 focus:ring-banana-400 disabled:cursor-not-allowed"
+                                        />
+                                        <span className="min-w-0">
+                                            <span className="block text-sm font-bold text-banana-800">
+                                                Remember me
+                                            </span>
+                                            <span className="block text-xs font-semibold text-banana-600">
+                                                Keep me signed in on this device for 30 days.
+                                            </span>
+                                        </span>
+                                    </label>
+                                )}
+
+                                <Button
+                                    type="submit"
+                                    disabled={submitting}
+                                    className="w-full !py-4 !text-xl"
+                                >
+                                    {submitting
+                                        ? 'Please wait…'
+                                        : isRegister
+                                            ? 'Create Account'
+                                            : 'Sign In'}
+                                </Button>
+                            </form>
+
+                            <div className="my-5 flex items-center gap-3 text-xs font-bold uppercase tracking-wide text-banana-400">
+                                <span className="h-px flex-1 bg-banana-200" />
+                                or continue with
+                                <span className="h-px flex-1 bg-banana-200" />
                             </div>
 
-                            <PasswordInput
-                                id="password"
-                                label="Password"
-                                value={form.password}
-                                onChange={updateField('password')}
-                                autoComplete={isRegister ? 'new-password' : 'current-password'}
-                                minLength={isRegister ? 8 : undefined}
-                                placeholder={
-                                    isRegister ? 'At least 8 characters' : 'Your password'
-                                }
-                                labelAction={
-                                    !isRegister ? (
-                                        <Link
-                                            to="/forgot-password"
-                                            className="text-xs font-bold text-banana-600 underline hover:text-banana-800"
-                                        >
-                                            Forgot password?
-                                        </Link>
-                                    ) : null
-                                }
-                            />
-
-                            {isRegister && (
-                                <>
-                                    <PasswordStrengthMeter
-                                        password={form.password}
-                                        email={form.email}
-                                        name={form.name}
-                                    />
-                                    <PasswordInput
-                                        id="confirmPassword"
-                                        label="Confirm password"
-                                        value={form.confirmPassword}
-                                        onChange={updateField('confirmPassword')}
-                                        autoComplete="new-password"
-                                        minLength={8}
-                                        placeholder="Repeat your password"
-                                    />
-                                    {form.confirmPassword.length > 0 &&
-                                        form.password !== form.confirmPassword && (
-                                            <p className="text-xs font-semibold text-red-600">
-                                                The passwords do not match yet.
-                                            </p>
-                                        )}
-                                </>
-                            )}
-
-                            {!isRegister && (
-                                <label
-                                    htmlFor="remember"
-                                    className="flex cursor-pointer items-start gap-3 rounded-2xl border-2 border-banana-100 bg-banana-50/70 px-3 py-2.5 transition hover:border-banana-200 hover:bg-banana-50"
+                            <div className="grid gap-2.5 sm:grid-cols-2">
+                                <a
+                                    href={`${authApi.googleLoginUrl}${oauthRememberQuery}`}
+                                    onClick={persistRememberChoice}
+                                    className="flex w-full items-center justify-center gap-2.5 rounded-2xl border-2 border-gray-200 bg-white px-4 py-3 font-bold text-gray-700 shadow-game-sm transition hover:bg-gray-50 active:translate-y-1 active:shadow-none"
                                 >
-                                    <input
-                                        id="remember"
-                                        name="remember"
-                                        type="checkbox"
-                                        checked={remember}
-                                        onChange={(event) => setRemember(event.target.checked)}
-                                        disabled={submitting}
-                                        className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-2 border-banana-400 accent-banana-500 focus:ring-banana-400 disabled:cursor-not-allowed"
-                                    />
-                                    <span className="min-w-0">
-                                        <span className="block text-sm font-bold text-banana-800">
-                                            Remember me
-                                        </span>
-                                        <span className="block text-xs font-semibold text-banana-600">
-                                            Keep me signed in on this device for 30 days.
-                                        </span>
-                                    </span>
-                                </label>
-                            )}
+                                    <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+                                        <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.3-.4-3.5z" />
+                                        <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4c-7.7 0-14.4 4.4-17.7 10.7z" />
+                                        <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.3 35.1 26.7 36 24 36c-5.3 0-9.7-3.1-11.3-8l-6.6 5.1C9.5 39.6 16.2 44 24 44z" />
+                                        <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.5l6.2 5.2C41.3 35.4 44 30.3 44 24c0-1.3-.1-2.3-.4-3.5z" />
+                                    </svg>
+                                    Google
+                                </a>
+                                <a
+                                    href={`${authApi.facebookLoginUrl}${oauthRememberQuery}`}
+                                    onClick={persistRememberChoice}
+                                    className="flex w-full items-center justify-center gap-2.5 rounded-2xl border-2 border-transparent bg-[#1877F2] px-4 py-3 font-bold text-white shadow-game-sm transition hover:bg-[#166fe0] active:translate-y-1 active:shadow-none"
+                                >
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white" aria-hidden="true">
+                                        <path d="M22 12a10 10 0 10-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.3v7A10 10 0 0022 12z" />
+                                    </svg>
+                                    Facebook
+                                </a>
+                            </div>
 
-                            <button
-                                type="submit"
-                                disabled={submitting}
-                                className="w-full rounded-2xl bg-gradient-to-b from-banana-400 to-banana-600 px-4 py-3 font-display text-lg font-bold text-white shadow-game-sm transition hover:brightness-105 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
-                            >
-                                {submitting
-                                    ? 'Please wait…'
-                                    : isRegister
-                                        ? 'Create Account'
-                                        : 'Sign In'}
-                            </button>
-                        </form>
-
-                        <div className="my-5 flex items-center gap-3 text-xs font-bold uppercase tracking-wide text-banana-400">
-                            <span className="h-px flex-1 bg-banana-200" />
-                            or continue with
-                            <span className="h-px flex-1 bg-banana-200" />
+                            <p className="mt-5 text-center text-xs font-semibold leading-relaxed text-banana-600">
+                                {isRegister
+                                    ? 'We email a 6-digit code to confirm your address before your account is created.'
+                                    : 'Passwords are hashed and never stored in plain text.'}
+                            </p>
+                            <p className="mt-2 text-center text-xs text-banana-500">
+                                <Link
+                                    to="/terms"
+                                    className="font-bold underline hover:text-banana-800"
+                                >
+                                    Terms
+                                </Link>
+                                <span className="mx-1.5">·</span>
+                                <Link
+                                    to="/privacy"
+                                    className="font-bold underline hover:text-banana-800"
+                                >
+                                    Privacy
+                                </Link>
+                            </p>
                         </div>
-
-                        <div className="space-y-3">
-                            <a
-                                href={`${authApi.googleLoginUrl}${oauthRememberQuery}`}
-                                onClick={persistRememberChoice}
-                                className="flex w-full items-center justify-center gap-3 rounded-2xl border-2 border-gray-200 bg-white px-4 py-3 font-bold text-gray-700 shadow-game-sm transition hover:bg-gray-50 active:translate-y-1 active:shadow-none"
-                            >
-                                <svg width="22" height="22" viewBox="0 0 48 48" aria-hidden="true">
-                                    <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.3-.4-3.5z"/>
-                                    <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4c-7.7 0-14.4 4.4-17.7 10.7z"/>
-                                    <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.3 35.1 26.7 36 24 36c-5.3 0-9.7-3.1-11.3-8l-6.6 5.1C9.5 39.6 16.2 44 24 44z"/>
-                                    <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.5l6.2 5.2C41.3 35.4 44 30.3 44 24c0-1.3-.1-2.3-.4-3.5z"/>
-                                </svg>
-                                Continue with Google
-                            </a>
-                            <a
-                                href={`${authApi.facebookLoginUrl}${oauthRememberQuery}`}
-                                onClick={persistRememberChoice}
-                                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-[#1877F2] px-4 py-3 font-bold text-white shadow-game-sm transition hover:bg-[#166fe0] active:translate-y-1 active:shadow-none"
-                            >
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="white" aria-hidden="true">
-                                    <path d="M22 12a10 10 0 10-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.3v7A10 10 0 0022 12z"/>
-                                </svg>
-                                Continue with Facebook
-                            </a>
-                        </div>
-
-                        <p className="mt-6 text-xs text-banana-600">
-                            {isRegister
-                                ? 'We email a 6-digit code to confirm your address before your account is created.'
-                                : 'Passwords are hashed and never stored in plain text.'}
-                        </p>
-                        <Link
-                            to="/"
-                            className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-banana-600 underline hover:text-banana-800"
-                        >
-                            <ArrowLeft size={13} /> Back to home
-                        </Link>
-                    </Card>
-                </motion.div>
-            </div>
+                    </div>
+                </motion.section>
+            </main>
         </div>
     );
 }

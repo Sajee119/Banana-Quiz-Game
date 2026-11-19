@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { ArrowUp, Heart, Mail, ShieldCheck, Sparkles } from 'lucide-react';
 import BananaLogo from './BananaLogo.jsx';
 import { useAuth } from '../context/auth-context.js';
-import { BANANA_API_URL, SITE_NAME, SUPPORT_EMAIL } from '../lib/site.js';
+import { BANANA_API_URL, SITE_NAME } from '../lib/site.js';
 
 const YEAR = new Date().getFullYear();
 
@@ -17,9 +17,10 @@ const PLAY_LINKS = [
 const SUPPORT_LINKS = [
     { to: '/help', label: 'Help Centre' },
     { to: '/faq', label: 'FAQ' },
+    { to: '/contact', label: 'Contact form' },
+    { to: '/about', label: 'About the developer' },
     { to: '/terms', label: 'Terms of Service' },
     { to: '/privacy', label: 'Privacy Policy' },
-    { href: `mailto:${SUPPORT_EMAIL}`, label: 'Contact support' },
 ];
 
 export default function SiteFooter({ className = '' }) {
@@ -32,7 +33,7 @@ export default function SiteFooter({ className = '' }) {
 
     return (
         <footer
-            className={`border-t-2 border-banana-200 bg-white/60 backdrop-blur-sm ${className}`}
+            className={`border-t-4 border-banana-300 bg-gradient-to-b from-banana-50/95 to-white/90 backdrop-blur-sm ${className}`}
             aria-labelledby="site-footer-title"
         >
             <div className="mx-auto w-full max-w-[1560px] px-4 py-8 md:px-6 md:py-10">

@@ -23,10 +23,10 @@ function IconToggle({ on, onClick, label, title, children }) {
             aria-pressed={on}
             aria-label={label}
             title={title || label}
-            className={`inline-flex h-10 w-10 items-center justify-center rounded-xl border-2 transition active:translate-y-0.5 ${
+            className={`inline-flex h-10 w-10 items-center justify-center rounded-xl border-2 transition active:translate-y-[1px] ${
                 on
-                    ? 'border-banana-400 bg-white text-banana-700 shadow-game-sm'
-                    : 'border-transparent bg-banana-100/70 text-banana-500 hover:text-banana-700'
+                    ? 'border-banana-400 bg-gradient-to-b from-white to-banana-50 text-banana-800 shadow-game-sm'
+                    : 'border-banana-200 bg-banana-100/70 text-banana-600 hover:text-banana-800 hover:bg-banana-100'
             }`}
         >
             {children}

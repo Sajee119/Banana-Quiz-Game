@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
+    ArrowRight,
     ChevronDown,
     HelpCircle,
     LifeBuoy,
@@ -9,11 +10,10 @@ import {
     Sparkles,
     X,
 } from 'lucide-react';
-import PageShell from '../components/PageShell.jsx';
+import PageShell, { primaryActionClass, secondaryActionClass } from '../components/PageShell.jsx';
 import Card from '../components/Card.jsx';
 import Button from '../components/Button.jsx';
 import { usePageTitle } from '../hooks/usePageTitle.js';
-import { SUPPORT_EMAIL } from '../lib/site.js';
 
 const CATEGORIES = [
     { id: 'all', label: 'All questions' },
@@ -158,6 +158,14 @@ const FAQS = [
     },
 ];
 
+const CATEGORY_COUNTS = FAQS.reduce(
+    (counts, item) => {
+        counts[item.category] = (counts[item.category] || 0) + 1;
+        return counts;
+    },
+    { all: FAQS.length }
+);
+
 export default function FaqPage() {
     usePageTitle('FAQ');
     const [searchParams, setSearchParams] = useSearchParams();
@@ -201,35 +209,53 @@ export default function FaqPage() {
             eyebrow="Support"
             title="Frequently asked questions"
             subtitle="Quick answers about gameplay, scoring, accounts, achievements and your data."
+            chips={[
+                { icon: HelpCircle, label: `${FAQS.length} answers`, tone: 'banana' },
+                { icon: Sparkles, label: `${CATEGORIES.length - 1} topics`, tone: 'violet' },
+                { icon: Mail, label: 'Email support', tone: 'emerald' },
+            ]}
+            actions={
+                <Link to="/help" className={secondaryActionClass}>
+                    <LifeBuoy size={16} /> Help Centre
+                </Link>
+            }
         >
             <Card className="mb-4 !p-4 md:!p-5">
-                <div className="relative">
-                    <Search
-                        size={18}
-                        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-banana-400"
-                    />
-                    <input
-                        type="text"
-                        value={query}
-                        onChange={(event) => setQuery(event.target.value)}
-                        placeholder="Search the FAQ…"
-                        aria-label="Search the FAQ"
-                        autoComplete="off"
-                        className="w-full rounded-2xl border-2 border-banana-200 bg-banana-50 py-2.5 pl-10 pr-10 font-semibold text-banana-800 outline-none transition focus:border-banana-400 focus:bg-white"
-                    />
-                    {query && (
-                        <button
-                            type="button"
-                            onClick={() => setQuery('')}
-                            aria-label="Clear search"
-                            className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-banana-500 transition hover:bg-banana-200 hover:text-banana-700"
-                        >
-                            <X size={15} />
-                        </button>
-                    )}
+                <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
+                    <div className="relative flex-1">
+                        <Search
+                            size={18}
+                            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-banana-500"
+                        />
+                        <input
+                            type="text"
+                            value={query}
+                            onChange={(event) => setQuery(event.target.value)}
+                            placeholder="Search the FAQ…"
+                            aria-label="Search the FAQ"
+                            autoComplete="off"
+                            className="w-full rounded-2xl border-2 border-banana-300 bg-banana-50 py-3 pl-11 pr-11 font-semibold text-banana-900 shadow-game-sm outline-none transition placeholder:text-banana-600 focus:border-banana-500 focus:bg-white"
+                        />
+                        {query && (
+                            <button
+                                type="button"
+                                onClick={() => setQuery('')}
+                                aria-label="Clear search"
+                                className="absolute right-2.5 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-banana-600 transition hover:bg-banana-200 hover:text-banana-900"
+                            >
+                                <X size={15} />
+                            </button>
+                        )}
+                    </div>
+                    <p
+                        aria-live="polite"
+                        className="text-[11px] font-extrabold uppercase tracking-wide text-banana-800 sm:pl-1 sm:whitespace-nowrap"
+                    >
+                        {filtered.length} of {FAQS.length} answers
+                    </p>
                 </div>
 
-                <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+                <div className="mt-3 flex flex-wrap gap-2">
                     {CATEGORIES.map((item) => {
                         const active = category === item.id;
                         return (
@@ -238,13 +264,20 @@ export default function FaqPage() {
                                 type="button"
                                 onClick={() => selectCategory(item.id)}
                                 aria-pressed={active}
-                                className={`whitespace-nowrap rounded-full border-2 px-3 py-1.5 text-xs font-extrabold transition ${
+                                className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-xs font-extrabold transition ${
                                     active
-                                        ? 'border-banana-500 bg-banana-300 text-banana-900'
-                                        : 'border-banana-200 bg-white text-banana-600 hover:bg-banana-50'
+                                        ? 'border-banana-500 bg-banana-300 text-banana-900 shadow-game-sm'
+                                        : 'border-banana-300 bg-white text-banana-800 hover:border-banana-400 hover:bg-banana-100'
                                 }`}
                             >
                                 {item.label}
+                                <span
+                                    className={`rounded-full px-1.5 text-[10px] ${
+                                        active ? 'bg-banana-900/15' : 'bg-banana-100'
+                                    }`}
+                                >
+                                    {CATEGORY_COUNTS[item.id]}
+                                </span>
                             </button>
                         );
                     })}
@@ -253,11 +286,13 @@ export default function FaqPage() {
 
             {groups.length === 0 ? (
                 <Card className="py-10 text-center">
-                    <Search size={40} className="mx-auto mb-3 text-banana-400" />
+                    <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl border-4 border-banana-300 bg-banana-100 text-banana-800">
+                        <Search size={30} />
+                    </div>
                     <h2 className="font-display text-2xl font-extrabold text-banana-800">
                         No answers found
                     </h2>
-                    <p className="mt-1 text-banana-600">
+                    <p className="mt-1 font-semibold text-banana-800">
                         Try a different search, or ask us directly and we will help.
                     </p>
                     <div className="mt-4 flex flex-wrap justify-center gap-2">
@@ -268,39 +303,49 @@ export default function FaqPage() {
                         >
                             <X size={16} /> Clear filters
                         </Button>
-                        <a href={`mailto:${SUPPORT_EMAIL}`}>
-                            <Button className="!py-2 !text-base">
-                                <Mail size={16} /> Email support
-                            </Button>
-                        </a>
+                        <Link to="/contact" className={primaryActionClass}>
+                            <Mail size={16} /> Contact support
+                        </Link>
                     </div>
                 </Card>
             ) : (
                 <div className="space-y-5">
-                    {groups.map((group) => (
+                    {groups.map((group, groupIndex) => (
                         <section
                             key={group.id}
                             id={`faq-${group.id}`}
                             className="scroll-mt-24"
                         >
-                            <h2 className="mb-2 flex items-center gap-2 font-display text-xl font-extrabold text-banana-800">
-                                <Sparkles size={17} className="text-banana-500" />
-                                {group.label}
-                            </h2>
+                            <div className="mb-2.5 flex flex-wrap items-center gap-2">
+                                <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-400 bg-banana-200 font-display text-sm font-extrabold text-banana-900">
+                                    {groupIndex + 1}
+                                </span>
+                                <h2 className="font-display text-xl font-extrabold text-banana-800">
+                                    {group.label}
+                                </h2>
+                                <span className="rounded-full border-2 border-banana-200 bg-white px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-banana-800">
+                                    {group.items.length}{' '}
+                                    {group.items.length === 1 ? 'answer' : 'answers'}
+                                </span>
+                            </div>
+
                             <div className="space-y-3">
-                                {group.items.map((item) => (
+                                {group.items.map((item, itemIndex) => (
                                     <details
                                         key={item.q}
-                                        className="group rounded-2xl border-2 border-banana-200 bg-white/90 p-4 shadow-game-sm"
+                                        className="group overflow-hidden rounded-2xl border-2 border-banana-300 bg-white/90 shadow-game-sm transition hover:border-banana-400 open:border-banana-400"
                                     >
-                                        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-display text-lg font-extrabold text-banana-800">
-                                            <span>{item.q}</span>
+                                        <summary className="flex cursor-pointer list-none items-center gap-3 p-4 font-display text-lg font-extrabold text-banana-800">
+                                            <span className="inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg border-2 border-banana-200 bg-banana-100 text-xs font-extrabold text-banana-800 transition group-open:border-banana-400 group-open:bg-banana-300 group-open:text-banana-900">
+                                                {itemIndex + 1}
+                                            </span>
+                                            <span className="min-w-0 flex-1">{item.q}</span>
                                             <ChevronDown
                                                 size={20}
                                                 className="flex-shrink-0 text-banana-500 transition group-open:rotate-180"
                                             />
                                         </summary>
-                                        <p className="mt-2 text-sm leading-relaxed text-banana-700">
+                                        <p className="border-t-2 border-dashed border-banana-200 px-4 pb-4 pt-3 text-sm leading-relaxed text-banana-800">
                                             {item.a}
                                         </p>
                                     </details>
@@ -311,32 +356,46 @@ export default function FaqPage() {
                 </div>
             )}
 
-            <Card className="mt-5 !p-5 md:!p-6">
-                <div className="flex flex-wrap items-center gap-4">
-                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-banana-200 text-banana-700">
-                        <LifeBuoy size={24} />
+            <section className="banana-promo-panel relative mt-5 overflow-hidden rounded-[1.75rem] border-2 border-banana-400 bg-gradient-to-br from-banana-300 via-banana-400 to-amber-500 p-5 shadow-game md:p-6">
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -right-12 -top-14 h-44 w-44 rounded-full border-[14px] border-white/25"
+                />
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -bottom-16 -left-10 h-40 w-40 rounded-full border-[14px] border-white/20"
+                />
+                <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div className="flex items-start gap-3">
+                        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-banana-900/25 bg-banana-50/80 text-banana-900">
+                            <LifeBuoy size={24} />
+                        </div>
+                        <div>
+                            <p className="font-display text-2xl font-extrabold text-banana-900">
+                                Still stuck?
+                            </p>
+                            <p className="mt-1 text-sm font-semibold text-banana-800">
+                                Browse the Help Centre for guides, or email us and we will get back
+                                to you.
+                            </p>
+                        </div>
                     </div>
-                    <div className="min-w-0 flex-1">
-                        <p className="font-display text-xl font-extrabold text-banana-800">
-                            Still stuck?
-                        </p>
-                        <p className="text-sm font-semibold text-banana-600">
-                            Browse the Help Centre for guides, or email us and we will get back to
-                            you.
-                        </p>
+                    <div className="flex flex-wrap gap-2">
+                        <Link
+                            to="/help"
+                            className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-banana-300/60 bg-banana-50 px-4 py-2.5 font-display text-base font-bold text-banana-900 shadow-game-sm transition hover:bg-banana-100 active:translate-y-0.5"
+                        >
+                            Help Centre <ArrowRight size={16} />
+                        </Link>
+                        <Link
+                            to="/contact"
+                            className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-banana-900/20 bg-banana-900 px-4 py-2.5 font-display text-base font-bold text-banana-50 shadow-game-sm transition hover:brightness-110 active:translate-y-0.5"
+                        >
+                            <Mail size={16} /> Contact support
+                        </Link>
                     </div>
-                    <Link to="/help">
-                        <Button variant="secondary" className="!py-2.5 !text-base">
-                            Help Centre
-                        </Button>
-                    </Link>
-                    <a href={`mailto:${SUPPORT_EMAIL}`}>
-                        <Button className="!py-2.5 !text-base">
-                            <Mail size={16} /> Email support
-                        </Button>
-                    </a>
                 </div>
-            </Card>
+            </section>
         </PageShell>
     );
 }

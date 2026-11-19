@@ -71,7 +71,7 @@ export default function AppHeader({ className = '' }) {
 
     return (
         <header
-            className={`sticky top-0 z-40 border-b-2 border-banana-300/70 bg-banana-50/85 shadow-[0_2px_0_rgba(107,50,0,0.06)] backdrop-blur-md ${className}`}
+            className={`sticky top-0 z-40 border-b-4 border-banana-300 bg-banana-50/95 shadow-[0_4px_16px_rgba(109,74,14,0.12)] backdrop-blur-md ${className}`}
         >
             <div className="mx-auto flex w-full max-w-[1560px] items-center justify-between gap-2 px-3 py-2 sm:gap-3 sm:px-5 lg:px-8">
                 <Link to={user ? '/dashboard' : '/'} className="flex flex-shrink-0 items-center gap-2">
@@ -80,7 +80,7 @@ export default function AppHeader({ className = '' }) {
                         Banana Quiz
                     </span>
                     {user && (
-                        <span className="hidden rounded-full border-2 border-banana-400 bg-banana-300 px-2 py-0.5 font-display text-[11px] font-extrabold uppercase tracking-wide text-banana-900 md:inline-flex">
+                        <span className="hidden rounded-full border-2 border-banana-500 bg-gradient-to-b from-banana-300 to-banana-400 px-2.5 py-0.5 font-display text-[11px] font-bold text-banana-900 shadow-game-sm md:inline-flex">
                             Lv {level.level}
                         </span>
                     )}
@@ -97,10 +97,10 @@ export default function AppHeader({ className = '' }) {
                             title={label}
                             onClick={() => play('click')}
                             className={({ isActive }) =>
-                                `flex flex-shrink-0 items-center gap-1.5 rounded-xl border-2 px-2 py-1.5 text-sm font-bold transition sm:px-2.5 md:px-3 ${
+                                `flex flex-shrink-0 items-center gap-1.5 rounded-xl border-2 px-2 py-1.5 font-display text-sm font-semibold transition sm:px-2.5 md:px-3 ${
                                     isActive
-                                        ? 'border-banana-400 bg-banana-300 text-banana-900 shadow-game-sm'
-                                        : 'border-transparent text-banana-700 hover:border-banana-200 hover:bg-banana-200/60'
+                                        ? 'border-banana-500 bg-gradient-to-b from-banana-300 to-banana-400 text-banana-900 shadow-game-sm'
+                                        : 'border-banana-200/70 bg-white/60 text-banana-800 hover:border-banana-300 hover:bg-banana-100'
                                 }`
                             }
                         >
@@ -158,7 +158,7 @@ export default function AppHeader({ className = '' }) {
                     ) : (
                         <Link
                             to="/login"
-                            className="rounded-xl bg-gradient-to-b from-banana-400 to-banana-600 px-4 py-2 font-display font-bold text-white shadow-game-sm transition hover:brightness-105 active:translate-y-0.5"
+                            className="inline-flex items-center justify-center rounded-xl border-b-4 border-banana-700 bg-gradient-to-b from-banana-400 to-banana-500 px-4 py-2 font-display font-bold text-banana-900 shadow-game-sm transition hover:brightness-[1.02] active:translate-y-[2px] active:border-b-2"
                         >
                             Sign in
                         </Link>
@@ -183,17 +183,17 @@ export default function AppHeader({ className = '' }) {
 
 function HudStat({ icon: Icon, label, value, tone = 'banana' }) {
     const tones = {
-        banana: 'border-banana-300 bg-banana-100 text-banana-800',
-        orange: 'border-orange-300 bg-orange-100 text-orange-800',
+        banana: 'border-banana-300 from-banana-100 to-banana-50 text-banana-900',
+        orange: 'border-orange-300 from-orange-100 to-orange-50 text-orange-900',
     };
 
     return (
         <div
             title={label}
-            className={`flex items-center gap-1.5 rounded-xl border-2 px-2.5 py-1 shadow-game-sm ${tones[tone]}`}
+            className={`flex items-center gap-1.5 rounded-xl border-2 bg-gradient-to-b px-2.5 py-1 shadow-game-sm ${tones[tone]}`}
         >
             <Icon size={15} />
-            <span className="font-display text-sm font-extrabold leading-none">{value}</span>
+            <span className="font-display text-sm font-bold leading-none tabular-nums">{value}</span>
         </div>
     );
 }
@@ -211,7 +211,7 @@ function LogoutDialog({ loading, error, onClose, onLogout, onLogoutOtherDevices,
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="logout-dialog-title"
-                className="rounded-3xl border-4 border-banana-300 bg-banana-50 p-5 shadow-game"
+                className="rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50 p-5 shadow-game"
             >
                 <div className="mb-4 flex items-start justify-between gap-4">
                     <div>

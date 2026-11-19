@@ -1,5 +1,6 @@
-import { Scale } from 'lucide-react';
-import PageShell from '../components/PageShell.jsx';
+import { Link } from 'react-router-dom';
+import { Ban, Gavel, Scale, ScrollText, ShieldCheck } from 'lucide-react';
+import PageShell, { secondaryActionClass } from '../components/PageShell.jsx';
 import LegalDocument from '../components/LegalDocument.jsx';
 import { usePageTitle } from '../hooks/usePageTitle.js';
 import { LEGAL_UPDATED, SITE_NAME, SUPPORT_EMAIL } from '../lib/site.js';
@@ -132,7 +133,7 @@ const SECTIONS = [
         id: 'contact',
         title: '15. Contact',
         body: [
-            `If you have questions about these terms, visit the Help Centre or email ${SUPPORT_EMAIL}.`,
+            `If you have questions about these terms, visit the Help Centre, use the contact form or email ${SUPPORT_EMAIL}.`,
         ],
     },
 ];
@@ -147,6 +148,16 @@ export default function TermsPage() {
             title="Terms of Service"
             subtitle="The rules that keep Banana Quiz fair, safe and fun for everyone."
             meta={`Last updated ${LEGAL_UPDATED}`}
+            chips={[
+                { icon: ScrollText, label: `${SECTIONS.length} sections`, tone: 'sky' },
+                { icon: Gavel, label: 'Fair play rules', tone: 'amber' },
+                { icon: Ban, label: 'Acceptable use', tone: 'orange' },
+            ]}
+            actions={
+                <Link to="/privacy" className={secondaryActionClass}>
+                    <ShieldCheck size={16} /> Privacy Policy
+                </Link>
+            }
         >
             <LegalDocument
                 intro="These terms explain the rules for using Banana Quiz. By creating an account or playing a game, you agree to them. If you do not agree, please do not use the service."

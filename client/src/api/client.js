@@ -67,6 +67,10 @@ export const userApi = {
         api.get(`/api/users/leaderboard?limit=${limit}`).then((r) => r.data),
 };
 
+export const contactApi = {
+    send: (payload) => api.post('/api/contact', payload, { timeout: 30000 }).then((r) => r.data),
+};
+
 export const gameApi = {
     start: (mode = 'easy', options = {}) =>
         api.post('/api/game/start', { mode, ...options }).then((r) => r.data),

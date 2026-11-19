@@ -3,6 +3,7 @@ import {
     ArrowRight,
     Award,
     BookOpen,
+    Bug,
     ChevronRight,
     CircleCheck,
     Gamepad2,
@@ -13,10 +14,9 @@ import {
     ShieldCheck,
     Sparkles,
     Trophy,
+    UserRound,
 } from 'lucide-react';
-import PageShell from '../components/PageShell.jsx';
-import Card from '../components/Card.jsx';
-import Button from '../components/Button.jsx';
+import PageShell, { primaryActionClass } from '../components/PageShell.jsx';
 import { usePageTitle } from '../hooks/usePageTitle.js';
 import { SUPPORT_EMAIL } from '../lib/site.js';
 
@@ -29,25 +29,39 @@ const QUICK_LINKS = [
         color: 'from-banana-300 to-banana-500',
     },
     {
+        to: '/contact',
+        icon: Mail,
+        title: 'Contact form',
+        text: 'Send a message through the secure form and get a reply by email.',
+        color: 'from-orange-400 to-orange-600',
+    },
+    {
         to: '/terms',
         icon: BookOpen,
         title: 'Terms of Service',
         text: 'The rules for using Banana Quiz and keeping the game fair.',
-        color: 'from-sky-300 to-sky-500',
+        color: 'from-sky-400 to-sky-600',
     },
     {
         to: '/privacy',
         icon: ShieldCheck,
         title: 'Privacy Policy',
         text: 'What we collect, how we use it and the choices you have.',
-        color: 'from-emerald-300 to-emerald-500',
+        color: 'from-emerald-400 to-emerald-600',
     },
     {
-        href: `mailto:${SUPPORT_EMAIL}`,
-        icon: Mail,
-        title: 'Contact support',
-        text: 'Send us a message and we will help you get back to playing.',
-        color: 'from-orange-300 to-orange-500',
+        to: '/about',
+        icon: UserRound,
+        title: 'About the developer',
+        text: 'Meet Sajeepan, the GitHub projects and the stack behind the game.',
+        color: 'from-violet-400 to-violet-600',
+    },
+    {
+        to: '/contact?subject=Bug%20report',
+        icon: Bug,
+        title: 'Report a bug',
+        text: 'Tell us what went wrong so it can be investigated and fixed.',
+        color: 'from-rose-400 to-rose-600',
     },
 ];
 
@@ -57,6 +71,7 @@ const TOPICS = [
         title: 'Getting started',
         text: 'Create an account, verify your email and start your first round.',
         to: '/faq?category=start',
+        accent: 'from-banana-300 to-banana-500',
         items: ['Create an account', 'Verify your email', 'Choose a game mode'],
     },
     {
@@ -64,6 +79,7 @@ const TOPICS = [
         title: 'Gameplay & controls',
         text: 'Answer faster with auto-submit, keyboard shortcuts and custom controls.',
         to: '/faq?category=gameplay',
+        accent: 'from-sky-400 to-sky-600',
         items: ['Auto-submit and manual mode', 'Timer and keyboard hints', 'Easy, Hard and Custom'],
     },
     {
@@ -71,6 +87,7 @@ const TOPICS = [
         title: 'Scoring & leaderboard',
         text: 'Understand points, streaks, tie-breakers and ranked games.',
         to: '/faq?category=progress',
+        accent: 'from-amber-300 to-orange-500',
         items: ['How points are earned', 'Why Custom is unranked', 'Leaderboard visibility'],
     },
     {
@@ -78,6 +95,7 @@ const TOPICS = [
         title: 'Achievements & progress',
         text: 'Track your badges, stats and personal bests over time.',
         to: '/faq?category=progress',
+        accent: 'from-violet-400 to-violet-600',
         items: ['Unlocking achievements', 'Reading your dashboard', 'Reviewing game history'],
     },
     {
@@ -85,6 +103,7 @@ const TOPICS = [
         title: 'Account & security',
         text: 'Passwords, connected providers, sessions and account recovery.',
         to: '/faq?category=account',
+        accent: 'from-emerald-400 to-emerald-600',
         items: ['Reset your password', 'Manage active sessions', 'Deactivate your account'],
     },
     {
@@ -92,6 +111,7 @@ const TOPICS = [
         title: 'Privacy & data',
         text: 'Cookies, exports, leaderboard privacy and deletion requests.',
         to: '/faq?category=data',
+        accent: 'from-rose-400 to-rose-600',
         items: ['Export your data', 'Hide your profile', 'Cookie choices'],
     },
 ];
@@ -112,8 +132,18 @@ export default function HelpCentrePage() {
             eyebrow="Support"
             title="Help Centre"
             subtitle="Guides, answers and contact details for everything Banana Quiz. Pick a topic below or search the FAQ."
+            chips={[
+                { icon: HelpCircle, label: `${TOPICS.length} help topics`, tone: 'violet' },
+                { icon: Sparkles, label: 'Plain-language guides', tone: 'emerald' },
+                { icon: Mail, label: 'Contact form', tone: 'orange' },
+            ]}
+            actions={
+                <Link to="/faq" className={primaryActionClass}>
+                    <HelpCircle size={16} /> Browse the FAQ
+                </Link>
+            }
         >
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {QUICK_LINKS.map((item) => (
                     <QuickLink key={item.title} item={item} />
                 ))}
@@ -125,13 +155,13 @@ export default function HelpCentrePage() {
                         <h2 className="font-display text-2xl font-extrabold text-banana-800">
                             Browse help topics
                         </h2>
-                        <p className="text-sm font-semibold text-banana-600">
+                        <p className="text-sm font-semibold text-banana-800">
                             Jump straight to the answers for your question.
                         </p>
                     </div>
                     <Link
                         to="/faq"
-                        className="inline-flex items-center gap-1 text-sm font-extrabold text-banana-600 transition hover:text-banana-900"
+                        className="inline-flex items-center gap-1 text-sm font-extrabold text-banana-800 transition hover:text-banana-900"
                     >
                         View all FAQ <ArrowRight size={15} />
                     </Link>
@@ -144,22 +174,30 @@ export default function HelpCentrePage() {
                 </div>
             </section>
 
-            <Card className="mt-6 !p-5 md:!p-7">
-                <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+            <section className="banana-promo-panel relative mt-6 overflow-hidden rounded-[1.75rem] border-2 border-banana-400 bg-gradient-to-br from-banana-300 via-banana-400 to-amber-500 p-5 shadow-game md:p-7">
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -right-12 -top-14 h-44 w-44 rounded-full border-[14px] border-white/25"
+                />
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -bottom-16 -left-10 h-40 w-40 rounded-full border-[14px] border-white/20"
+                />
+                <div className="relative grid gap-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
                     <div>
                         <div className="flex items-start gap-3">
-                            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-banana-200 text-banana-700">
-                                <Mail size={22} />
+                            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-banana-900/25 bg-banana-50/80 text-banana-900">
+                                <Mail size={24} />
                             </div>
                             <div>
-                                <h2 className="font-display text-2xl font-extrabold text-banana-800">
+                                <h2 className="font-display text-2xl font-extrabold text-banana-900">
                                     Contact support
                                 </h2>
-                                <p className="mt-1 text-sm font-semibold text-banana-600">
-                                    Email{' '}
+                                <p className="mt-1 text-sm font-semibold text-banana-800">
+                                    Use the contact form or email{' '}
                                     <a
                                         href={`mailto:${SUPPORT_EMAIL}`}
-                                        className="font-bold text-banana-700 underline decoration-banana-300 underline-offset-2 hover:text-banana-900"
+                                        className="font-bold text-banana-900 underline decoration-banana-900/40 underline-offset-2 hover:decoration-banana-900"
                                     >
                                         {SUPPORT_EMAIL}
                                     </a>{' '}
@@ -168,12 +206,12 @@ export default function HelpCentrePage() {
                             </div>
                         </div>
 
-                        <ul className="mt-4 grid gap-2 text-sm font-semibold text-banana-700 sm:grid-cols-2">
+                        <ul className="mt-4 grid gap-2 text-sm font-semibold text-banana-800 sm:grid-cols-2">
                             {CONTACT_TIPS.map((tip) => (
                                 <li key={tip} className="flex items-start gap-2">
                                     <CircleCheck
                                         size={16}
-                                        className="mt-0.5 flex-shrink-0 text-emerald-500"
+                                        className="mt-0.5 flex-shrink-0 text-banana-900"
                                     />
                                     {tip}
                                 </li>
@@ -181,42 +219,41 @@ export default function HelpCentrePage() {
                         </ul>
                     </div>
 
-                    <a
-                        href={`mailto:${SUPPORT_EMAIL}?subject=Banana%20Quiz%20support`}
-                        className="md:self-center"
+                    <Link
+                        to="/contact"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-banana-300/60 bg-banana-50 px-5 py-3 font-display text-base font-bold text-banana-900 shadow-game-sm transition hover:bg-banana-100 active:translate-y-0.5 md:w-auto"
                     >
-                        <Button className="w-full !py-3 md:w-auto">
-                            <Mail size={18} /> Email support
-                        </Button>
-                    </a>
+                        <Mail size={18} /> Open contact form
+                    </Link>
                 </div>
-            </Card>
+            </section>
 
-            <Card className="mt-4 !p-5">
-                <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-100 text-sky-600">
-                        <BookOpen size={21} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                        <p className="font-display text-lg font-extrabold text-banana-800">
-                            Looking for the rules or privacy details?
-                        </p>
-                        <p className="text-sm font-semibold text-banana-600">
-                            The Terms of Service and Privacy Policy are short, plain-language reads.
-                        </p>
-                    </div>
-                    <Link to="/terms">
-                        <Button variant="secondary" className="!py-2 !text-base">
-                            Terms
-                        </Button>
-                    </Link>
-                    <Link to="/privacy">
-                        <Button variant="secondary" className="!py-2 !text-base">
-                            Privacy
-                        </Button>
-                    </Link>
+            <section className="mt-6">
+                <div className="mb-3">
+                    <h2 className="font-display text-2xl font-extrabold text-banana-800">
+                        Looking for the rules or privacy details?
+                    </h2>
+                    <p className="text-sm font-semibold text-banana-800">
+                        The Terms of Service and Privacy Policy are short, plain-language reads.
+                    </p>
                 </div>
-            </Card>
+                <div className="grid gap-3 sm:grid-cols-2">
+                    <LegalLink
+                        to="/terms"
+                        icon={BookOpen}
+                        tone="border-sky-300 bg-sky-100 text-sky-700"
+                        title="Terms of Service"
+                        text="Rules for using Banana Quiz"
+                    />
+                    <LegalLink
+                        to="/privacy"
+                        icon={ShieldCheck}
+                        tone="border-emerald-300 bg-emerald-100 text-emerald-700"
+                        title="Privacy Policy"
+                        text="How your data is handled"
+                    />
+                </div>
+            </section>
         </PageShell>
     );
 }
@@ -224,18 +261,22 @@ export default function HelpCentrePage() {
 function QuickLink({ item }) {
     const Icon = item.icon;
     const className =
-        'group flex flex-col rounded-2xl border-2 border-banana-200 bg-white/90 p-4 shadow-game-sm transition hover:-translate-y-0.5 hover:border-banana-300';
+        'group relative flex flex-col overflow-hidden rounded-2xl border-2 border-banana-300 bg-white/90 p-4 shadow-game-sm transition hover:-translate-y-0.5 hover:border-banana-400';
 
     const content = (
         <>
+            <span
+                aria-hidden="true"
+                className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${item.color}`}
+            />
             <div
-                className={`mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br text-white ${item.color}`}
+                className={`mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-game-sm ${item.color}`}
             >
                 <Icon size={21} />
             </div>
             <p className="font-display text-lg font-extrabold text-banana-800">{item.title}</p>
-            <p className="mt-1 flex-1 text-sm text-banana-700">{item.text}</p>
-            <span className="mt-3 inline-flex items-center gap-1 text-sm font-extrabold text-banana-600 group-hover:text-banana-800">
+            <p className="mt-1 flex-1 text-sm text-banana-800">{item.text}</p>
+            <span className="mt-3 inline-flex items-center gap-1 text-sm font-extrabold text-banana-800 group-hover:text-banana-900">
                 Open <ArrowRight size={15} />
             </span>
         </>
@@ -262,24 +303,53 @@ function TopicCard({ topic }) {
     return (
         <Link
             to={topic.to}
-            className="group flex flex-col rounded-2xl border-2 border-banana-200 bg-white/90 p-5 shadow-game-sm transition hover:-translate-y-0.5 hover:border-banana-300"
+            className="group relative flex flex-col overflow-hidden rounded-2xl border-2 border-banana-300 bg-white/90 p-5 shadow-game-sm transition hover:-translate-y-0.5 hover:border-banana-400"
         >
-            <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-banana-300 to-banana-500 text-white">
+            <span
+                aria-hidden="true"
+                className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${topic.accent}`}
+            />
+            <div
+                className={`mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-game-sm ${topic.accent}`}
+            >
                 <Icon size={21} />
             </div>
             <h3 className="font-display text-xl font-extrabold text-banana-800">{topic.title}</h3>
-            <p className="mt-1 text-sm text-banana-700">{topic.text}</p>
-            <ul className="mt-3 space-y-1 text-sm font-semibold text-banana-600">
+            <p className="mt-1 text-sm text-banana-800">{topic.text}</p>
+            <ul className="mt-3 space-y-1 text-sm font-semibold text-banana-800">
                 {topic.items.map((item) => (
                     <li key={item} className="flex items-center gap-1.5">
-                        <ChevronRight size={14} className="flex-shrink-0 text-banana-400" />
+                        <ChevronRight size={14} className="flex-shrink-0 text-banana-500" />
                         {item}
                     </li>
                 ))}
             </ul>
-            <span className="mt-4 inline-flex items-center gap-1 text-sm font-extrabold text-banana-600 group-hover:text-banana-800">
+            <span className="mt-4 inline-flex items-center gap-1 text-sm font-extrabold text-banana-800 group-hover:text-banana-900">
                 Browse answers <ArrowRight size={15} />
             </span>
+        </Link>
+    );
+}
+
+function LegalLink({ to, icon: Icon, tone, title, text }) {
+    return (
+        <Link
+            to={to}
+            className="group flex items-center gap-3 rounded-2xl border-2 border-banana-300 bg-white/90 p-4 shadow-game-sm transition hover:-translate-y-0.5 hover:border-banana-400"
+        >
+            <div
+                className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl border-2 ${tone}`}
+            >
+                <Icon size={21} />
+            </div>
+            <div className="min-w-0 flex-1">
+                <p className="font-display text-lg font-extrabold text-banana-800">{title}</p>
+                <p className="text-sm font-semibold text-banana-800">{text}</p>
+            </div>
+            <ArrowRight
+                size={18}
+                className="flex-shrink-0 text-banana-500 transition group-hover:translate-x-0.5"
+            />
         </Link>
     );
 }

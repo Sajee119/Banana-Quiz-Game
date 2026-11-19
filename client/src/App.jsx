@@ -18,6 +18,8 @@ import FaqPage from './pages/FaqPage.jsx';
 import HelpCentrePage from './pages/HelpCentrePage.jsx';
 import TermsPage from './pages/TermsPage.jsx';
 import PrivacyPage from './pages/PrivacyPage.jsx';
+import AboutPage from './pages/AboutPage.jsx';
+import ContactPage from './pages/ContactPage.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import SiteFooter from './components/SiteFooter.jsx';
 import CookieConsent from './components/CookieConsent.jsx';
@@ -87,6 +89,8 @@ export default function App() {
         <Route path="/help" element={<HelpCentrePage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/contact" element={<ContactPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       {!immersiveRoute && <SiteFooter />}

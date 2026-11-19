@@ -29,6 +29,8 @@ const schema = Joi.object({
     SMTP_USER: Joi.string().allow('').default(''),
     SMTP_PASS: Joi.string().allow('').default(''),
     MAIL_FROM: Joi.string().default('Banana Quiz <no-reply@bananaquiz.local>'),
+    // Inbox that receives messages from the public contact form.
+    CONTACT_TO_EMAIL: Joi.string().allow('').default(''),
 
     GAME_BASE_POINTS: Joi.number().default(100),
     GAME_FAST_BONUS_MAX: Joi.number().default(50),

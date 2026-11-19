@@ -58,26 +58,105 @@ export default function QuizPerformanceChart({
     showBest = true,
     action = null,
     className = '',
+    compact = false,
 }) {
     const data = buildChartData(Array.isArray(quizzes) ? quizzes : [], timeLimit);
 
     if (data.length === 0) return null;
 
     const best = data.reduce((top, row) => (row.points > top.points ? row : top), data[0]);
+    const chartHeight = compact ? 170 : 288;
+
+    const chart = (
+        <div
+            role="img"
+            aria-label="Bar chart of points and line chart of response time for each quiz"
+            className="w-full"
+            style={{ height: chartHeight }}
+        >
+            <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={data} margin={{ top: 8, right: 0, bottom: 0, left: compact ? -24 : -16 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e3e1d7" />
+                    <XAxis
+                        dataKey="label"
+                        tick={{ fontSize: compact ? 10 : 12, fill: '#4a4236' }}
+                        axisLine={false}
+                        tickLine={false}
+                    />
+                    <YAxis
+                        yAxisId="points"
+                        allowDecimals={false}
+                        tick={{ fontSize: compact ? 10 : 12, fill: '#4a4236' }}
+                        axisLine={false}
+                        tickLine={false}
+                        width={compact ? 24 : 32}
+                    />
+                    <YAxis
+                        yAxisId="seconds"
+                        orientation="right"
+                        unit="s"
+                        tick={{ fontSize: compact ? 10 : 12, fill: '#4a4236' }}
+                        axisLine={false}
+                        tickLine={false}
+                        width={compact ? 24 : 32}
+                    />
+                    <Tooltip content={<QuizChartTooltip />} />
+                    {!compact && <Legend wrapperStyle={{ fontSize: 12, color: '#4a4236' }} />}
+                    <Bar
+                        yAxisId="points"
+                        dataKey="points"
+                        name="Points"
+                        radius={[4, 4, 0, 0]}
+                        maxBarSize={compact ? 20 : 48}
+                    >
+                        {data.map((row, index) => (
+                            <Cell
+                                key={`${row.label}-${index}`}
+                                fill={STATUS_COLORS[row.status]}
+                            />
+                        ))}
+                    </Bar>
+                    <Line
+                        yAxisId="seconds"
+                        type="monotone"
+                        dataKey="seconds"
+                        name="Response time (s)"
+                        stroke="#60a5fa"
+                        strokeWidth={2}
+                        dot={{ r: compact ? 2 : 3, fill: '#60a5fa' }}
+                        activeDot={{ r: compact ? 3 : 5 }}
+                    />
+                </ComposedChart>
+            </ResponsiveContainer>
+        </div>
+    );
+
+    if (compact) {
+        return (
+            <div className={className}>
+                {chart}
+                <div className="mt-1.5 flex flex-wrap gap-x-2 gap-y-0.5 text-[10px] text-banana-700">
+                    <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-emerald-400" />Correct</span>
+                    <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-red-400" />Incorrect</span>
+                    <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-orange-400" />Timed out</span>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <Card className={`!p-5 ${className}`}>
             <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
                 <div>
-                    <h2 className="flex items-center gap-2 font-display text-xl font-extrabold text-banana-800">
-                        <BarChart3 size={20} className="text-banana-500" />
+                    <h2 className="flex items-center gap-2 font-display text-xl text-banana-900">
+                        <BarChart3 size={20} className="text-banana-700" />
                         {title}
                     </h2>
-                    <p className="text-xs font-semibold text-banana-500">{subtitle}</p>
+                    <p className="text-xs text-banana-800">{subtitle}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                     {showBest && (
-                        <span className="rounded-full bg-banana-100 px-3 py-1 text-xs font-extrabold text-banana-700">
+                        <span className="rounded-full bg-banana-100 px-3 py-1 text-xs font-semibold text-banana-700">
                             Best: {best.label} · {best.points} pts
                         </span>
                     )}
@@ -85,66 +164,9 @@ export default function QuizPerformanceChart({
                 </div>
             </div>
 
-            <div
-                role="img"
-                aria-label="Bar chart of points and line chart of response time for each quiz"
-                className="h-72 w-full"
-            >
-                <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={data} margin={{ top: 12, right: 4, bottom: 0, left: -16 }}>
-                        <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f5d875" />
-                        <XAxis
-                            dataKey="label"
-                            tick={{ fontSize: 12, fill: '#b56000' }}
-                            axisLine={false}
-                            tickLine={false}
-                        />
-                        <YAxis
-                            yAxisId="points"
-                            allowDecimals={false}
-                            tick={{ fontSize: 12, fill: '#b56000' }}
-                            axisLine={false}
-                            tickLine={false}
-                        />
-                        <YAxis
-                            yAxisId="seconds"
-                            orientation="right"
-                            unit="s"
-                            tick={{ fontSize: 12, fill: '#b56000' }}
-                            axisLine={false}
-                            tickLine={false}
-                        />
-                        <Tooltip content={<QuizChartTooltip />} />
-                        <Legend wrapperStyle={{ fontSize: 12, color: '#b56000' }} />
-                        <Bar
-                            yAxisId="points"
-                            dataKey="points"
-                            name="Points"
-                            radius={[6, 6, 0, 0]}
-                            maxBarSize={48}
-                        >
-                            {data.map((row, index) => (
-                                <Cell
-                                    key={`${row.label}-${index}`}
-                                    fill={STATUS_COLORS[row.status]}
-                                />
-                            ))}
-                        </Bar>
-                        <Line
-                            yAxisId="seconds"
-                            type="monotone"
-                            dataKey="seconds"
-                            name="Response time (s)"
-                            stroke="#60a5fa"
-                            strokeWidth={2.5}
-                            dot={{ r: 3, fill: '#60a5fa' }}
-                            activeDot={{ r: 5 }}
-                        />
-                    </ComposedChart>
-                </ResponsiveContainer>
-            </div>
+            {chart}
 
-            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11px] font-bold text-banana-600">
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-banana-700">
                 <span className="flex items-center gap-1.5">
                     <span className="h-2.5 w-2.5 rounded-sm bg-emerald-400" /> Correct
                 </span>

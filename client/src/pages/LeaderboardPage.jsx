@@ -8,13 +8,12 @@ import {
     CircleAlert,
     Crown,
     EyeOff,
-    Flame,
+
     LocateFixed,
     Medal,
     Play,
     RefreshCw,
     Search,
-    Sparkles,
     Target,
     Trophy,
     Users,
@@ -29,7 +28,7 @@ import { useAuth } from '../context/auth-context.js';
 import { initials } from '../lib/format.js';
 import { usePageTitle } from '../hooks/usePageTitle.js';
 
-const MEDALS = { 1: '🥇', 2: '🥈', 3: '🥉' };
+const MEDALS = { 1: '1', 2: '2', 3: '3' };
 const PAGE_SIZE = 25;
 const MAX_FETCH = 100;
 
@@ -37,21 +36,24 @@ const PODIUM_STYLES = {
     1: {
         ring: 'border-yellow-400',
         badge: 'bg-yellow-300 text-yellow-900',
-        height: 'md:min-h-[230px]',
+        bg: 'bg-gradient-to-b from-yellow-50 to-white',
+        height: 'md:min-h-[238px]',
         order: 'order-2',
         label: 'Champion',
     },
     2: {
         ring: 'border-slate-300',
         badge: 'bg-slate-200 text-slate-700',
-        height: 'md:min-h-[195px]',
+        bg: 'bg-gradient-to-b from-slate-50 to-white',
+        height: 'md:min-h-[200px]',
         order: 'order-1',
         label: 'Runner-up',
     },
     3: {
         ring: 'border-amber-400',
         badge: 'bg-amber-200 text-amber-800',
-        height: 'md:min-h-[175px]',
+        bg: 'bg-gradient-to-b from-amber-50 to-white',
+        height: 'md:min-h-[180px]',
         order: 'order-3',
         label: 'Third place',
     },
@@ -193,43 +195,67 @@ export default function LeaderboardPage() {
 
             <main className="mx-auto w-full max-w-[1560px] px-4 py-6 md:px-6 md:py-8">
                 <motion.div initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
-                    {/* Hero */}
-                    <div className="mb-5 rounded-3xl border-4 border-banana-300 bg-gradient-to-br from-banana-100 via-banana-50 to-amber-100 p-5 shadow-game md:p-7">
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <section className="mb-5 overflow-hidden rounded-[1.75rem] border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/70 p-5 shadow-game sm:p-6">
+                        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                             <div>
-                                <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-banana-600">
-                                    <Sparkles size={15} /> Hall of bananas
+                                <p className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-300 bg-banana-100 px-2.5 py-1 font-display text-[11px] font-bold uppercase tracking-wide text-banana-800">
+                                    <Trophy size={13} /> Rankings
                                 </p>
-                                <h1 className="font-display text-4xl font-extrabold leading-tight text-banana-800">
+                                <h1 className="mt-2 font-display text-3xl font-extrabold leading-tight text-banana-900 md:text-4xl">
                                     Leaderboard
                                 </h1>
-                                <p className="mt-1 max-w-lg text-banana-700">
-                                    Ranked by total points. Ties are broken by wins, then best
-                                    streak.
+                                <p className="mt-1 text-sm font-semibold leading-relaxed text-banana-800">
+                                    Ranked by total points. Ties are broken by wins, then best streak.
                                 </p>
+                                <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs font-bold text-banana-800">
+                                    <span className="inline-flex items-center gap-1 rounded-full border border-banana-300 bg-white px-2.5 py-1 shadow-game-sm">
+                                        <Users size={12} /> {total} ranked {total === 1 ? 'player' : 'players'}
+                                    </span>
+                                    {entries.length > 0 && (
+                                        <span className="inline-flex items-center gap-1 rounded-full border border-banana-300 bg-white px-2.5 py-1 shadow-game-sm">
+                                            <BarChart3 size={12} /> Top {entries.length} loaded
+                                        </span>
+                                    )}
+                                    {myRank && (
+                                        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300 bg-emerald-100 px-2.5 py-1 text-emerald-800">
+                                            <LocateFixed size={12} /> You are #{myRank}
+                                        </span>
+                                    )}
+                                    {me?.hidden && (
+                                        <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-100 px-2.5 py-1 text-amber-900">
+                                            <EyeOff size={12} /> Hidden from board
+                                        </span>
+                                    )}
+                                </div>
                             </div>
 
-                            <div className="flex items-center gap-3">
-                                <div className="rounded-2xl border-2 border-banana-200 bg-white/80 px-4 py-2 text-center">
-                                    <p className="font-display text-2xl font-extrabold leading-none text-banana-800">
-                                        {total}
-                                    </p>
-                                    <p className="flex items-center justify-center gap-1 text-[10px] font-bold uppercase tracking-wide text-banana-500">
-                                        <Users size={11} /> ranked
-                                    </p>
-                                </div>
-                                <button
-                                    type="button"
+                            <div className="flex flex-wrap items-center gap-2">
+                                <Button
+                                    variant="secondary"
                                     onClick={refresh}
-                                    title="Refresh leaderboard"
+                                    className="!px-3 !py-2 !text-sm"
                                     aria-label="Refresh leaderboard"
-                                    className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border-2 border-banana-300 bg-white text-banana-700 shadow-game-sm transition hover:bg-banana-50"
                                 >
-                                    <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-                                </button>
+                                    <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
+                                    Refresh
+                                </Button>
+                                {myRank && (
+                                    <Button
+                                        variant="secondary"
+                                        onClick={jumpToMe}
+                                        className="!px-3 !py-2 !text-sm"
+                                    >
+                                        <LocateFixed size={15} /> Jump to me
+                                    </Button>
+                                )}
+                                <Link to={user ? '/play' : '/login'}>
+                                    <Button className="!px-3 !py-2 !text-sm">
+                                        <Play size={15} /> {user ? 'Play a round' : 'Sign in to play'}
+                                    </Button>
+                                </Link>
                             </div>
                         </div>
-                    </div>
+                    </section>
 
                     {/* Summary stats */}
                     {!loading && entries.length > 0 && (
@@ -277,13 +303,22 @@ export default function LeaderboardPage() {
                     {user && (
                         <div className="mb-5">
                             {me && !me.hidden && (
-                                <Card className="!p-4 md:!p-5">
+                                <Card className="relative overflow-hidden !p-4 md:!p-5">
+                                    <div
+                                        aria-hidden="true"
+                                        className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-banana-300 to-banana-500"
+                                    />
                                     <div className="flex flex-wrap items-center gap-4">
-                                        <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-banana-300 to-banana-500 font-display text-xl font-extrabold text-white shadow-game-sm">
-                                            #{me.rank}
+                                        <div className="flex h-16 w-16 flex-shrink-0 flex-col items-center justify-center rounded-2xl border-4 border-banana-300 bg-gradient-to-br from-banana-300 to-banana-500 font-display text-white shadow-game-sm">
+                                            <span className="text-[9px] font-extrabold uppercase tracking-wide text-white/80">
+                                                Rank
+                                            </span>
+                                            <span className="text-xl font-extrabold leading-none">
+                                                #{me.rank}
+                                            </span>
                                         </div>
                                         <div className="min-w-0 flex-1">
-                                            <p className="text-[11px] font-bold uppercase tracking-widest text-banana-500">
+                                            <p className="text-[11px] font-extrabold uppercase tracking-widest text-banana-500">
                                                 Your position
                                             </p>
                                             <p className="flex flex-wrap items-center gap-2 font-display text-xl font-extrabold text-banana-800">
@@ -291,7 +326,7 @@ export default function LeaderboardPage() {
                                                     ? 'You are the top banana!'
                                                     : `You are #${me.rank} of ${total}`}
                                                 {percentile && (
-                                                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-emerald-700">
+                                                    <span className="rounded-full border-2 border-emerald-300 bg-emerald-100 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-emerald-800">
                                                         Top {percentile}%
                                                     </span>
                                                 )}
@@ -333,9 +368,13 @@ export default function LeaderboardPage() {
                             )}
 
                             {me?.hidden && (
-                                <Card className="!p-4 md:!p-5">
+                                <Card className="relative overflow-hidden !p-4 md:!p-5">
+                                    <div
+                                        aria-hidden="true"
+                                        className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-banana-200 to-banana-400"
+                                    />
                                     <div className="flex flex-wrap items-center gap-4">
-                                        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-banana-200 text-banana-600">
+                                        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-banana-300 bg-banana-100 text-banana-600">
                                             <EyeOff size={22} />
                                         </div>
                                         <div className="min-w-0 flex-1">
@@ -361,9 +400,13 @@ export default function LeaderboardPage() {
                             )}
 
                             {!me && !loading && (
-                                <Card className="!p-4 md:!p-5">
+                                <Card className="relative overflow-hidden !p-4 md:!p-5">
+                                    <div
+                                        aria-hidden="true"
+                                        className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-banana-200 to-banana-400"
+                                    />
                                     <div className="flex flex-wrap items-center gap-4">
-                                        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-banana-200 text-banana-600">
+                                        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-banana-300 bg-banana-100 text-banana-600">
                                             <Target size={22} />
                                         </div>
                                         <div className="min-w-0 flex-1">
@@ -406,7 +449,7 @@ export default function LeaderboardPage() {
                                 {[0, 1, 2].map((i) => (
                                     <div
                                         key={i}
-                                        className="h-44 animate-pulse rounded-2xl border-2 border-banana-200 bg-white/60"
+                                        className="h-44 animate-pulse rounded-3xl border-2 border-banana-200 bg-white/60"
                                     />
                                 ))}
                             </div>
@@ -417,7 +460,9 @@ export default function LeaderboardPage() {
                     {/* Empty state */}
                     {!loading && entries.length === 0 && (
                         <Card className="py-12 text-center">
-                            <Medal size={44} className="mx-auto mb-3 text-banana-400" />
+                            <span className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-banana-300 bg-banana-100 text-banana-500">
+                                <Medal size={34} />
+                            </span>
                             <h2 className="font-display text-2xl font-extrabold text-banana-800">
                                 No scores yet
                             </h2>
@@ -432,11 +477,11 @@ export default function LeaderboardPage() {
 
                     {/* Search + board toolbar */}
                     {!loading && entries.length > 0 && (
-                        <div className="mb-4 flex flex-col gap-3 rounded-3xl border-4 border-banana-300 bg-white/90 p-3 shadow-game sm:flex-row sm:items-center sm:p-4">
+                        <div className="mb-4 flex flex-col gap-3 rounded-xl border border-banana-200 bg-white p-3 sm:flex-row sm:items-center">
                             <div className="relative flex-1">
                                 <Search
-                                    size={18}
-                                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-banana-400"
+                                    size={16}
+                                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-banana-500"
                                 />
                                 <input
                                     type="text"
@@ -448,36 +493,40 @@ export default function LeaderboardPage() {
                                     placeholder="Search players by name…"
                                     aria-label="Search players"
                                     autoComplete="off"
-                                    className="w-full rounded-2xl border-2 border-banana-200 bg-banana-50 py-2.5 pl-10 pr-10 font-semibold text-banana-800 outline-none transition focus:border-banana-400 focus:bg-white"
+                                    className="w-full rounded-lg border border-banana-200 bg-banana-50 py-2 pl-9 pr-9 text-sm text-banana-900 outline-none transition focus:border-banana-400 focus:bg-white"
                                 />
                                 {query && (
                                     <button
                                         type="button"
                                         onClick={clearSearch}
                                         aria-label="Clear search"
-                                        className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-banana-500 transition hover:bg-banana-200 hover:text-banana-700"
+                                        className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-banana-600 transition hover:bg-banana-100"
                                     >
-                                        <X size={15} />
+                                        <X size={14} />
                                     </button>
                                 )}
                             </div>
-                            <p className="px-1 text-[11px] font-bold uppercase tracking-wide text-banana-500 sm:px-0 sm:text-right">
-                                {isSearching
-                                    ? `${filtered.length} match${filtered.length === 1 ? '' : 'es'}`
-                                    : `Showing ${shownCount} of ${entries.length}`}
+                            <div className="text-xs text-banana-700 sm:text-right">
+                                <span className="inline-flex items-center gap-1 rounded-md bg-banana-100 px-2 py-1">
+                                    {isSearching
+                                        ? `${filtered.length} match${filtered.length === 1 ? '' : 'es'}`
+                                        : `Showing ${shownCount} of ${entries.length}`}
+                                </span>
                                 {!isSearching && total > entries.length && (
-                                    <span className="block text-[10px] font-semibold normal-case tracking-normal text-banana-400">
+                                    <span className="mt-1 block text-banana-600">
                                         Top {entries.length} of {total} ranked
                                     </span>
                                 )}
-                            </p>
+                            </div>
                         </div>
                     )}
 
                     {/* No search results */}
                     {!loading && isSearching && filtered.length === 0 && (
                         <Card className="py-10 text-center">
-                            <Search size={40} className="mx-auto mb-3 text-banana-400" />
+                            <span className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-banana-300 bg-banana-100 text-banana-500">
+                                <Search size={30} />
+                            </span>
                             <h2 className="font-display text-2xl font-extrabold text-banana-800">
                                 No players found
                             </h2>
@@ -496,44 +545,41 @@ export default function LeaderboardPage() {
 
                     {/* Podium */}
                     {!loading && podium.length > 0 && (
-                        <div className="mb-4 grid grid-cols-3 items-end gap-2 md:gap-4">
+                        <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:items-end">
                             {[podium[1], podium[0], podium[2]].filter(Boolean).map((entry) => {
-                                const style = PODIUM_STYLES[entry.rank] || PODIUM_STYLES[3];
+                                const isTop = entry.rank === 1;
                                 return (
                                     <motion.div
                                         key={entry.rank}
-                                        initial={{ y: 18, opacity: 0 }}
+                                        initial={{ y: 10, opacity: 0 }}
                                         animate={{ y: 0, opacity: 1 }}
-                                        transition={{ delay: entry.rank * 0.06 }}
-                                        className={`relative flex flex-col items-center rounded-2xl border-4 bg-white/90 p-3 text-center shadow-game ${style.ring} ${style.height} ${style.order} ${
-                                            entry.isCurrentUser ? 'ring-4 ring-banana-300' : ''
+                                        transition={{ delay: entry.rank * 0.04 }}
+                                        className={`relative flex flex-col items-center rounded-2xl border-2 p-4 text-center shadow-game-sm ${
+                                            isTop
+                                                ? 'border-banana-400 bg-gradient-to-b from-banana-100 to-white'
+                                                : 'border-banana-300 bg-gradient-to-b from-white to-banana-50/60'
+                                        } ${PODIUM_STYLES[entry.rank]?.order || ''} ${
+                                            entry.isCurrentUser ? 'ring-2 ring-banana-500 ring-offset-1' : ''
                                         }`}
                                     >
-                                        <span className="absolute -top-3 text-3xl">
-                                            {MEDALS[entry.rank]}
+                                        <span className={`mb-2 inline-flex h-8 w-8 items-center justify-center rounded-full border-2 font-display text-sm font-bold shadow-game-sm ${isTop ? 'border-yellow-400 bg-yellow-300 text-yellow-900' : 'border-banana-300 bg-banana-100 text-banana-900'}`}>
+                                            {MEDALS[entry.rank] || entry.rank}
                                         </span>
-                                        <span
-                                            className={`mt-2 rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide ${style.badge}`}
-                                        >
-                                            {style.label}
-                                        </span>
-                                        <Avatar entry={entry} size="lg" className="mt-2" />
-                                        <p className="mt-2 line-clamp-2 font-display text-sm font-extrabold leading-tight text-banana-800 md:text-base">
+                                        <Avatar entry={entry} size="lg" />
+                                        <p className="mt-2 line-clamp-2 font-display text-base leading-tight text-banana-900">
                                             {entry.displayName}
                                             {entry.isCurrentUser && (
-                                                <span className="ml-1 rounded-full bg-banana-300 px-1.5 py-0.5 text-[9px] uppercase text-banana-900">
+                                                <span className="ml-1 rounded-full bg-banana-200 px-1.5 py-0.5 text-[10px] text-banana-900">
                                                     You
                                                 </span>
                                             )}
                                         </p>
-                                        <p className="font-display text-2xl font-extrabold leading-none text-banana-700 md:text-3xl">
+                                        <p className="mt-1 font-display text-2xl leading-none text-banana-900 tabular-nums">
                                             {formatPoints(entry.totalPoints)}
                                         </p>
-                                        <p className="text-[10px] font-bold uppercase tracking-wide text-banana-500">
-                                            points
-                                        </p>
-                                        <p className="mt-auto pt-1 text-[10px] font-semibold text-banana-500 md:text-xs">
-                                            🏆 {entry.gamesWon} wins · 🔥 {entry.bestStreak}
+                                        <p className="text-xs text-banana-700">points</p>
+                                        <p className="mt-2 text-xs text-banana-700">
+                                            {entry.gamesWon} wins · best streak {entry.bestStreak}
                                         </p>
                                     </motion.div>
                                 );
@@ -543,8 +589,8 @@ export default function LeaderboardPage() {
 
                     {/* Ranked list */}
                     {!loading && listEntries.length > 0 && (
-                        <div className="overflow-hidden rounded-3xl border-4 border-banana-300 bg-white/90 shadow-game">
-                            <div className="flex items-center gap-3 border-b-2 border-banana-200 bg-banana-100/70 px-3 py-2 text-[10px] font-extrabold uppercase tracking-wide text-banana-600 md:px-4">
+                        <div className="overflow-hidden rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/40 shadow-game-sm">
+                            <div className="flex items-center gap-3 border-b-2 border-banana-200 bg-banana-100/70 px-3 py-2.5 font-display text-[11px] font-bold uppercase tracking-wide text-banana-800 md:px-4">
                                 <span className="w-7 text-center md:w-9">#</span>
                                 <span className="flex-1">Player</span>
                                 <span className="hidden w-16 text-right sm:block">Wins</span>
@@ -554,56 +600,45 @@ export default function LeaderboardPage() {
                             </div>
 
                             {listEntries.map((entry, index) => (
-                                <motion.div
+                                <div
                                     key={entry.rank}
                                     ref={entry.isCurrentUser ? myRowRef : undefined}
-                                    initial={{ x: -14, opacity: 0 }}
-                                    animate={{ x: 0, opacity: 1 }}
-                                    transition={{ delay: Math.min(index * 0.02, 0.2) }}
-                                    className={`flex items-center gap-3 px-3 py-2.5 md:px-4 ${
-                                        index !== listEntries.length - 1
-                                            ? 'border-b border-banana-100'
-                                            : ''
+                                    className={`flex items-center gap-3 px-3 py-2.5 md:px-4 transition-colors ${
+                                        index !== listEntries.length - 1 ? 'border-b border-banana-200' : ''
                                     } ${
-                                        entry.isCurrentUser
-                                            ? 'bg-banana-200/80 ring-2 ring-inset ring-banana-400'
-                                            : 'hover:bg-banana-50'
+                                        entry.isCurrentUser ? 'bg-banana-100/90 border-l-4 border-l-banana-500' : 'hover:bg-banana-50/80'
                                     }`}
                                 >
-                                    <div className="w-7 text-center font-display text-lg font-extrabold text-banana-700 md:w-9">
+                                    <div className="w-7 text-center font-display text-base text-banana-900 tabular-nums md:w-9">
                                         {entry.rank}
                                     </div>
                                     <Avatar entry={entry} />
                                     <div className="min-w-0 flex-1">
-                                        <p className="truncate font-bold text-banana-800">
+                                        <p className="truncate font-semibold text-banana-900">
                                             {entry.displayName}
                                             {entry.isCurrentUser && (
-                                                <span className="ml-1.5 rounded-full bg-banana-400 px-1.5 py-0.5 text-[9px] font-extrabold uppercase text-banana-900">
+                                                <span className="ml-1.5 rounded-full bg-banana-200 px-1.5 py-0.5 text-[10px] text-banana-900">
                                                     You
                                                 </span>
                                             )}
                                         </p>
-                                        <p className="text-[11px] text-banana-500 sm:hidden">
-                                            🏆 {entry.gamesWon} · 🔥 {entry.bestStreak} ·{' '}
-                                            {entry.winRate}%
+                                        <p className="text-[11px] text-banana-700 sm:hidden">
+                                            {entry.gamesWon} wins · best {entry.bestStreak} · {entry.winRate}%
                                         </p>
                                     </div>
-                                    <div className="hidden w-16 text-right text-sm font-bold text-banana-700 sm:block">
+                                    <div className="hidden w-16 text-right text-sm text-banana-900 tabular-nums sm:block">
                                         {entry.gamesWon}
                                     </div>
-                                    <div className="hidden w-20 text-right text-sm font-bold text-banana-700 sm:block">
-                                        <span className="inline-flex items-center gap-1">
-                                            <Flame size={13} className="text-orange-400" />{' '}
-                                            {entry.bestStreak}
-                                        </span>
+                                    <div className="hidden w-20 text-right text-sm text-banana-900 tabular-nums sm:block">
+                                        {entry.bestStreak}
                                     </div>
-                                    <div className="hidden w-14 text-right text-sm font-bold text-banana-700 lg:block">
+                                    <div className="hidden w-14 text-right text-sm text-banana-900 tabular-nums lg:block">
                                         {entry.winRate}%
                                     </div>
-                                    <div className="w-16 text-right font-display text-lg font-extrabold text-banana-700 md:w-20">
+                                    <div className="w-16 text-right font-display text-base text-banana-900 tabular-nums md:w-20">
                                         {formatPoints(entry.totalPoints)}
                                     </div>
-                                </motion.div>
+                                </div>
                             ))}
                         </div>
                     )}
@@ -614,9 +649,9 @@ export default function LeaderboardPage() {
                             <Button
                                 variant="secondary"
                                 onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
-                                className="!py-2.5 !text-base"
+                                className="!py-2 !text-sm"
                             >
-                                <ChevronDown size={17} /> Show more players
+                                <ChevronDown size={15} /> Show more players
                             </Button>
                         </div>
                     )}

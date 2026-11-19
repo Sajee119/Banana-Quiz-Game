@@ -43,7 +43,7 @@ function getTransporter() {
     return transporter;
 }
 
-async function sendMail({ to, subject, text, html }) {
+async function sendMail({ to, subject, text, html, replyTo }) {
     if (!isConfigured()) {
         logger.warn(`SMTP is not configured; skipped email "${subject}" to ${to}`);
         return { sent: false, reason: 'not_configured' };
@@ -56,6 +56,7 @@ async function sendMail({ to, subject, text, html }) {
             subject,
             text,
             html,
+            ...(replyTo ? { replyTo } : {}),
         });
         logger.info(`Sent email "${subject}" to ${to} (${info.messageId})`);
         return { sent: true, id: info.messageId };
@@ -291,8 +292,71 @@ Open your dashboard: ${dashboardUrl}`;
     return sendMail({ to, subject, text, html });
 }
 
+async function sendContactEmail({ name, email, subject, message, meta = {} }) {
+    // Contact messages go to the site owner's inbox, not the sender.
+    const inbox = env.CONTACT_TO_EMAIL || env.SMTP_USER;
+    if (!inbox) {
+        logger.warn('Contact email skipped: set CONTACT_TO_EMAIL or SMTP_USER');
+        return { sent: false, reason: 'not_configured' };
+    }
+
+    const displayName = String(name || 'Banana Quiz visitor').trim();
+    const topic = String(subject || 'General question').trim();
+    const received = formatIndiaTime(meta.receivedAt);
+    const device = meta.device || 'Unknown device';
+    const ipAddress = meta.ipAddress || 'Unavailable';
+    const headerSubject = `[Banana Quiz] ${topic} — ${displayName.replace(/[\r\n]+/g, ' ')}`;
+    const safeName = escapeHtml(displayName);
+    const safeEmail = escapeHtml(email);
+    const safeTopic = escapeHtml(topic);
+    const safeMessage = escapeHtml(message);
+
+    const text = `New message from the Banana Quiz contact form.
+
+Name: ${displayName}
+Email: ${email}
+Topic: ${topic}
+Received: ${received}
+Device: ${device}
+IP address: ${ipAddress}
+
+Message:
+${message}`;
+
+    const html = layout({
+        title: 'New contact message',
+        preheader: `${displayName} sent a ${topic.toLowerCase()} message from the contact form.`,
+        body: `
+          <p style="margin:0 0 18px;font-size:15px;line-height:1.6;">You have a new message from the Banana Quiz contact form. Reply directly to this email to answer the sender.</p>
+          <table role="presentation" width="100%" style="background:#FFF8D6;border-radius:16px;padding:16px;">
+            <tr><td style="font-size:14px;line-height:1.8;">
+              <strong>Sender details</strong><br>
+              Name: ${safeName}<br>
+              Email: <a href="mailto:${safeEmail}" style="color:#B56000;">${safeEmail}</a><br>
+              Topic: ${safeTopic}<br>
+              Received: ${escapeHtml(received)}
+            </td></tr>
+          </table>
+          <div style="margin:20px 0 0;padding:16px;border-left:4px solid ${BANANA_ACCENT};background:#FFFBEA;border-radius:12px;">
+            <p style="margin:0 0 8px;font-size:11px;font-weight:bold;letter-spacing:1.6px;text-transform:uppercase;color:#9B5700;">Message</p>
+            <p style="margin:0;font-size:15px;line-height:1.7;white-space:pre-wrap;">${safeMessage}</p>
+          </div>
+          <p style="margin:20px 0 0;font-size:12px;line-height:1.6;color:#9B5700;">Device: ${escapeHtml(device)} · IP address: ${escapeHtml(ipAddress)}</p>`,
+        footer: 'Sent automatically by the Banana Quiz contact form.',
+    });
+
+    return sendMail({
+        to: inbox,
+        replyTo: { name: displayName, address: email },
+        subject: headerSubject,
+        text,
+        html,
+    });
+}
+
 module.exports = {
     isConfigured,
+    sendContactEmail,
     sendPasswordResetEmail,
     sendPasswordChangedEmail,
     sendWelcomeEmail,

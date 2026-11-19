@@ -1,8 +1,9 @@
-import { ShieldCheck } from 'lucide-react';
-import PageShell from '../components/PageShell.jsx';
+import { Link } from 'react-router-dom';
+import { Cookie, Database, Download, Mail, ShieldCheck } from 'lucide-react';
+import PageShell, { secondaryActionClass } from '../components/PageShell.jsx';
 import LegalDocument from '../components/LegalDocument.jsx';
 import { usePageTitle } from '../hooks/usePageTitle.js';
-import { LEGAL_UPDATED, SITE_NAME, SUPPORT_EMAIL } from '../lib/site.js';
+import { PRIVACY_UPDATED, SITE_NAME, SUPPORT_EMAIL } from '../lib/site.js';
 
 const SECTIONS = [
     {
@@ -23,6 +24,7 @@ const SECTIONS = [
             'Gameplay data: game sessions, quiz results, answers, response times, points, streaks, achievements and game history.',
             'Preferences: leaderboard visibility, notification choices, default mode, gameplay controls and reduced-motion settings.',
             'Technical data: session cookies, login history (such as timestamps, IP address and browser information) and server logs used for security and troubleshooting.',
+            'Contact messages: the name, email address, topic and message you submit through the contact form, plus basic request metadata used to keep the form secure.',
         ],
     },
     {
@@ -132,7 +134,7 @@ const SECTIONS = [
         id: 'contact',
         title: '14. Contact us',
         body: [
-            `If you have questions about this policy or want to exercise your rights, visit the Help Centre or email ${SUPPORT_EMAIL}.`,
+            `If you have questions about this policy or want to exercise your rights, visit the Help Centre, use the contact form or email ${SUPPORT_EMAIL}.`,
         ],
     },
 ];
@@ -146,7 +148,17 @@ export default function PrivacyPage() {
             eyebrow="Legal"
             title="Privacy Policy"
             subtitle="What we collect, why we collect it and the control you have over your data."
-            meta={`Last updated ${LEGAL_UPDATED}`}
+            meta={`Last updated ${PRIVACY_UPDATED}`}
+            chips={[
+                { icon: Database, label: `${SECTIONS.length} sections`, tone: 'emerald' },
+                { icon: Cookie, label: 'Cookie choices', tone: 'violet' },
+                { icon: Download, label: 'Export & delete', tone: 'sky' },
+            ]}
+            actions={
+                <Link to="/contact" className={secondaryActionClass}>
+                    <Mail size={16} /> Contact us
+                </Link>
+            }
         >
             <LegalDocument
                 intro="This policy explains how Banana Quiz handles your information. We keep it in plain language and only collect what the game needs."

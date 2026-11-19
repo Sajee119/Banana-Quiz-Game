@@ -12,6 +12,7 @@ const gameRoutes = require('./routes/game.routes');
 const authRoutes = require('./routes/auth.routes');
 const { notFound, errorHandler } = require('./middleware/error.middleware');
 const userRoutes = require('./routes/user.routes');
+const contactRoutes = require('./routes/contact.routes');
 
 const app = express();
 
@@ -100,10 +101,19 @@ app.use((req, res, next) => {
 });
 
 app.get('/', (req, res) => {
-    res.json({ message: 'Banana Quiz API', endpoints: { auth: '/auth', user: '/api/users', game: '/api/game' } });
+    res.json({
+        message: 'Banana Quiz API',
+        endpoints: {
+            auth: '/auth',
+            user: '/api/users',
+            game: '/api/game',
+            contact: '/api/contact',
+        },
+    });
 });
 app.use('/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/contact', contactRoutes);
 
 app.get('/health', (req, res) => {
     res.json({

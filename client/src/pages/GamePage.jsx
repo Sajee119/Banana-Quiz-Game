@@ -468,12 +468,12 @@ export default function GamePage() {
             {celebrate && feedback?.isCorrect && (
                 <CelebrationFlow key={`celebration-${answers.length}`} />
             )}
-            <main className="mx-auto flex min-h-dvh w-full max-w-[1560px] flex-col px-4 py-4 md:px-8">
+            <main className="mx-auto flex min-h-dvh w-full flex-col px-4 py-4 sm:px-6 md:py-6">
                 {/* Game HUD */}
-                <header className="mb-4 rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/70 p-3 shadow-game-sm sm:p-4">
+                <header className="mb-4 rounded-2xl border-2 border-banana-300 bg-gradient-to-br from-banana-100 via-white to-amber-50 p-4 shadow-game sm:p-5">
                     <div className="flex flex-wrap items-end justify-between gap-4">
                         <div>
-                            <p className="inline-flex items-center gap-1.5 rounded-full border border-banana-300 bg-banana-100 px-2 py-0.5 font-display text-[11px] font-bold uppercase tracking-wide text-banana-800">
+                            <p className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 font-display text-[11px] font-bold uppercase tracking-wide text-banana-800">
                                 <Gamepad2 size={13} />
                                 {CONFIG_MODE_LABELS[config.mode] || config.mode} run
                             </p>
@@ -523,15 +523,15 @@ export default function GamePage() {
 
                 {/* Timer */}
                 {showTimer && (
-                    <div className="mb-4 flex items-center gap-4 rounded-2xl border-2 border-banana-300 bg-gradient-to-r from-white to-banana-50/70 px-4 py-3 shadow-game-sm">
+                    <div className="mb-4 flex items-center gap-4 rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/60 px-4 py-3 shadow-game-sm">
                         <div
-                            className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border-2 font-display font-bold leading-none tabular-nums shadow-game-sm ${
+                            className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border-2 font-display font-extrabold leading-none tabular-nums shadow-game-sm ${
                                 urgent
                                     ? 'border-red-400 bg-red-50 text-red-700 animate-pulse'
                                     : 'border-banana-400 bg-banana-100 text-banana-900'
                             }`}
                         >
-                            <span className="text-lg font-semibold">{session ? seconds : '—'}</span>
+                            <span className="text-lg font-extrabold">{session ? seconds : '—'}</span>
                         </div>
 
                         <div className="min-w-0 flex-1">
@@ -543,11 +543,11 @@ export default function GamePage() {
                                           ? 'Answer locked in'
                                           : 'Get ready'}
                                 </span>
-                                <span className="text-xs text-banana-800 tabular-nums">
+                                <span className="text-xs font-semibold text-banana-800 tabular-nums">
                                     {config.time}s per quiz
                                 </span>
                             </div>
-                            <div className="mt-2 h-2.5 overflow-hidden rounded-full border border-banana-200 bg-banana-100">
+                            <div className="mt-2 h-2.5 overflow-hidden rounded-full border-2 border-banana-200 bg-banana-100">
                                 <div
                                     className={`h-full rounded-full transition-all ${urgent ? 'bg-gradient-to-r from-red-400 to-red-500' : 'bg-gradient-to-r from-banana-400 to-banana-500'}`}
                                     style={{ width: `${session ? progress : 0}%` }}
@@ -570,17 +570,17 @@ export default function GamePage() {
                 <div className="grid flex-1 gap-4 lg:grid-cols-[3fr_4fr_2fr]">
                     {/* Puzzle stage */}
                     <Card className="relative flex min-h-[360px] items-center justify-center overflow-hidden !p-4 md:!p-6">
-                        <span className="absolute left-4 top-4 z-10 rounded-full border border-banana-300 bg-white/90 px-2.5 py-1 font-display text-xs font-bold text-banana-800 shadow-game-sm">
+                        <span className="absolute left-4 top-4 z-10 inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 font-display text-[11px] font-bold uppercase tracking-wide text-banana-800 shadow-game-sm">
                             Puzzle {quizNumber}
                         </span>
 
                         {startError ? (
-                            <div className="relative w-full max-w-md rounded-xl border border-banana-200 bg-white p-5 text-center">
+                            <div className="relative w-full max-w-md rounded-2xl border-2 border-banana-200 bg-white/90 p-5 text-center shadow-game-sm">
                                 <XCircle size={24} className="mx-auto mb-2 text-banana-700" />
-                                <h2 className="font-display text-xl text-banana-900">
+                                <h2 className="font-display text-xl font-extrabold text-banana-900">
                                     Could not load the next quiz
                                 </h2>
-                                <p className="mt-1 text-sm text-banana-800">{startError}</p>
+                                <p className="mt-1 text-sm font-semibold text-banana-800">{startError}</p>
                                 <div className="mt-5 flex flex-wrap justify-center gap-2">
                                     <Button onClick={startQuiz} disabled={busy}>
                                         <RefreshCw
@@ -598,14 +598,14 @@ export default function GamePage() {
                             <img
                                 src={session.imageUrl}
                                 alt="Calculate the banana value in this puzzle"
-                                className="relative max-h-[calc(100dvh-380px)] max-w-full rounded-lg border border-banana-200 bg-white object-contain"
+                                className="relative max-h-[calc(100dvh-380px)] max-w-full rounded-2xl border-2 border-banana-300 bg-gradient-to-br from-banana-100 via-amber-50 to-white p-3 shadow-game-sm object-contain"
                             />
                         ) : feedback ? (
                             <ResultFeedback result={feedback} celebrate={celebrate} />
                         ) : (
                             <div className="relative flex flex-col items-center gap-3 py-10 text-center">
                                 <BananaLogo size={56} />
-                                <p className="font-display text-lg text-banana-800">Loading the next quiz</p>
+                                <p className="font-display text-lg font-extrabold text-banana-800">Loading the next quiz</p>
                             </div>
                         )}
                     </Card>
@@ -614,8 +614,8 @@ export default function GamePage() {
                     <Card className="flex flex-col justify-center !p-4 md:!p-5">
                         <div className="mb-3 flex items-start justify-between gap-2">
                             <div className="min-w-0">
-                                <p className="text-sm font-semibold text-banana-700">Your answer</p>
-                                <p className="mt-0.5 flex items-center gap-1.5 text-xs text-banana-800">
+                                <p className="text-sm font-bold text-banana-800">Your answer</p>
+                                <p className="mt-0.5 flex items-center gap-1.5 text-xs font-semibold text-banana-700">
                                     {autoSubmit ? (
                                         <>
                                             <Sparkles size={14} className="flex-shrink-0" />
@@ -629,16 +629,16 @@ export default function GamePage() {
                                     )}
                                 </p>
                             </div>
-                            <span className="hidden flex-shrink-0 rounded-md bg-banana-100 px-2 py-0.5 text-xs text-banana-800 tabular-nums sm:block">
+                            <span className="hidden flex-shrink-0 items-center rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-800 tabular-nums sm:inline-flex">
                                 {entry.length}/{MAX_DIGITS}
                             </span>
                         </div>
 
                         <div
-                            className={`mb-3 overflow-hidden rounded-2xl border-2 px-4 py-3 text-center font-display text-4xl font-extrabold tabular-nums shadow-[inset_0_2px_6px_rgba(109,74,14,0.06)] ${
+                            className={`mb-3 overflow-hidden rounded-2xl border-2 px-4 py-3 text-center font-display text-4xl font-extrabold tabular-nums shadow-game-sm ${
                                 entry
                                     ? 'border-banana-400 bg-gradient-to-b from-banana-50 to-white text-banana-900'
-                                    : 'border-dashed border-banana-300 bg-white/70 text-banana-300'
+                                    : 'border-dashed border-banana-300 bg-white/80 text-banana-300'
                             }`}
                             aria-live="polite"
                             aria-label={`Current answer ${entry || 'empty'}`}
@@ -653,7 +653,7 @@ export default function GamePage() {
                                     type="button"
                                     onClick={() => appendDigit(key)}
                                     disabled={busy || Boolean(feedback)}
-                                    className="rounded-xl border-2 border-banana-300 border-b-4 border-b-banana-400 bg-gradient-to-b from-white to-banana-50 py-3 font-display text-2xl font-bold text-banana-900 shadow-game-sm transition hover:-translate-y-0.5 hover:bg-banana-100 active:translate-y-0 disabled:opacity-50 disabled:hover:translate-y-0"
+                                    className="rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50 py-3 font-display text-2xl font-bold text-banana-900 shadow-game-sm transition hover:bg-banana-100 active:translate-y-0.5 disabled:opacity-50"
                                 >
                                     {key}
                                 </button>
@@ -662,7 +662,7 @@ export default function GamePage() {
                                 type="button"
                                 onClick={clearEntry}
                                 disabled={busy || Boolean(feedback) || !entry}
-                                className="rounded-xl border-2 border-banana-300 bg-white py-3 font-display text-base font-bold text-banana-800 shadow-game-sm transition hover:bg-banana-50 active:translate-y-px disabled:opacity-50"
+                                className="rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50 py-3 font-display text-base font-bold text-banana-800 shadow-game-sm transition hover:bg-banana-100 active:translate-y-0.5 disabled:opacity-50"
                             >
                                 Clear
                             </button>
@@ -670,7 +670,7 @@ export default function GamePage() {
                                 type="button"
                                 onClick={() => appendDigit(0)}
                                 disabled={busy || Boolean(feedback)}
-                                className="rounded-xl border-2 border-banana-300 border-b-4 border-b-banana-400 bg-gradient-to-b from-white to-banana-50 py-3 font-display text-2xl font-bold text-banana-900 shadow-game-sm transition hover:-translate-y-0.5 hover:bg-banana-100 active:translate-y-0 disabled:opacity-50 disabled:hover:translate-y-0"
+                                className="rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50 py-3 font-display text-2xl font-bold text-banana-900 shadow-game-sm transition hover:bg-banana-100 active:translate-y-0.5 disabled:opacity-50"
                             >
                                 0
                             </button>
@@ -679,7 +679,7 @@ export default function GamePage() {
                                 onClick={backspace}
                                 disabled={busy || Boolean(feedback) || !entry}
                                 aria-label="Delete last digit"
-                                className="flex items-center justify-center rounded-xl border-2 border-banana-300 bg-white py-3 text-banana-800 shadow-game-sm transition hover:bg-banana-50 active:translate-y-px disabled:opacity-50"
+                                className="flex items-center justify-center rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50 py-3 text-banana-800 shadow-game-sm transition hover:bg-banana-100 active:translate-y-0.5 disabled:opacity-50"
                             >
                                 <Delete size={22} />
                             </button>
@@ -687,14 +687,14 @@ export default function GamePage() {
 
                         {autoSubmit && session && entry && !feedback && (
                             <div className="mt-3" aria-live="polite">
-                                <div className="mb-1 flex items-center justify-between text-xs text-banana-800">
+                                <div className="mb-1 flex items-center justify-between text-xs font-semibold text-banana-800">
                                     <span className="flex items-center gap-1.5">
                                         <Sparkles size={13} />
                                         Sending shortly
                                     </span>
                                     <span>Enter to send now</span>
                                 </div>
-                                <div className="h-1.5 overflow-hidden rounded-full bg-banana-100">
+                                <div className="h-1.5 overflow-hidden rounded-full border-2 border-banana-200 bg-banana-100">
                                     <div
                                         key={`${session.sessionId}-${entry}`}
                                         className="auto-submit-bar h-full rounded-full bg-banana-500"
@@ -714,16 +714,16 @@ export default function GamePage() {
                         )}
 
                         {showKeyboardHints && (
-                            <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5 text-xs text-banana-800">
-                                <kbd className="rounded border border-banana-200 bg-white px-1.5 py-0.5 font-body text-[11px] font-semibold text-banana-900">
+                            <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5 text-xs font-semibold text-banana-800">
+                                <kbd className="rounded-lg border-2 border-banana-200 bg-white/80 px-1.5 py-0.5 font-body text-[11px] font-bold text-banana-900 shadow-game-sm">
                                     0–9
                                 </kbd>
                                 type
-                                <kbd className="rounded border border-banana-200 bg-white px-1.5 py-0.5 font-body text-[11px] font-semibold text-banana-900">
+                                <kbd className="rounded-lg border-2 border-banana-200 bg-white/80 px-1.5 py-0.5 font-body text-[11px] font-bold text-banana-900 shadow-game-sm">
                                     Backspace
                                 </kbd>
                                 delete
-                                <kbd className="rounded border border-banana-200 bg-white px-1.5 py-0.5 font-body text-[11px] font-semibold text-banana-900">
+                                <kbd className="rounded-lg border-2 border-banana-200 bg-white/80 px-1.5 py-0.5 font-body text-[11px] font-bold text-banana-900 shadow-game-sm">
                                     Enter
                                 </kbd>
                                 submit
@@ -732,7 +732,7 @@ export default function GamePage() {
 
                         {error && (
                             <p
-                                className="mt-3 rounded-lg border border-banana-200 bg-banana-100 px-3 py-2 text-center text-sm text-banana-900"
+                                className="mt-3 rounded-2xl border-2 border-banana-300 bg-banana-100 px-3 py-2 text-center text-sm font-bold text-banana-900"
                                 role="alert"
                             >
                                 {error}
@@ -742,7 +742,7 @@ export default function GamePage() {
 
                     <aside className="flex flex-col gap-4">
                         <Card className="!p-4" style={{ flex: '3 1 0' }}>
-                            <h2 className="mb-3 font-display text-lg text-banana-900">This round</h2>
+                            <h2 className="mb-3 font-display text-lg font-extrabold text-banana-800">This round</h2>
                             <dl className="space-y-2 text-sm">
                                 <div className="flex items-baseline justify-between gap-2">
                                     <dt className="text-banana-800">Score</dt>
@@ -765,19 +765,19 @@ export default function GamePage() {
                             </dl>
                         </Card>
                         <Card className="!p-4" style={{ flex: '4 1 0' }}>
-                            <h2 className="mb-2 font-display text-lg text-banana-900">Scoring</h2>
-                            <ul className="space-y-2 text-sm text-banana-800">
+                            <h2 className="mb-2 font-display text-lg font-extrabold text-banana-800">Scoring</h2>
+                            <ul className="space-y-2 text-sm font-semibold text-banana-800">
                                 <li>A correct answer starts at 50 points, with speed and streak bonuses added when earned.</li>
                                 <li>Each continued correct answer can add 5 points to your run.</li>
                                 <li>Wrong, skipped and timed-out quizzes earn 0 points.</li>
                             </ul>
                         </Card>
                         <Card className="!p-4" style={{ flex: '2 1 0' }}>
-                            <h2 className="mb-2 font-display text-lg text-banana-900">Mode</h2>
-                            <p className="text-sm text-banana-800">
+                            <h2 className="mb-2 font-display text-lg font-extrabold text-banana-800">Mode</h2>
+                            <p className="text-sm font-semibold text-banana-800">
                                 {CONFIG_MODE_LABELS[config.mode] || config.mode} · {config.time}s per quiz
                             </p>
-                            <p className="mt-1 text-sm text-banana-800">
+                            <p className="mt-1 text-sm font-semibold text-banana-800">
                                 {config.leaderboardEligible !== false ? 'Ranked game' : 'Practice game'}
                             </p>
                         </Card>
@@ -834,7 +834,7 @@ function QuizPips({ answers, total }) {
                     <span key={index} className={`h-2 min-w-[4px] flex-1 rounded-full ${styles[state]}`} />
                 ))}
             </div>
-            <span className="text-xs text-banana-800 tabular-nums">
+            <span className="text-xs font-semibold text-banana-800 tabular-nums">
                 {answers.length}/{total}
             </span>
         </div>
@@ -862,13 +862,13 @@ function QuitConfirmDialog({ busy, onCancel, onConfirm }) {
                     </span>
                     <h2
                         id="quit-dialog-title"
-                        className="font-display text-xl leading-tight text-banana-900"
+                        className="font-display text-xl font-extrabold leading-tight text-banana-900"
                     >
                         Quit this game?
                     </h2>
                 </div>
                 <div className="p-5">
-                    <p className="text-sm text-banana-800">
+                    <p className="text-sm font-semibold text-banana-800">
                         Your answered quizzes are saved, but quitting early applies a small
                         penalty and ends this run.
                     </p>
@@ -890,14 +890,14 @@ function HudChip({ icon: Icon, label, value, className = '' }) {
     return (
         <span
             title={`${label}: ${value}`}
-            className={`inline-flex items-center gap-2 rounded-xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50 px-3 py-2 shadow-game-sm ${className}`}
+            className={`inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-3 py-1.5 shadow-game-sm ${className}`}
         >
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-banana-300 bg-banana-100 text-banana-700">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-100 text-banana-700">
                 <Icon size={14} aria-hidden="true" />
             </span>
             <span className="flex flex-col leading-none">
-                <span className="font-display text-sm font-bold leading-none text-banana-900 tabular-nums">{value}</span>
-                <span className="mt-1 text-[11px] font-semibold text-banana-700">{label}</span>
+                <span className="font-display text-sm font-extrabold leading-none text-banana-900 tabular-nums">{value}</span>
+                <span className="mt-1 text-[11px] font-bold uppercase tracking-wide text-banana-700">{label}</span>
             </span>
         </span>
     );
@@ -924,10 +924,10 @@ function ResultFeedback({ result, celebrate = false }) {
             }`}>
                 {correct ? <CheckCircle2 size={24} /> : <XCircle size={24} />}
             </div>
-            <h2 className="mt-4 font-display text-2xl text-banana-900">
+            <h2 className="mt-4 font-display text-2xl font-extrabold text-banana-900">
                 {correct ? 'Correct' : timedOut ? 'Time out' : skipped ? 'Skipped' : 'Incorrect'}
             </h2>
-            <p className="mt-1 text-sm text-banana-800">
+            <p className="mt-1 text-sm font-semibold text-banana-800">
                 {skipped
                     ? 'Quiz skipped'
                     : timedOut
@@ -937,16 +937,16 @@ function ResultFeedback({ result, celebrate = false }) {
                         : 'Keep going'}
             </p>
 
-            <div className="mt-4 inline-flex items-baseline gap-2 rounded-xl border-2 border-banana-300 bg-white px-4 py-2 shadow-game-sm">
+            <div className="mt-4 inline-flex items-baseline gap-2 rounded-full border-2 border-banana-200 bg-white/80 px-4 py-2 font-display shadow-game-sm">
                 <span className="font-display text-2xl leading-none text-banana-900 tabular-nums">
                     {points > 0 ? `+${points}` : '0'}
                 </span>
-                <span className="text-xs text-banana-800">points</span>
+                <span className="text-xs font-bold uppercase tracking-wide text-banana-800">points</span>
             </div>
 
             {result.solution != null && (
-                <p className="mt-3 text-sm text-banana-800">
-                    Correct answer <span className="font-semibold text-banana-900">{result.solution}</span>
+                <p className="mt-3 text-sm font-semibold text-banana-800">
+                    Correct answer <span className="font-extrabold text-banana-900">{result.solution}</span>
                 </p>
             )}
         </div>

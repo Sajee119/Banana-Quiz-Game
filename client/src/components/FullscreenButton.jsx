@@ -52,7 +52,7 @@ export default function FullscreenButton({ className = '' }) {
             aria-pressed={isFullscreen}
             title={isFullscreen ? 'Exit full screen (F)' : 'Enter full screen (F)'}
             aria-label={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
-            className={`inline-flex h-10 w-10 items-center justify-center rounded-xl border-2 border-transparent text-banana-700 transition hover:border-banana-200 hover:bg-banana-200/60 ${className}`}
+            className={`inline-flex h-10 w-10 items-center justify-center rounded-xl border-2 border-transparent text-banana-700 transition hover:border-banana-300 hover:bg-banana-100 hover:text-banana-900 ${className}`}
         >
             {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
         </button>

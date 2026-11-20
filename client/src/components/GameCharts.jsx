@@ -44,10 +44,10 @@ export function buildQuizRows(quizzes, timeLimit) {
 
 export function QuizPointsChart({ rows }) {
     return (
-        <section className="rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/70 p-4 shadow-game">
+        <section className="rounded-2xl border-2 border-banana-200 bg-white/90 p-4 shadow-game-sm">
             <header className="mb-3 flex items-baseline justify-between gap-2">
-                <h2 className="font-display text-lg text-banana-900">Points per quiz</h2>
-                <span className="text-xs text-banana-800 tabular-nums">{rows.length} quizzes</span>
+                <h2 className="font-display text-lg font-extrabold text-banana-900">Points per quiz</h2>
+                <span className="text-[11px] font-bold uppercase tracking-wide text-banana-700 tabular-nums">{rows.length} quizzes</span>
             </header>
             <div className="h-56 w-full" role="img" aria-label="Points earned on each quiz">
                 <ResponsiveContainer width="100%" height="100%">
@@ -73,10 +73,10 @@ export function QuizPointsChart({ rows }) {
 
 export function ResponseTimeChart({ rows }) {
     return (
-        <section className="rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/70 p-4 shadow-game">
+        <section className="rounded-2xl border-2 border-banana-200 bg-white/90 p-4 shadow-game-sm">
             <header className="mb-3 flex items-baseline justify-between gap-2">
-                <h2 className="font-display text-lg text-banana-900">Response time</h2>
-                <span className="text-xs text-banana-800">seconds per quiz</span>
+                <h2 className="font-display text-lg font-extrabold text-banana-900">Response time</h2>
+                <span className="text-[11px] font-bold uppercase tracking-wide text-banana-700">seconds per quiz</span>
             </header>
             <div className="h-40 w-full" role="img" aria-label="Response time for each quiz">
                 <ResponsiveContainer width="100%" height="100%">
@@ -116,12 +116,12 @@ export function OutcomeBreakdown({ rows }) {
     }));
 
     return (
-        <section className="rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/70 p-4 shadow-game">
-            <h2 className="mb-3 font-display text-lg text-banana-900">Outcome mix</h2>
+        <section className="rounded-2xl border-2 border-banana-200 bg-white/90 p-4 shadow-game-sm">
+            <h2 className="mb-3 font-display text-lg font-extrabold text-banana-900">Outcome mix</h2>
             <dl className="space-y-3">
                 {counts.map(({ key, label, count, tone }) => (
                     <div key={key} className="flex items-center gap-3">
-                        <dt className="w-20 flex-shrink-0 text-xs text-banana-800">{label}</dt>
+                        <dt className="w-20 flex-shrink-0 text-xs font-bold text-banana-800">{label}</dt>
                         <dd className="flex min-w-0 flex-1 items-center gap-2">
                             <span className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-banana-100">
                                 <span
@@ -129,7 +129,7 @@ export function OutcomeBreakdown({ rows }) {
                                     style={{ width: `${Math.round((count / total) * 100)}%` }}
                                 />
                             </span>
-                            <span className="w-6 text-right text-xs text-banana-900 tabular-nums">{count}</span>
+                            <span className="w-6 text-right text-xs font-extrabold text-banana-900 tabular-nums">{count}</span>
                         </dd>
                     </div>
                 ))}

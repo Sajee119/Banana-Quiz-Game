@@ -131,17 +131,17 @@ export default function HistoryPage() {
     return (
         <div className="min-h-screen">
             <AppHeader />
-            <main className="mx-auto w-full max-w-[1560px] px-4 py-6 md:px-6 md:py-8">
+            <main className="mx-auto w-full px-4 py-6 sm:px-6 md:py-8">
                 <motion.div initial={{ y: 14, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
                     {/* Hero */}
-                    <section className="relative mb-6 overflow-hidden rounded-[1.75rem] border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/70 p-5 shadow-game sm:p-7">
+                    <section className="relative mb-6 overflow-hidden rounded-2xl border-2 border-banana-300 bg-gradient-to-br from-banana-100 via-white to-amber-50 p-5 shadow-game sm:p-7">
                         <div
                             aria-hidden="true"
-                            className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full border-[14px] border-banana-300/30"
+                            className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full border-[10px] border-banana-300/30"
                         />
                         <div
                             aria-hidden="true"
-                            className="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full border-[14px] border-banana-200/40"
+                            className="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full border-[10px] border-banana-200/40"
                         />
                         <BananaLogo
                             size={180}
@@ -151,7 +151,7 @@ export default function HistoryPage() {
 
                         <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                             <div className="max-w-2xl">
-                                <p className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-300 bg-banana-100 px-2.5 py-1 font-display text-[11px] font-bold uppercase tracking-wide text-banana-800">
+                                <p className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-400 bg-gradient-to-b from-banana-100 to-white px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wide text-banana-800 shadow-game-sm">
                                     <HistoryIcon size={13} /> Your history
                                 </p>
                                 <h1 className="mt-2 font-display text-4xl font-extrabold leading-tight text-banana-900 sm:text-5xl">
@@ -163,13 +163,13 @@ export default function HistoryPage() {
                                 </p>
 
                                 <div className="mt-3.5 flex flex-wrap items-center gap-1.5 text-[11px] font-bold">
-                                    <span className="inline-flex items-center gap-1 rounded-full border-2 border-banana-300 bg-white px-2.5 py-1 text-banana-900 shadow-game-sm">
+                                    <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-900 shadow-game-sm">
                                         <Trophy size={12} /> {games.length} games
                                     </span>
-                                    <span className="inline-flex items-center gap-1 rounded-full border-2 border-banana-200 bg-banana-50 px-2.5 py-1 text-banana-800">
+                                    <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-800">
                                         <ListChecks size={12} /> {answers.length} answers
                                     </span>
-                                    <span className="inline-flex items-center gap-1 rounded-full border-2 border-banana-200 bg-banana-50 px-2.5 py-1 text-banana-800">
+                                    <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-800">
                                         {MODE_LIST.length} modes tracked
                                     </span>
                                 </div>
@@ -200,7 +200,7 @@ export default function HistoryPage() {
                     {/* Controls */}
                     <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
                         <div
-                            className="flex gap-1 rounded-2xl border-2 border-banana-200 bg-banana-100 p-1"
+                            className="flex gap-1 rounded-2xl border-2 border-banana-200 bg-banana-50/80 p-1"
                             role="tablist"
                         >
                             {TABS.map(({ id, label, icon: Icon }) => {
@@ -212,7 +212,7 @@ export default function HistoryPage() {
                                         role="tab"
                                         aria-selected={tab === id}
                                         onClick={() => setTab(id)}
-                                        className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-extrabold transition ${
+                                        className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 font-display text-sm font-bold transition ${
                                             tab === id
                                                 ? 'bg-white text-banana-900 shadow-game-sm'
                                                 : 'text-banana-600 hover:text-banana-800'
@@ -220,7 +220,7 @@ export default function HistoryPage() {
                                     >
                                         <Icon size={16} />
                                         {label}
-                                        <span className="rounded-full bg-banana-200 px-1.5 text-[11px] text-banana-800">
+                                        <span className="rounded-full border-2 border-banana-300 bg-white/80 px-1.5 text-[11px] font-bold text-banana-800">
                                             {count}
                                         </span>
                                     </button>
@@ -233,7 +233,7 @@ export default function HistoryPage() {
                             <select
                                 value={modeFilter}
                                 onChange={(event) => setModeFilter(event.target.value)}
-                                className="rounded-2xl border-2 border-banana-300 bg-white px-3 py-2 font-bold text-banana-800 shadow-game-sm focus:border-banana-400 focus:outline-none"
+                                className="rounded-2xl border-2 border-banana-300 bg-white/90 px-4 py-3 font-body font-bold text-banana-800 shadow-game-sm focus:border-banana-500 focus:outline-none"
                             >
                                 <option value="all">All modes</option>
                                 {MODE_LIST.map((mode) => (
@@ -259,7 +259,7 @@ export default function HistoryPage() {
                             {[...Array(4)].map((_, index) => (
                                 <div
                                     key={index}
-                                    className="h-28 animate-pulse rounded-3xl border-2 border-banana-200 bg-white/60"
+                                    className="h-28 animate-pulse rounded-2xl border-2 border-banana-200 bg-white/60"
                                 />
                             ))}
                         </div>
@@ -317,12 +317,12 @@ function GameRow({ game }) {
                             {modeLabel(game?.mode)}
                         </p>
                         <span
-                            className={`rounded-full px-2.5 py-0.5 text-[11px] font-extrabold uppercase ${status.tone}`}
+                            className={`inline-flex items-center rounded-full border-2 border-banana-200 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${status.tone}`}
                         >
                             {status.label}
                         </span>
                         {!game?.leaderboardEligible && (
-                            <span className="rounded-full border-2 border-sky-300 bg-sky-100 px-2.5 py-0.5 text-[11px] font-extrabold uppercase text-sky-800">
+                            <span className="inline-flex items-center rounded-full border-2 border-sky-300 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-sky-800">
                                 Practice
                             </span>
                         )}
@@ -340,7 +340,7 @@ function GameRow({ game }) {
                     </div>
 
                     {game?.quitPenalty ? (
-                        <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-xs font-extrabold text-red-700">
+                        <p className="mt-2 inline-flex items-center gap-1.5 rounded-full border-2 border-red-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-red-700">
                             <XCircle size={12} /> {game.quitPenalty} point quit penalty
                         </p>
                     ) : null}
@@ -386,7 +386,7 @@ function AnswerRow({ answer }) {
                 <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                         <span
-                            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-extrabold uppercase ${status.tone}`}
+                            className={`inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${status.tone}`}
                         >
                             <StatusIcon size={12} /> {status.label}
                         </span>
@@ -424,14 +424,14 @@ function AnswerRow({ answer }) {
                         {answer?.gameId && (
                             <Link
                                 to={`/game-overview/${encodeURIComponent(answer.gameId)}`}
-                                className="rounded-xl border-2 border-banana-200 bg-white px-2.5 py-1 text-xs font-extrabold text-banana-700 hover:bg-banana-50"
+                                className="rounded-2xl border-2 border-banana-200 bg-white/90 px-3 py-1.5 font-display text-xs font-bold text-banana-700 shadow-game-sm transition hover:bg-banana-50"
                             >
                                 Game
                             </Link>
                         )}
                         <Link
                             to={`/history/${encodeURIComponent(answer?.id || '')}`}
-                            className="rounded-xl bg-banana-100 px-2.5 py-1 text-xs font-extrabold text-banana-800 hover:bg-banana-200"
+                            className="rounded-2xl border-2 border-banana-200 bg-banana-100 px-3 py-1.5 font-display text-xs font-bold text-banana-800 shadow-game-sm transition hover:bg-banana-200"
                         >
                             Details
                         </Link>
@@ -444,8 +444,8 @@ function AnswerRow({ answer }) {
 
 function MicroMetric({ label, value, tone = 'text-banana-800' }) {
     return (
-        <div className="rounded-xl border-2 border-banana-100 bg-banana-50/70 px-2.5 py-1.5">
-            <p className="text-[9px] font-extrabold uppercase tracking-wide text-banana-500">
+        <div className="rounded-2xl border-2 border-banana-200 bg-white/90 px-3 py-2 shadow-game-sm">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-banana-700">
                 {label}
             </p>
             <p className={`font-display text-base font-extrabold leading-tight ${tone}`}>{value}</p>
@@ -456,7 +456,7 @@ function MicroMetric({ label, value, tone = 'text-banana-800' }) {
 function EmptyHistory({ tab, filtered }) {
     const isGames = tab === 'games';
     return (
-        <Card className="py-14 text-center">
+        <Card className="!border-dashed !border-banana-300 !bg-banana-50/60 !shadow-none py-8 text-center">
             <span className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-banana-300 bg-banana-100 text-banana-500">
                 {isGames ? <Trophy size={32} /> : <ListChecks size={32} />}
             </span>
@@ -524,11 +524,11 @@ function HistoryDetail({ sessionId }) {
     return (
         <div className="min-h-screen">
             <AppHeader />
-            <main className="mx-auto w-full max-w-[1200px] px-4 py-6 md:px-6 md:py-8">
+            <main className="mx-auto w-full px-4 py-6 sm:px-6 md:py-8">
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                     <Link
                         to="/history"
-                        className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-3 py-1.5 text-sm font-extrabold text-banana-700 shadow-game-sm transition hover:border-banana-300 hover:bg-banana-50"
+                        className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-3 py-1.5 font-display text-sm font-bold text-banana-700 shadow-game-sm transition hover:border-banana-300 hover:bg-banana-50"
                     >
                         <ArrowLeft size={17} /> Back to history
                     </Link>
@@ -542,13 +542,13 @@ function HistoryDetail({ sessionId }) {
                     )}
                 </div>
 
-                <section className="relative mb-6 overflow-hidden rounded-[1.75rem] border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/70 p-5 shadow-game sm:p-7">
+                <section className="relative mb-6 overflow-hidden rounded-2xl border-2 border-banana-300 bg-gradient-to-br from-banana-100 via-white to-amber-50 p-5 shadow-game sm:p-7">
                     <div
                         aria-hidden="true"
-                        className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full border-[14px] border-banana-300/30"
+                        className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full border-[10px] border-banana-300/30"
                     />
                     <div className="relative">
-                        <p className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-300 bg-banana-100 px-2.5 py-1 font-display text-[11px] font-bold uppercase tracking-wide text-banana-800">
+                        <p className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-400 bg-gradient-to-b from-banana-100 to-white px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wide text-banana-800 shadow-game-sm">
                             <ListChecks size={13} /> Answer archive
                         </p>
                         <h1 className="mt-2 font-display text-4xl font-extrabold leading-tight text-banana-900">
@@ -561,15 +561,15 @@ function HistoryDetail({ sessionId }) {
                         {entry && (
                             <div className="mt-3.5 flex flex-wrap items-center gap-1.5 text-[11px] font-extrabold">
                                 <span
-                                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 uppercase ${status.tone}`}
+                                    className={`inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${status.tone}`}
                                 >
                                     <StatusIcon size={12} /> {status.label}
                                 </span>
-                                <span className="inline-flex items-center gap-1 rounded-full border-2 border-banana-300 bg-white/80 px-2.5 py-1 text-banana-800">
+                                <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-800">
                                     {modeLabel(entry.mode)}
                                 </span>
                                 {!entry.leaderboardEligible && (
-                                    <span className="inline-flex items-center gap-1 rounded-full border-2 border-sky-300 bg-sky-100 px-2.5 py-1 text-sky-800">
+                                    <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-sky-300 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-sky-800">
                                         Practice
                                     </span>
                                 )}
@@ -605,12 +605,12 @@ function HistoryDetail({ sessionId }) {
                 {!loading && !error && entry && (
                     <>
                         <Card className="overflow-hidden !p-0">
-                            <div className="flex items-center gap-3 border-b-4 border-banana-200 bg-banana-100/70 px-5 py-3.5">
-                                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-200 text-banana-700">
+                            <div className="flex items-center gap-3 border-b-2 border-banana-200 bg-banana-50/80 px-5 py-3.5">
+                                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-100 text-banana-700">
                                     <ListChecks size={20} />
                                 </span>
                                 <div>
-                                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-banana-500">
+                                    <p className="text-[11px] font-bold uppercase tracking-wide text-banana-700">
                                         Puzzle snapshot
                                     </p>
                                     <h2 className="font-display text-xl font-extrabold text-banana-800">
@@ -620,7 +620,7 @@ function HistoryDetail({ sessionId }) {
                             </div>
 
                             <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-start">
-                                <div className="mx-auto h-48 w-full max-w-[260px] flex-shrink-0 overflow-hidden rounded-2xl border-4 border-banana-300 bg-banana-100">
+                                <div className="mx-auto h-48 w-full max-w-[260px] flex-shrink-0 overflow-hidden rounded-2xl border-2 border-banana-300 bg-banana-100 shadow-game-sm">
                                     {entry.imageUrl ? (
                                         <img
                                             src={entry.imageUrl}
@@ -688,8 +688,8 @@ function HistoryDetail({ sessionId }) {
 
 function Detail({ label, value }) {
     return (
-        <div className="rounded-xl border-2 border-banana-200 bg-banana-50 px-3 py-2">
-            <dt className="text-[10px] font-extrabold uppercase tracking-wide text-banana-500">
+        <div className="rounded-2xl border-2 border-banana-200 bg-white/90 px-4 py-3 shadow-game-sm">
+            <dt className="text-[11px] font-bold uppercase tracking-wide text-banana-700">
                 {label}
             </dt>
             <dd className="break-words font-display text-lg font-extrabold text-banana-900">

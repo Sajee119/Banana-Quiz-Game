@@ -63,7 +63,7 @@ import { usePageTitle } from '../hooks/usePageTitle.js';
 import { useSound } from '../hooks/useSound.js';
 
 const inputClass =
-    'w-full rounded-xl border-2 border-banana-200 bg-white px-3.5 py-2.5 font-semibold text-banana-900 placeholder:text-banana-400 transition focus:border-banana-400 focus:outline-none focus:ring-2 focus:ring-banana-300/60';
+    'w-full rounded-2xl border-2 border-banana-300 bg-white/90 px-4 py-3 font-body font-semibold text-banana-900 placeholder:text-banana-400 shadow-game-sm transition focus:border-banana-500 focus:outline-none focus:ring-2 focus:ring-banana-300/60';
 
 const DEVICE_ICONS = {
     mobile: Smartphone,
@@ -104,6 +104,8 @@ const DEFAULT_PREFERENCES = {
     emailNotifications: true,
     loginAlerts: true,
     productUpdates: false,
+    twoFactorEnabled: false,
+    twoFactorTrustDays: 10,
     defaultMode: 'easy',
     autoSubmit: true,
     celebrations: true,
@@ -153,6 +155,7 @@ export default function ProfilePage() {
     const [securityError, setSecurityError] = useState('');
     const [loadingSecurity, setLoadingSecurity] = useState(true);
     const [signingOutOthers, setSigningOutOthers] = useState(false);
+    const [clearingTrusted, setClearingTrusted] = useState(false);
     const [deviceNotice, setDeviceNotice] = useState(null);
 
     const [emailAction, setEmailAction] = useState({ sending: false, error: '' });
@@ -195,6 +198,13 @@ export default function ProfilePage() {
             loginAlerts: user.preferences?.loginAlerts ?? DEFAULT_PREFERENCES.loginAlerts,
             productUpdates:
                 user.preferences?.productUpdates ?? DEFAULT_PREFERENCES.productUpdates,
+            twoFactorEnabled:
+                user.preferences?.twoFactorEnabled ?? DEFAULT_PREFERENCES.twoFactorEnabled,
+            twoFactorTrustDays: [1, 5, 10].includes(
+                Number(user.preferences?.twoFactorTrustDays)
+            )
+                ? Number(user.preferences.twoFactorTrustDays)
+                : DEFAULT_PREFERENCES.twoFactorTrustDays,
             defaultMode: normalizeModeId(
                 user.preferences?.defaultMode ?? DEFAULT_PREFERENCES.defaultMode
             ),
@@ -428,6 +438,28 @@ export default function ProfilePage() {
         }
     };
 
+    const handleClearTrustedDevices = async () => {
+        if (clearingTrusted) return;
+        setClearingTrusted(true);
+        setDeviceNotice(null);
+
+        try {
+            const data = await userApi.clearTrustedDevices();
+            setDeviceNotice({
+                type: 'success',
+                text: data.message || 'Trusted devices were forgotten.',
+            });
+            loadSecurity();
+        } catch (err) {
+            setDeviceNotice({
+                type: 'error',
+                text: err.friendlyMessage || 'Could not forget trusted devices.',
+            });
+        } finally {
+            setClearingTrusted(false);
+        }
+    };
+
     const handleRequestVerification = async () => {
         if (emailAction.sending) return;
         setEmailAction({ sending: true, error: '' });
@@ -561,11 +593,11 @@ export default function ProfilePage() {
         <div className="min-h-screen">
             <AppHeader />
 
-            <main className="mx-auto w-full max-w-[1560px] px-4 py-6 md:px-6 md:py-8">
-                <section className="mb-6 overflow-hidden rounded-[1.75rem] border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/70 p-5 shadow-game sm:p-6">
+            <main className="mx-auto w-full px-4 py-6 sm:px-6 md:py-8">
+                <section className="mb-6 overflow-hidden rounded-2xl border-2 border-banana-300 bg-gradient-to-br from-banana-100 via-white to-amber-50 p-5 shadow-game sm:p-7">
                     <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                         <div>
-                            <p className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-300 bg-banana-100 px-2.5 py-1 font-display text-[11px] font-bold uppercase tracking-wide text-banana-800">
+                            <p className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-400 bg-gradient-to-b from-banana-100 to-white px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wide text-banana-800 shadow-game-sm">
                                 <Settings size={13} /> Account centre
                             </p>
                             <h1 className="mt-2 font-display text-3xl font-extrabold leading-tight text-banana-900 md:text-4xl">
@@ -596,7 +628,7 @@ export default function ProfilePage() {
                 </section>
 
                 {verifiedBanner && (
-                    <div className="mb-4 flex items-start gap-3 rounded-xl border border-banana-200 bg-banana-100 px-4 py-3">
+                    <div className="mb-4 flex items-start gap-3 rounded-2xl border-2 border-banana-200 bg-banana-50/80 px-4 py-3 shadow-game-sm">
                         <MailCheck size={18} className="mt-0.5 flex-shrink-0 text-banana-700" />
                         <div className="min-w-0 flex-1">
                             <p className="font-semibold text-banana-900">Email verified</p>
@@ -618,7 +650,7 @@ export default function ProfilePage() {
                     <div className="grid items-start gap-4 lg:grid-cols-[2fr_4fr_3fr]">
                         <aside className="space-y-4 lg:sticky lg:top-24">
                             <Card className="!p-3 md:!p-4">
-                                <p className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-banana-300 bg-banana-100 px-2 py-0.5 font-display text-[10px] font-bold uppercase tracking-wide text-banana-800">
+                                <p className="mb-2 inline-flex items-center gap-1.5 rounded-full border-2 border-banana-400 bg-gradient-to-b from-banana-100 to-white px-3 py-1 font-display text-[10px] font-bold uppercase tracking-wide text-banana-800 shadow-game-sm">
                                     <Settings size={12} /> Settings
                                 </p>
                                 <div className="flex flex-wrap gap-1.5 lg:flex-col">
@@ -630,13 +662,13 @@ export default function ProfilePage() {
                                                 type="button"
                                                 onClick={() => selectTab(id)}
                                                 aria-current={active ? 'page' : undefined}
-                                                className={`flex items-center gap-2 rounded-xl border-2 px-2.5 py-2 text-left text-sm font-semibold transition-all ${
+                                                className={`flex items-center gap-2 rounded-xl border-2 px-2.5 py-2 font-display text-left text-sm font-bold transition-all ${
                                                     active
                                                         ? 'border-banana-400 bg-gradient-to-b from-banana-100 to-banana-50 text-banana-900 shadow-game-sm'
                                                         : 'border-transparent text-banana-800 hover:border-banana-200 hover:bg-banana-50'
                                                 }`}
                                             >
-                                                <span className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg border ${active ? 'border-banana-300 bg-white text-banana-700' : 'border-banana-200 bg-banana-100 text-banana-700'}`}>
+                                                <span className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border-2 ${active ? 'border-banana-300 bg-white text-banana-700' : 'border-banana-200 bg-banana-100 text-banana-700'}`}>
                                                     <Icon size={14} />
                                                 </span>
                                                 <span className="truncate">{label}</span>
@@ -749,6 +781,26 @@ export default function ProfilePage() {
                                     signingOutOthers={signingOutOthers}
                                     onLogoutOthers={handleLogoutOthers}
                                     deviceNotice={deviceNotice}
+                                    twoFactorEnabled={preferences.twoFactorEnabled}
+                                    twoFactorTrustDays={preferences.twoFactorTrustDays}
+                                    updatePreference={updatePreference}
+                                    onTwoFactorSave={async () => {
+                                        await savePreferences(
+                                            'security',
+                                            {
+                                                twoFactorEnabled: Boolean(preferences.twoFactorEnabled),
+                                                twoFactorTrustDays: Number(
+                                                    preferences.twoFactorTrustDays
+                                                ),
+                                            },
+                                            'Two-factor settings saved.'
+                                        );
+                                        loadSecurity();
+                                    }}
+                                    savingTwoFactor={savingSection === 'security'}
+                                    twoFactorNotice={notices.security}
+                                    onClearTrustedDevices={handleClearTrustedDevices}
+                                    clearingTrusted={clearingTrusted}
                                 />
                             )}
 
@@ -802,7 +854,7 @@ export default function ProfilePage() {
                         <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
                             <Card className="!p-4 md:!p-5">
                                 <div className="flex items-center gap-3">
-                                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-banana-100 font-display text-lg text-banana-900">
+                                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 border-banana-300 bg-banana-100 font-display text-lg text-banana-900">
                                         {user.avatar ? (
                                             <img src={user.avatar} alt="" className="h-full w-full object-cover" />
                                         ) : (
@@ -836,7 +888,7 @@ export default function ProfilePage() {
                                 </dl>
                                 <div className="mt-3 grid grid-cols-3 gap-2">
                                     {statCards.slice(0, 3).map((card) => (
-                                        <div key={card.label} className="rounded-lg border border-banana-200 bg-banana-50 px-2 py-2">
+                                        <div key={card.label} className="rounded-2xl border-2 border-banana-200 bg-white/90 px-3 py-2 shadow-game-sm">
                                             <p className="text-[10px] text-banana-700">{card.label}</p>
                                             <p className="font-display text-sm leading-tight text-banana-900 tabular-nums">{card.value}</p>
                                         </div>
@@ -864,7 +916,7 @@ export default function ProfilePage() {
                                                 DEVICE_ICONS[entry?.deviceType || 'unknown'] || Monitor;
                                             return (
                                                 <li key={entry?.id || index} className="flex items-start gap-3 py-2.5">
-                                                    <span className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-banana-100 text-banana-700">
+                                                    <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-100 text-banana-700">
                                                         <DeviceIcon size={14} />
                                                     </span>
                                                     <div className="min-w-0 flex-1">
@@ -1069,7 +1121,7 @@ function ProfileSection({
                         </div>
 
                         <div
-                            className={`mt-3 flex items-center gap-3 rounded-2xl border-2 p-3 ${
+                            className={`mt-3 flex items-center gap-3 rounded-2xl border-2 p-4 shadow-game-sm ${
                                 avatarPreview.status === 'error'
                                     ? 'border-red-200 bg-red-50'
                                     : avatarPreview.status === 'ok'
@@ -1078,7 +1130,7 @@ function ProfileSection({
                             }`}
                             aria-live="polite"
                         >
-                            <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-banana-300 bg-banana-100 font-display text-xl font-extrabold text-banana-800">
+                            <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 border-banana-300 bg-banana-100 font-display text-xl font-extrabold text-banana-800">
                                 {avatarPreview.status === 'ok' ? (
                                     <img
                                         src={avatarPreview.src}
@@ -1478,6 +1530,14 @@ function SecuritySection({
     signingOutOthers,
     onLogoutOthers,
     deviceNotice,
+    twoFactorEnabled,
+    twoFactorTrustDays,
+    updatePreference,
+    onTwoFactorSave,
+    savingTwoFactor,
+    twoFactorNotice,
+    onClearTrustedDevices,
+    clearingTrusted,
 }) {
     const checks = Array.isArray(security?.checks) ? security.checks : [];
     const passedChecks = checks.filter((check) => check.passed).length;
@@ -1540,6 +1600,83 @@ function SecuritySection({
                         )}
                     </div>
                 )}
+            </Card>
+
+            <Card className="!p-5 md:!p-6">
+                <SectionHeading
+                    icon={<ShieldCheck size={20} />}
+                    title="Two-factor sign-in"
+                    subtitle="Require an emailed 6-digit code when signing in from a new device."
+                    noMargin
+                />
+
+                <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-2xl border-2 border-banana-200 bg-banana-50 p-4 shadow-game-sm">
+                    <input
+                        type="checkbox"
+                        checked={Boolean(twoFactorEnabled)}
+                        onChange={updatePreference('twoFactorEnabled')}
+                        className="mt-1 h-5 w-5 flex-shrink-0 accent-banana-600"
+                    />
+                    <span>
+                        <span className="block font-display text-base font-extrabold text-banana-900">
+                            Email two-factor authentication
+                        </span>
+                        <span className="mt-0.5 block text-sm font-semibold text-banana-800">
+                            {twoFactorEnabled
+                                ? 'On — every new login needs a code from your inbox.'
+                                : 'Off — your password or social sign-in is enough.'}
+                        </span>
+                    </span>
+                </label>
+
+                <p className="mt-3 text-xs font-semibold leading-relaxed text-banana-800">
+                    A code is sent to <strong className="break-all">{user.email}</strong>. After you
+                    verify it, this browser is trusted and can sign in without another code until
+                    the period below ends.
+                </p>
+
+                <div className={`mt-4 ${twoFactorEnabled ? '' : 'opacity-60'}`}>
+                    <label
+                        htmlFor="twoFactorTrustDays"
+                        className="mb-1.5 block text-xs font-extrabold uppercase tracking-wide text-banana-800"
+                    >
+                        Trust this device for
+                    </label>
+                    <select
+                        id="twoFactorTrustDays"
+                        value={twoFactorTrustDays}
+                        onChange={updatePreference('twoFactorTrustDays')}
+                        disabled={!twoFactorEnabled}
+                        className={inputClass}
+                    >
+                        {[1, 5, 10].map((days) => (
+                            <option key={days} value={days}>
+                                {days} day{days === 1 ? '' : 's'}
+                            </option>
+                        ))}
+                    </select>
+                    <p className="mt-1.5 text-[11px] font-semibold text-banana-800">
+                        Changing this setting or your password forgets trusted devices, so the new
+                        window starts with your next sign-in.
+                    </p>
+                </div>
+
+                <Notice notice={twoFactorNotice} />
+
+                <div className="mt-4 flex flex-wrap justify-end gap-2 border-t border-banana-100 pt-4">
+                    <Button
+                        variant="secondary"
+                        onClick={onClearTrustedDevices}
+                        disabled={clearingTrusted}
+                    >
+                        <Trash2 size={16} />
+                        {clearingTrusted ? 'Forgetting…' : 'Forget trusted devices'}
+                    </Button>
+                    <Button onClick={onTwoFactorSave} disabled={savingTwoFactor}>
+                        <Save size={16} />
+                        {savingTwoFactor ? 'Saving…' : 'Save 2FA settings'}
+                    </Button>
+                </div>
             </Card>
 
             <Card className="!p-5 md:!p-6">
@@ -2166,7 +2303,7 @@ function SectionHeading({ icon, title, subtitle, noMargin = false }) {
     return (
         <div className={noMargin ? '' : 'mb-4'}>
             <h2 className="flex items-center gap-2.5 font-display text-xl font-extrabold text-banana-800">
-                <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-200 text-banana-700">
+                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-100 text-banana-700">
                     {icon}
                 </span>
                 {title}
@@ -2188,7 +2325,7 @@ function Field({ label, htmlFor, hint, children }) {
                     {label}
                 </label>
                 {hint && (
-                    <span className="rounded-full border-2 border-banana-200 bg-banana-50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-banana-800">
+                    <span className="rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-800">
                         {hint}
                     </span>
                 )}

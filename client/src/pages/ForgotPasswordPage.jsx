@@ -7,7 +7,7 @@ import { authApi } from '../api/client.js';
 import { usePageTitle } from '../hooks/usePageTitle.js';
 
 const inputClass =
-    'w-full rounded-2xl border-2 border-banana-200 bg-white py-3 pl-11 pr-4 font-semibold text-banana-900 placeholder:text-banana-400 transition focus:border-banana-400 focus:outline-none focus:ring-2 focus:ring-banana-300/60';
+    'w-full rounded-2xl border-2 border-banana-300 bg-white/90 py-3 pl-11 pr-4 font-body text-banana-900 shadow-game-sm outline-none transition placeholder:text-banana-400 focus:border-banana-500';
 
 const NEXT_STEPS = [
     'Open the email from Banana Quiz.',
@@ -50,7 +50,7 @@ export default function ForgotPasswordPage() {
                         : 'If an account exists for that address, a reset link is on its way.'
                 }
             >
-                <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-4">
+                <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50 px-4 py-3 shadow-game-sm">
                     <div className="flex gap-3">
                         <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-emerald-300 bg-emerald-100 text-emerald-700">
                             <MailCheck size={26} />
@@ -66,14 +66,14 @@ export default function ForgotPasswordPage() {
                     </div>
                 </div>
 
-                <p className="mt-5 text-xs font-extrabold uppercase tracking-widest text-banana-500">
+                <p className="mt-5 inline-flex w-fit items-center gap-1.5 rounded-full border-2 border-banana-400 bg-gradient-to-b from-banana-100 to-white px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wide text-banana-800 shadow-game-sm">
                     What happens next
                 </p>
                 <ol className="mt-2 space-y-2.5">
                     {NEXT_STEPS.map((step, index) => (
                         <li
                             key={step}
-                            className="flex items-center gap-3 rounded-2xl border-2 border-banana-100 bg-banana-50/70 px-3.5 py-2.5"
+                            className="flex items-center gap-3 rounded-2xl border-2 border-banana-200 bg-white/80 px-3.5 py-2.5 shadow-game-sm"
                         >
                             <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border-2 border-banana-300 bg-banana-200 font-display text-xs font-extrabold text-banana-800">
                                 {index + 1}
@@ -123,7 +123,7 @@ export default function ForgotPasswordPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4 text-left">
                 <div>
-                    <label htmlFor="email" className="mb-1 block text-sm font-bold text-banana-700">
+                    <label htmlFor="email" className="mb-1 block text-sm font-bold text-banana-800">
                         Email
                     </label>
                     <div className="relative">
@@ -162,7 +162,7 @@ export default function ForgotPasswordPage() {
                 </Button>
             </form>
 
-            <div className="mt-4 flex items-start gap-2.5 rounded-2xl border-2 border-banana-100 bg-banana-50/70 px-4 py-3 text-xs font-semibold leading-relaxed text-banana-700">
+            <div className="mt-4 flex items-start gap-2.5 rounded-2xl border-2 border-banana-200 bg-white/80 px-4 py-3 text-xs font-semibold leading-relaxed text-banana-600 shadow-game-sm">
                 <ShieldCheck size={16} className="mt-0.5 flex-shrink-0 text-banana-500" />
                 <span>
                     We only send a link when an account exists for that address. Reset links are

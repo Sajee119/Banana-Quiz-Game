@@ -41,6 +41,12 @@ export const authApi = {
         api
             .post('/auth/email/verify/resend', { verificationId }, { timeout: 30000 })
             .then((r) => r.data),
+    verifyTwoFactor: (payload) =>
+        api.post('/auth/two-factor/verify', payload, { timeout: 20000 }).then((r) => r.data),
+    resendTwoFactor: (verificationId) =>
+        api
+            .post('/auth/two-factor/resend', { verificationId }, { timeout: 30000 })
+            .then((r) => r.data),
     forgotPassword: (email) =>
         api.post('/auth/forgot-password', { email }, { timeout: 30000 }).then((r) => r.data),
     validateResetToken: (token) =>
@@ -60,6 +66,8 @@ export const userApi = {
     changePassword: (payload) => api.patch('/api/users/me/password', payload).then((r) => r.data),
     security: () => api.get('/api/users/me/security').then((r) => r.data),
     logoutOthers: () => api.post('/api/users/me/logout-others').then((r) => r.data),
+    clearTrustedDevices: () =>
+        api.post('/api/users/me/trusted-devices/clear').then((r) => r.data),
     logins: () => api.get('/api/users/me/logins').then((r) => r.data),
     achievements: () => api.get('/api/users/me/achievements').then((r) => r.data),
     deactivate: (payload) => api.post('/api/users/me/deactivate', payload).then((r) => r.data),

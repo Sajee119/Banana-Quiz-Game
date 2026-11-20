@@ -140,7 +140,7 @@ export default function AboutPage() {
             <motion.section
                 initial={{ y: 16, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                className="relative overflow-hidden rounded-[1.75rem] border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/70 p-5 shadow-game sm:p-7"
+                className="relative overflow-hidden rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/60 p-5 shadow-game sm:p-7"
             >
                 <div
                     aria-hidden="true"
@@ -150,7 +150,7 @@ export default function AboutPage() {
                     <div className="relative mx-auto w-fit md:mx-0">
                         <div
                             aria-hidden="true"
-                            className="absolute inset-0 rotate-3 rounded-[1.5rem] bg-gradient-to-br from-banana-300 to-amber-400"
+                            className="absolute inset-0 rotate-3 rounded-2xl bg-gradient-to-br from-banana-300 to-amber-400"
                         />
                         <img
                             src={DEVELOPER.avatar}
@@ -158,15 +158,15 @@ export default function AboutPage() {
                             width="176"
                             height="176"
                             referrerPolicy="no-referrer"
-                            className="relative h-40 w-40 rounded-[1.5rem] border-2 border-white object-cover shadow-game-sm sm:h-44 sm:w-44"
+                            className="relative h-40 w-40 rounded-2xl border-2 border-white object-cover shadow-game-sm sm:h-44 sm:w-44"
                         />
-                        <span className="absolute -bottom-3 left-1/2 inline-flex -translate-x-1/2 items-center gap-1 whitespace-nowrap rounded-full border-2 border-emerald-300 bg-emerald-100 px-3 py-1 text-[11px] font-extrabold text-emerald-800 shadow-game-sm">
+                        <span className="absolute -bottom-3 left-1/2 inline-flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-full border-2 border-emerald-300 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-emerald-800 shadow-game-sm">
                             <CircleCheck size={12} /> Open to collaborate
                         </span>
                     </div>
 
                     <div className="min-w-0 text-center md:text-left">
-                        <p className="flex items-center justify-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.2em] text-banana-800 md:justify-start">
+                        <p className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-400 bg-gradient-to-b from-banana-100 to-white px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wide text-banana-800 shadow-game-sm">
                             <Sparkles size={13} /> Meet the developer
                         </p>
                         <h2 className="mt-1 font-display text-3xl font-extrabold text-banana-900 sm:text-4xl">
@@ -177,16 +177,16 @@ export default function AboutPage() {
                         </p>
 
                         <div className="mt-3 flex flex-wrap justify-center gap-1.5 text-[11px] font-extrabold md:justify-start">
-                            <span className="inline-flex items-center gap-1 rounded-full border-2 border-banana-200 bg-banana-50 px-2.5 py-1 text-banana-800">
+                            <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-800">
                                 <Briefcase size={12} /> {DEVELOPER.company}
                             </span>
-                            <span className="inline-flex items-center gap-1 rounded-full border-2 border-emerald-300 bg-emerald-100 px-2.5 py-1 text-emerald-800">
+                            <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-emerald-300 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-emerald-800">
                                 <MapPin size={12} /> {DEVELOPER.location}
                             </span>
-                            <span className="inline-flex items-center gap-1 rounded-full border-2 border-sky-300 bg-sky-100 px-2.5 py-1 text-sky-800">
+                            <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-sky-300 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-sky-800">
                                 <CalendarDays size={12} /> On GitHub since {DEVELOPER.joined}
                             </span>
-                            <span className="inline-flex items-center gap-1 rounded-full border-2 border-violet-300 bg-violet-100 px-2.5 py-1 text-violet-800">
+                            <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-violet-300 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-violet-800">
                                 <UserRound size={12} /> @{DEVELOPER.handle}
                             </span>
                         </div>
@@ -224,16 +224,16 @@ export default function AboutPage() {
                 </div>
             </motion.section>
 
-            <section className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="GitHub at a glance">
+            <section className="grid gap-3 border-y-2 border-banana-200 bg-white/70 py-5 sm:grid-cols-2 lg:grid-cols-4" aria-label="GitHub at a glance">
                 {GITHUB_STATS.map((stat, index) => {
                     const Icon = STAT_ICONS[index] || Sparkles;
                     return (
                         <div
                             key={stat.label}
-                            className="flex items-center gap-3 rounded-2xl border-2 border-banana-300 bg-white/90 p-4 shadow-game-sm"
+                            className="flex items-center gap-3 rounded-2xl border-2 border-banana-200 bg-white/90 p-4 shadow-game-sm"
                         >
                             <span
-                                className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl border-2 ${STAT_TONES[stat.tone] || STAT_TONES.banana}`}
+                                className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border-2 ${STAT_TONES[stat.tone] || STAT_TONES.banana}`}
                             >
                                 <Icon size={20} />
                             </span>
@@ -250,9 +250,9 @@ export default function AboutPage() {
                 })}
             </section>
 
-            <section className="mt-6">
+            <section className="py-8 md:py-10">
                 <div className="mb-3">
-                    <h2 className="font-display text-2xl font-extrabold text-banana-800">
+                    <h2 className="font-display text-2xl font-extrabold text-banana-900">
                         The story behind the game
                     </h2>
                     <p className="text-sm font-semibold text-banana-800">
@@ -264,14 +264,14 @@ export default function AboutPage() {
                     {STORY.map((item) => (
                         <article
                             key={item.title}
-                            className="relative overflow-hidden rounded-2xl border-2 border-banana-300 bg-white/90 p-5 shadow-game-sm"
+                            className="relative overflow-hidden rounded-2xl border-2 border-banana-200 bg-white/90 p-5 shadow-game-sm"
                         >
                             <span
                                 aria-hidden="true"
                                 className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${item.accent}`}
                             />
                             <div
-                                className={`mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-game-sm ${item.accent}`}
+                                className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-game-sm ${item.accent}`}
                             >
                                 <item.icon size={21} />
                             </div>
@@ -284,10 +284,10 @@ export default function AboutPage() {
                 </div>
             </section>
 
-            <section className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
+            <section className="grid gap-4 border-y-2 border-banana-200 bg-banana-100/60 py-8 md:py-10 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
                 <div>
                     <div className="mb-3">
-                        <h2 className="font-display text-2xl font-extrabold text-banana-800">
+                        <h2 className="font-display text-2xl font-extrabold text-banana-900">
                             What I work with
                         </h2>
                         <p className="text-sm font-semibold text-banana-800">
@@ -299,11 +299,11 @@ export default function AboutPage() {
                         {SKILLS.map((skill) => (
                             <article
                                 key={skill.title}
-                                className="rounded-2xl border-2 border-banana-300 bg-white/90 p-4 shadow-game-sm"
+                                className="rounded-2xl border-2 border-banana-200 bg-white/90 p-4 shadow-game-sm"
                             >
                                 <div className="flex items-center gap-2.5">
                                     <span
-                                        className={`flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-game-sm ${skill.accent}`}
+                                        className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-game-sm ${skill.accent}`}
                                     >
                                         <skill.icon size={18} />
                                     </span>
@@ -327,13 +327,13 @@ export default function AboutPage() {
                     </div>
                 </div>
 
-                <aside className="relative overflow-hidden rounded-2xl border-2 border-banana-300 bg-gradient-to-br from-banana-100 via-white to-amber-50 p-5 shadow-game">
+                <aside className="relative overflow-hidden rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/60 p-5 shadow-game">
                     <div
                         aria-hidden="true"
                         className="pointer-events-none absolute -right-10 -top-12 h-32 w-32 rounded-full border-[12px] border-banana-300/50"
                     />
                     <div className="relative">
-                        <span className="flex h-11 w-11 items-center justify-center rounded-2xl border-2 border-banana-400 bg-white/80 text-banana-800 shadow-game-sm">
+                        <span className="flex h-12 w-12 items-center justify-center rounded-2xl border-2 border-banana-400 bg-banana-100 text-banana-700 shadow-game-sm">
                             <Trophy size={21} />
                         </span>
                         <h2 className="mt-3 font-display text-2xl font-extrabold text-banana-900">
@@ -356,13 +356,13 @@ export default function AboutPage() {
                         <div className="mt-5 flex flex-wrap gap-2">
                             <Link
                                 to="/faq"
-                                className="inline-flex items-center gap-1.5 rounded-xl border-2 border-banana-400 bg-white px-3 py-2 text-sm font-extrabold text-banana-800 shadow-game-sm transition hover:bg-banana-50"
+                                className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-banana-400 bg-white px-4 py-2.5 font-display text-sm font-bold text-banana-800 shadow-game-sm transition hover:bg-banana-50 active:translate-y-0.5"
                             >
                                 Read the FAQ <ArrowRight size={14} />
                             </Link>
                             <Link
                                 to="/help"
-                                className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-extrabold text-banana-800 underline decoration-banana-700/40 underline-offset-2 transition hover:decoration-banana-800"
+                                className="inline-flex items-center gap-1.5 rounded-2xl px-3 py-2.5 font-display text-sm font-bold text-banana-800 underline decoration-banana-700/40 underline-offset-2 transition hover:decoration-banana-800"
                             >
                                 Help Centre
                             </Link>
@@ -371,10 +371,10 @@ export default function AboutPage() {
                 </aside>
             </section>
 
-            <section className="mt-6">
+            <section className="py-8 md:py-10">
                 <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
                     <div>
-                        <h2 className="font-display text-2xl font-extrabold text-banana-800">
+                        <h2 className="font-display text-2xl font-extrabold text-banana-900">
                             Selected projects
                         </h2>
                         <p className="text-sm font-semibold text-banana-800">
@@ -402,7 +402,7 @@ export default function AboutPage() {
                 </div>
             </section>
 
-            <section className="banana-promo-panel relative mt-6 overflow-hidden rounded-[1.75rem] border-2 border-banana-400 bg-gradient-to-br from-banana-300 via-banana-400 to-amber-500 p-5 shadow-game md:p-7">
+            <section className="banana-promo-panel relative mt-6 overflow-hidden rounded-2xl border-2 border-banana-400 bg-gradient-to-br from-banana-300 via-banana-400 to-amber-500 p-5 shadow-game md:p-7">
                 <div
                     aria-hidden="true"
                     className="pointer-events-none absolute -right-12 -top-14 h-44 w-44 rounded-full border-[14px] border-white/25"
@@ -432,13 +432,13 @@ export default function AboutPage() {
                             href={DEVELOPER.github}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-banana-300/60 bg-banana-50 px-4 py-2.5 font-display text-base font-bold text-banana-900 shadow-game-sm transition hover:bg-banana-100 active:translate-y-0.5"
+                            className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-white/50 bg-white/90 px-4 py-2.5 font-display text-sm font-bold text-banana-900 shadow-game-sm transition hover:bg-white active:translate-y-0.5"
                         >
                             <GitHubIcon size={17} /> GitHub
                         </a>
                         <Link
                             to="/contact"
-                            className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-banana-900/20 bg-banana-900 px-4 py-2.5 font-display text-base font-bold text-banana-50 shadow-game-sm transition hover:brightness-110 active:translate-y-0.5"
+                            className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-banana-900/20 bg-banana-900 px-4 py-2.5 font-display text-sm font-bold text-banana-50 shadow-game-sm transition hover:brightness-110 active:translate-y-0.5"
                         >
                             <Mail size={17} /> Contact me
                         </Link>
@@ -451,7 +451,7 @@ export default function AboutPage() {
 
 function ProjectCard({ project, accent }) {
     return (
-        <article className="group relative flex flex-col overflow-hidden rounded-2xl border-2 border-banana-300 bg-white/90 p-5 shadow-game-sm transition hover:-translate-y-0.5 hover:border-banana-400">
+        <article className="group relative flex flex-col overflow-hidden rounded-2xl border-2 border-banana-200 bg-white/90 p-5 shadow-game-sm transition hover:-translate-y-0.5 hover:border-banana-400">
             <span
                 aria-hidden="true"
                 className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${accent}`}
@@ -460,7 +460,7 @@ function ProjectCard({ project, accent }) {
                 <h3 className="font-display text-xl font-extrabold text-banana-800">
                     {project.name}
                 </h3>
-                <span className="flex-shrink-0 rounded-full border-2 border-banana-200 bg-banana-50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-banana-800">
+                <span className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-800">
                     {project.language}
                 </span>
             </div>
@@ -470,7 +470,7 @@ function ProjectCard({ project, accent }) {
                 {project.tags.map((tag) => (
                     <span
                         key={tag}
-                        className="rounded-full border-2 border-banana-200 bg-banana-50 px-2 py-0.5 text-[10px] font-extrabold text-banana-800"
+                        className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-800"
                     >
                         {tag}
                     </span>
@@ -483,7 +483,7 @@ function ProjectCard({ project, accent }) {
                         href={project.live}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 rounded-xl border-2 border-banana-300 bg-banana-100 px-3 py-1.5 text-banana-900 transition hover:bg-banana-200"
+                        className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-banana-300 bg-banana-100 px-4 py-2.5 font-display text-sm font-bold text-banana-900 shadow-game-sm transition hover:bg-banana-200 active:translate-y-0.5"
                     >
                         Live demo <ExternalLink size={14} />
                     </a>

@@ -5,6 +5,7 @@ const passport = require('passport');
 const env = require('../config/env');
 const User = require('../models/User');
 const PasswordResetToken = require('../models/PasswordResetToken');
+const TrustedDevice = require('../models/TrustedDevice');
 const asyncHandler = require('../utils/asyncHandler');
 const { recordLogin } = require('../services/loginHistory.service');
 const {
@@ -33,6 +34,10 @@ const { ensureGuest, ensureAuthenticated } = require('../middleware/auth.middlew
 const PENDING_PASSWORD_ROUNDS = 12;
 const REMEMBER_MAX_AGE_MS = env.SESSION_REMEMBER_DAYS * 24 * 60 * 60 * 1000;
 const OAUTH_REMEMBER_COOKIE = 'bq_oauth_remember';
+const TWO_FACTOR_KIND = 'login_2fa';
+const TWO_FACTOR_TRUST_COOKIE = 'bq_2fa_trust';
+const TWO_FACTOR_TRUST_DAYS = [1, 5, 10];
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 const authOptions = {
     failureRedirect: `${env.CLIENT_URL}/login?error=oauth_failed`,
@@ -118,6 +123,119 @@ function syncSessionVersion(req) {
     if (req.session && req.user) {
         req.session.authVersion = req.user.authVersion || 0;
     }
+}
+
+// --- Email two-factor helpers -------------------------------------------------
+
+function trustDaysFor(user) {
+    const days = Number(user.preferences?.twoFactorTrustDays);
+    return TWO_FACTOR_TRUST_DAYS.includes(days) ? days : 10;
+}
+
+async function isDeviceTrusted(req, user) {
+    const token = readRequestCookie(req, TWO_FACTOR_TRUST_COOKIE);
+    if (!token || !TOKEN_PATTERN.test(token)) return false;
+
+    const record = await TrustedDevice.findOne({
+        user: user._id,
+        tokenHash: hashToken(token),
+        expiresAt: { $gt: new Date() },
+    }).lean();
+    if (!record || (record.authVersion ?? 0) !== (user.authVersion || 0)) return false;
+
+    await TrustedDevice.updateOne({ _id: record._id }, { $set: { lastUsedAt: new Date() } });
+    return true;
+}
+
+async function trustDevice(req, res, user) {
+    const existingToken = readRequestCookie(req, TWO_FACTOR_TRUST_COOKIE);
+    const token =
+        existingToken && TOKEN_PATTERN.test(existingToken)
+            ? existingToken
+            : crypto.randomBytes(32).toString('hex');
+    const days = trustDaysFor(user);
+    const expiresAt = new Date(Date.now() + days * DAY_MS);
+    const device = parseUserAgent(req.headers?.['user-agent']);
+    const tokenHash = hashToken(token);
+
+    await TrustedDevice.findOneAndUpdate(
+        { tokenHash },
+        {
+            $set: {
+                user: user._id,
+                label: device.label || 'This device',
+                expiresAt,
+                lastUsedAt: new Date(),
+                authVersion: user.authVersion || 0,
+            },
+        },
+        { upsert: true, returnDocument: 'after' }
+    );
+
+    res.cookie(TWO_FACTOR_TRUST_COOKIE, token, {
+        httpOnly: true,
+        sameSite: env.COOKIE_SECURE ? 'none' : 'lax',
+        secure: env.COOKIE_SECURE,
+        maxAge: days * DAY_MS,
+        path: '/',
+    });
+
+    return expiresAt;
+}
+
+function clearTrustedDevice(req, res) {
+    const token = readRequestCookie(req, TWO_FACTOR_TRUST_COOKIE);
+    if (token && TOKEN_PATTERN.test(token)) {
+        TrustedDevice.deleteOne({ tokenHash: hashToken(token) }).catch(() => {});
+    }
+    res.clearCookie(TWO_FACTOR_TRUST_COOKIE, { path: '/' });
+}
+
+// Creates the OTP challenge and parks the sign-in details on the session. The
+// account is NOT authenticated until /two-factor/verify succeeds.
+async function beginLoginTwoFactor(req, user, { method, remember, isNewAccount = false }) {
+    req.session.pending2fa = {
+        userId: String(user.id),
+        method,
+        remember: wantsRememberMe(remember),
+        isNewAccount,
+    };
+
+    const challenge = await createChallenge({
+        kind: TWO_FACTOR_KIND,
+        email: user.email,
+        name: user.displayName,
+        userId: user._id,
+        ip: getClientIp(req),
+        userAgent: req.headers?.['user-agent'] || '',
+    });
+
+    const delivery = await deliverOtp({
+        record: challenge.record,
+        otp: challenge.otp,
+        purpose: TWO_FACTOR_KIND,
+    });
+
+    return otpDeliveryPayload({
+        challenge,
+        delivery,
+        email: user.email,
+        message: `We sent a 6-digit code to ${maskEmail(user.email)}. Enter it to finish signing in.`,
+    });
+}
+
+async function completeLogin(req, user, { method, remember, isNewAccount = false }) {
+    user.lastLoginAt = new Date();
+    await user.save();
+    await loginUser(req, user, Boolean(remember));
+    await recordLogin(req, {
+        userId: user.id,
+        email: user.email,
+        method,
+        success: true,
+    });
+    if (isNewAccount) void notifyWelcome(user, user.primaryProvider || 'email');
+    void notifySuccessfulLogin(req, user, method);
 }
 
 function notifySuccessfulLogin(req, user, method) {
@@ -357,13 +475,21 @@ router.post('/register/resend', asyncHandler(async (req, res) => {
 }));
 
 router.get('/verification/status', asyncHandler(async (req, res) => {
-    const kind = req.query.kind === 'email_verification' ? 'email_verification' : 'registration';
+    const requestedKind = req.query.kind;
+    const kind = ['email_verification', TWO_FACTOR_KIND].includes(requestedKind)
+        ? requestedKind
+        : 'registration';
     const record = await findChallenge({
         challengeToken: typeof req.query.verificationId === 'string' ? req.query.verificationId : '',
         kind,
     });
 
-    if (!record) {
+    const pendingSignIn = req.session?.pending2fa;
+    if (
+        !record ||
+        (kind === TWO_FACTOR_KIND &&
+            (!pendingSignIn || String(pendingSignIn.userId) !== String(record.user)))
+    ) {
         return res.json({
             success: true,
             active: false,
@@ -549,18 +675,112 @@ router.post('/login', asyncHandler(async (req, res) => {
         return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
 
-    user.lastLoginAt = new Date();
-    await user.save();
-    await loginUser(req, user, wantsRememberMe(remember));
-    await recordLogin(req, {
-        userId: user.id,
-        email: user.email,
-        method: 'password',
-        success: true,
-    });
-    void notifySuccessfulLogin(req, user, 'password');
+    const rememberChoice = wantsRememberMe(remember);
 
+    // With 2FA on, a password is only the first factor. A device that already
+    // verified within the chosen trust window can skip the code.
+    if (user.preferences?.twoFactorEnabled && !(await isDeviceTrusted(req, user))) {
+        const challenge = await beginLoginTwoFactor(req, user, {
+            method: 'password',
+            remember: rememberChoice,
+        });
+        return res.status(202).json(challenge);
+    }
+
+    await completeLogin(req, user, { method: 'password', remember: rememberChoice });
     return res.json({ success: true, user: buildUserPayload(user) });
+}));
+
+// Finish a sign-in after the emailed one-time code. The pending session from
+// /auth/login (or an OAuth callback) proves which account is being completed.
+router.post('/two-factor/verify', asyncHandler(async (req, res) => {
+    const { verificationId = '', otp = '' } = req.body || {};
+    const pending = await findChallenge({ challengeToken: verificationId, kind: TWO_FACTOR_KIND });
+    const check = await checkOtp(pending, otp);
+    if (check.status !== 'ok') return otpErrorResponse(res, check);
+
+    const record = check.record;
+    const pendingSignIn = req.session?.pending2fa;
+    if (!pendingSignIn || String(pendingSignIn.userId) !== String(record.user)) {
+        await record.deleteOne();
+        return res.status(410).json({
+            success: false,
+            expired: true,
+            message: 'This sign-in request has expired. Please sign in again.',
+        });
+    }
+
+    const user = await User.findById(record.user);
+    if (!user || user.isActive === false) {
+        await record.deleteOne();
+        return res.status(401).json({
+            success: false,
+            message: 'This account is no longer available.',
+        });
+    }
+
+    await record.deleteOne();
+    await completeLogin(req, user, {
+        method: pendingSignIn.method || 'password',
+        remember: pendingSignIn.remember,
+        isNewAccount: pendingSignIn.isNewAccount,
+    });
+    delete req.session.pending2fa;
+
+    const trustedUntil = await trustDevice(req, res, user);
+    return res.json({
+        success: true,
+        user: buildUserPayload(user),
+        twoFactorVerified: true,
+        trustedUntil,
+    });
+}));
+
+router.post('/two-factor/resend', asyncHandler(async (req, res) => {
+    const { verificationId = '' } = req.body || {};
+    const record = await findChallenge({ challengeToken: verificationId, kind: TWO_FACTOR_KIND });
+    const pendingSignIn = req.session?.pending2fa;
+    if (!record || !pendingSignIn || String(pendingSignIn.userId) !== String(record.user)) {
+        return res.status(410).json({
+            success: false,
+            expired: true,
+            message: 'This sign-in request has expired. Please sign in again.',
+        });
+    }
+
+    const decision = canResend(record);
+    if (!decision.allowed) {
+        return res.status(429).json({
+            success: false,
+            retryAfter: decision.retryAfter ?? null,
+            message:
+                decision.reason === 'cooldown'
+                    ? `Please wait ${decision.retryAfter} seconds before requesting another code.`
+                    : 'You have reached the resend limit. Please start the sign-in again.',
+        });
+    }
+
+    const refreshed = await refreshChallenge(record);
+    const delivery = await deliverOtp({
+        record,
+        otp: refreshed.otp,
+        purpose: TWO_FACTOR_KIND,
+    });
+
+    return res.json(
+        otpDeliveryPayload({
+            challenge: {
+                record,
+                challengeToken: verificationId,
+                otp: refreshed.otp,
+                expiresInMinutes: refreshed.expiresInMinutes,
+                resendAfterSeconds: refreshed.resendAfterSeconds,
+            },
+            delivery,
+            email: record.email,
+            message: `A new sign-in code was sent to ${maskEmail(record.email)}.`,
+        })
+    );
 }));
 
 /**
@@ -727,20 +947,39 @@ router.get(
     '/google/callback',
     passport.authenticate('google', authOptions),
     asyncHandler(async (req, res) => {
-        syncSessionVersion(req);
-        applySessionLifetime(req, readRequestCookie(req, OAUTH_REMEMBER_COOKIE) === '1');
+        const remember = readRequestCookie(req, OAUTH_REMEMBER_COOKIE) === '1';
         res.clearCookie(OAUTH_REMEMBER_COOKIE, { path: '/auth' });
+        const user = req.user;
+        const isNewAccount = Boolean(user._isNewAccount);
+        delete user._isNewAccount;
+
+        if (user.preferences?.twoFactorEnabled && !(await isDeviceTrusted(req, user))) {
+            const challenge = await beginLoginTwoFactor(req, user, {
+                method: 'google',
+                remember,
+                isNewAccount,
+            });
+            // The provider proved the first factor. Drop the authenticated
+            // session so the account stays locked until the code is checked.
+            delete req.session.passport;
+            const query = new URLSearchParams({
+                verificationId: challenge.verificationId,
+                purpose: TWO_FACTOR_KIND,
+            });
+            if (challenge.devOtp) query.set('devOtp', challenge.devOtp);
+            return res.redirect(`${env.CLIENT_URL}/verify-email?${query.toString()}`);
+        }
+
+        syncSessionVersion(req);
+        applySessionLifetime(req, remember);
         await recordLogin(req, {
-            userId: req.user.id,
-            email: req.user.email,
+            userId: user.id,
+            email: user.email,
             method: 'google',
             success: true,
         });
-        if (req.user._isNewAccount) {
-            void notifyWelcome(req.user, req.user.primaryProvider);
-            delete req.user._isNewAccount;
-        }
-        void notifySuccessfulLogin(req, req.user, 'google');
+        if (isNewAccount) void notifyWelcome(user, user.primaryProvider);
+        void notifySuccessfulLogin(req, user, 'google');
         res.redirect(successRedirect);
     })
 );
@@ -757,20 +996,37 @@ router.get(
     '/facebook/callback',
     passport.authenticate('facebook', authOptions),
     asyncHandler(async (req, res) => {
-        syncSessionVersion(req);
-        applySessionLifetime(req, readRequestCookie(req, OAUTH_REMEMBER_COOKIE) === '1');
+        const remember = readRequestCookie(req, OAUTH_REMEMBER_COOKIE) === '1';
         res.clearCookie(OAUTH_REMEMBER_COOKIE, { path: '/auth' });
+        const user = req.user;
+        const isNewAccount = Boolean(user._isNewAccount);
+        delete user._isNewAccount;
+
+        if (user.preferences?.twoFactorEnabled && !(await isDeviceTrusted(req, user))) {
+            const challenge = await beginLoginTwoFactor(req, user, {
+                method: 'facebook',
+                remember,
+                isNewAccount,
+            });
+            delete req.session.passport;
+            const query = new URLSearchParams({
+                verificationId: challenge.verificationId,
+                purpose: TWO_FACTOR_KIND,
+            });
+            if (challenge.devOtp) query.set('devOtp', challenge.devOtp);
+            return res.redirect(`${env.CLIENT_URL}/verify-email?${query.toString()}`);
+        }
+
+        syncSessionVersion(req);
+        applySessionLifetime(req, remember);
         await recordLogin(req, {
-            userId: req.user.id,
-            email: req.user.email,
+            userId: user.id,
+            email: user.email,
             method: 'facebook',
             success: true,
         });
-        if (req.user._isNewAccount) {
-            void notifyWelcome(req.user, req.user.primaryProvider);
-            delete req.user._isNewAccount;
-        }
-        void notifySuccessfulLogin(req, req.user, 'facebook');
+        if (isNewAccount) void notifyWelcome(user, user.primaryProvider);
+        void notifySuccessfulLogin(req, user, 'facebook');
         res.redirect(successRedirect);
     })
 );
@@ -781,6 +1037,7 @@ router.post('/logout', (req, res, next) => {
         if (err) return next(err);
         req.session.destroy((err2) => {
             if (err2) return next(err2);
+            clearTrustedDevice(req, res);
             res.clearCookie('sid', { path: '/' });
             res.json({ success: true, message: 'Logged out' });
         });

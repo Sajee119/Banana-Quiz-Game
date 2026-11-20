@@ -187,12 +187,17 @@ async function sendOtpEmail({ to, name, otp, expiresInMinutes, purpose = 'regist
     const safeName = escapeHtml(displayName);
     const code = escapeHtml(otp);
     const isRegistration = purpose === 'registration';
+    const isTwoFactor = purpose === 'login_2fa';
     const action = isRegistration
         ? 'confirm your email and activate your Banana Quiz account'
-        : 'verify this email address for your Banana Quiz account';
+        : isTwoFactor
+          ? 'finish signing in to your Banana Quiz account'
+          : 'verify this email address for your Banana Quiz account';
     const subject = isRegistration
         ? 'Your Banana Quiz verification code'
-        : 'Confirm your Banana Quiz email address';
+        : isTwoFactor
+          ? 'Your Banana Quiz sign-in code'
+          : 'Confirm your Banana Quiz email address';
     const text = `Hi ${displayName},
 
 Use this 6-digit code to ${action}:

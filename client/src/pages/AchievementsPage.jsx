@@ -6,8 +6,10 @@ import {
     CircleCheck,
     Trophy,
     Flame,
-    Target,
+    Gamepad2,
     Sparkles,
+    Target,
+    Zap,
     RefreshCw,
 } from 'lucide-react';
 import AppHeader from '../components/AppHeader.jsx';
@@ -26,6 +28,13 @@ const FILTERS = [
     { id: 'locked', label: 'In progress' },
 ];
 
+const TIER_FILTERS = [
+    { id: 'all', label: 'All tiers' },
+    { id: 'bronze', label: 'Bronze' },
+    { id: 'silver', label: 'Silver' },
+    { id: 'gold', label: 'Gold' },
+];
+
 export default function AchievementsPage() {
     usePageTitle('Achievements');
     const { stats } = useAuth();
@@ -33,6 +42,8 @@ export default function AchievementsPage() {
     const [summary, setSummary] = useState({ unlocked: 0, total: 0 });
     const [apiStats, setApiStats] = useState(null);
     const [filter, setFilter] = useState('all');
+    const [tierFilter, setTierFilter] = useState('all');
+    const [nearestFirst, setNearestFirst] = useState(false);
     const [error, setError] = useState('');
     const [reloadKey, setReloadKey] = useState(0);
 
@@ -65,15 +76,44 @@ export default function AchievementsPage() {
 
     const visible = useMemo(() => {
         if (!Array.isArray(achievements)) return [];
-        if (filter === 'unlocked') return achievements.filter((achievement) => achievement?.unlocked);
-        if (filter === 'locked') return achievements.filter((achievement) => !achievement?.unlocked);
-        return achievements;
-    }, [achievements, filter]);
+        const matches = achievements.filter((achievement) => {
+            if (filter === 'unlocked' && !achievement?.unlocked) return false;
+            if (filter === 'locked' && achievement?.unlocked) return false;
+            if (tierFilter !== 'all' && achievement?.tier !== tierFilter) return false;
+            return true;
+        });
+        if (!nearestFirst) return matches;
+        return [...matches].sort((a, b) => {
+            if (Boolean(a?.unlocked) !== Boolean(b?.unlocked)) return a?.unlocked ? 1 : -1;
+            return (Number(b?.progress) || 0) - (Number(a?.progress) || 0);
+        });
+    }, [achievements, filter, tierFilter, nearestFirst]);
+
+    const upNext = useMemo(() => {
+        if (!Array.isArray(achievements)) return [];
+        return achievements
+            .filter((achievement) => !achievement?.unlocked && (Number(achievement?.progress) || 0) > 0)
+            .sort((a, b) => (Number(b?.progress) || 0) - (Number(a?.progress) || 0))
+            .slice(0, 3);
+    }, [achievements]);
+
+    const tierCounts = useMemo(() => {
+        const list = Array.isArray(achievements) ? achievements : [];
+        return {
+            all: list.length,
+            bronze: list.filter((item) => item?.tier === 'bronze').length,
+            silver: list.filter((item) => item?.tier === 'silver').length,
+            gold: list.filter((item) => item?.tier === 'gold').length,
+        };
+    }, [achievements]);
 
     const total = Number(summary?.total) || 0;
     const unlocked = Number(summary?.unlocked) || 0;
     const percent = total ? Math.round((unlocked / total) * 100) : 0;
     const displayStats = apiStats || stats || {};
+    const winRate = displayStats.gamesPlayed
+        ? Math.round((displayStats.gamesWon / displayStats.gamesPlayed) * 100)
+        : 0;
     const counts = useMemo(() => {
         const list = Array.isArray(achievements) ? achievements : [];
         const done = list.filter((achievement) => achievement?.unlocked).length;
@@ -86,10 +126,10 @@ export default function AchievementsPage() {
         <div className="min-h-screen">
             <AppHeader />
 
-            <main className="mx-auto w-full max-w-[1560px] px-4 py-6 md:px-6 md:py-8">
+            <main className="mx-auto w-full px-4 py-6 sm:px-6 md:py-8">
                 <motion.div initial={{ y: 14, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
                     {/* Hero */}
-                    <section className="relative mb-6 overflow-hidden rounded-[1.75rem] border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/70 p-5 shadow-game sm:p-7">
+                    <section className="relative mb-6 overflow-hidden rounded-2xl border-2 border-banana-300 bg-gradient-to-br from-banana-100 via-white to-amber-50 p-5 shadow-game sm:p-7">
                         <div
                             aria-hidden="true"
                             className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full border-[14px] border-banana-300/30"
@@ -106,7 +146,7 @@ export default function AchievementsPage() {
 
                         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                             <div className="max-w-2xl">
-                                <p className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-300 bg-banana-100 px-2.5 py-1 font-display text-[11px] font-bold uppercase tracking-wide text-banana-800">
+                                <p className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-400 bg-gradient-to-b from-banana-100 to-white px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wide text-banana-800 shadow-game-sm">
                                     <Award size={13} /> Trophy cabinet
                                 </p>
                                 <h1 className="mt-2 font-display text-4xl font-extrabold leading-tight text-banana-900 sm:text-5xl">
@@ -118,16 +158,16 @@ export default function AchievementsPage() {
                                 </p>
 
                                 <div className="mt-3.5 flex flex-wrap items-center gap-1.5 text-[11px] font-bold">
-                                    <span className="inline-flex items-center gap-1 rounded-full border-2 border-emerald-300 bg-emerald-100 px-2.5 py-1 text-emerald-800">
+                                    <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-emerald-300 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-emerald-800">
                                         <CircleCheck size={12} /> {unlocked} unlocked
                                     </span>
-                                    <span className="inline-flex items-center gap-1 rounded-full border-2 border-banana-300 bg-white px-2.5 py-1 text-banana-800 shadow-game-sm">
+                                    <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-800 shadow-game-sm">
                                         <Lock size={12} /> {counts.locked} in progress
                                     </span>
-                                    <span className="inline-flex items-center gap-1 rounded-full border-2 border-amber-300 bg-amber-50 px-2.5 py-1 text-banana-900">
+                                    <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-amber-300 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-900">
                                         <Sparkles size={12} /> {percent}% complete
                                     </span>
-                                    <span className="inline-flex items-center gap-1 rounded-full border-2 border-banana-200 bg-banana-50 px-2.5 py-1 text-banana-800">
+                                    <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-800">
                                         <Trophy size={12} /> {displayStats.gamesPlayed ?? 0} rounds
                                         played
                                     </span>
@@ -198,7 +238,7 @@ export default function AchievementsPage() {
                     {/* Filters */}
                     <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                         <div
-                            className="flex flex-wrap gap-1 rounded-2xl border-2 border-banana-200 bg-banana-100 p-1"
+                            className="flex flex-wrap gap-1 rounded-2xl border-2 border-banana-200 bg-banana-50/80 p-1"
                             role="group"
                             aria-label="Filter achievements"
                         >
@@ -208,7 +248,7 @@ export default function AchievementsPage() {
                                     type="button"
                                     onClick={() => setFilter(item.id)}
                                     aria-pressed={filter === item.id}
-                                    className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-sm font-extrabold transition ${
+                                    className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 font-display text-sm font-bold transition ${
                                         filter === item.id
                                             ? 'bg-white text-banana-900 shadow-game-sm'
                                             : 'text-banana-600 hover:text-banana-800'
@@ -223,7 +263,7 @@ export default function AchievementsPage() {
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">
-                            <p className="hidden items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/70 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-banana-600 sm:inline-flex">
+                            <p className="hidden items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-700 sm:inline-flex">
                                 {displayStats.gamesPlayed ?? 0} rounds ·{' '}
                                 {displayStats.totalPoints ?? 0} points
                             </p>
@@ -242,6 +282,51 @@ export default function AchievementsPage() {
                         </div>
                     </div>
 
+                    {/* Tier + sort controls */}
+                    <div className="mb-4 flex flex-wrap items-center gap-2">
+                        <div
+                            className="flex flex-wrap gap-1 rounded-2xl border-2 border-banana-200 bg-banana-50 p-1"
+                            role="group"
+                            aria-label="Filter by tier"
+                        >
+                            {TIER_FILTERS.map((tier) => (
+                                <button
+                                    key={tier.id}
+                                    type="button"
+                                    onClick={() => setTierFilter(tier.id)}
+                                    aria-pressed={tierFilter === tier.id}
+                                    className={`rounded-xl px-2.5 py-1 font-display text-xs font-bold capitalize transition ${
+                                        tierFilter === tier.id
+                                            ? 'bg-white text-banana-900 shadow-game-sm'
+                                            : 'text-banana-600 hover:text-banana-800'
+                                    }`}
+                                >
+                                    {tier.label}
+                                    <span className="ml-1 rounded-full bg-banana-200 px-1.5 text-[10px] text-banana-800">
+                                        {tierCounts[tier.id]}
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setNearestFirst((value) => !value)}
+                            aria-pressed={nearestFirst}
+                            className={`inline-flex items-center gap-2 rounded-2xl border-2 px-3 py-2 text-xs font-display font-bold shadow-game-sm transition active:translate-y-0.5 ${
+                                nearestFirst
+                                    ? 'border-banana-500 bg-banana-100 text-banana-900'
+                                    : 'border-banana-300 bg-white text-banana-700 hover:bg-banana-50'
+                            }`}
+                        >
+                            <Target size={14} /> {nearestFirst ? 'Nearest first' : 'Default order'}
+                        </button>
+                        {visible.length > 0 && (
+                            <span className="text-[11px] font-bold text-banana-700">
+                                Showing {visible.length} of {counts.all}
+                            </span>
+                        )}
+                    </div>
+
                     {error && (
                         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border-2 border-red-200 bg-red-50 px-4 py-3">
                             <p className="text-sm font-semibold text-red-700">{error}</p>
@@ -256,14 +341,14 @@ export default function AchievementsPage() {
                             {[...Array(12)].map((_, index) => (
                                 <div
                                     key={index}
-                                    className="h-[172px] animate-pulse rounded-xl border border-banana-200 bg-banana-100/60"
+                                    className="h-[172px] animate-pulse rounded-2xl border-2 border-banana-200 bg-banana-50/60"
                                 />
                             ))}
                         </div>
                     )}
 
                     {achievements && visible.length === 0 && (
-                        <Card className="py-14 text-center">
+                        <Card className="!border-dashed !border-banana-300 !bg-banana-50/60 !shadow-none py-8 text-center">
                             <span className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-banana-300 bg-banana-100 text-banana-500">
                                 <Sparkles size={32} />
                             </span>
@@ -290,7 +375,7 @@ export default function AchievementsPage() {
                                     initial={{ y: 8, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
                                     transition={{ delay: Math.min(index * 0.02, 0.2) }}
-                                    className={`relative flex h-[172px] flex-col overflow-hidden rounded-xl border-2 bg-gradient-to-b from-white to-banana-50/70 shadow-game-sm ${
+                                    className={`relative flex h-[172px] flex-col overflow-hidden rounded-2xl border-2 bg-white/90 shadow-game-sm ${
                                         achievement.unlocked ? tier.ring : 'border-banana-300'
                                     }`}
                                 >
@@ -306,7 +391,7 @@ export default function AchievementsPage() {
                                     <div className="flex min-h-0 flex-1 flex-col p-2.5">
                                         <div className="mb-2 flex items-start justify-between gap-1.5">
                                             <div
-                                                className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border ${
+                                                className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border-2 ${
                                                     achievement.unlocked
                                                         ? `border-white/40 bg-gradient-to-br text-white ${tier.gradient}`
                                                         : 'border-banana-200 bg-banana-100 text-banana-600'
@@ -315,7 +400,7 @@ export default function AchievementsPage() {
                                                 <AchievementIcon name={achievement.icon} size={15} />
                                             </div>
                                             <span
-                                                className={`rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${tier.chip}`}
+                                                className={`rounded-full border-2 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${tier.chip}`}
                                             >
                                                 {tier.label}
                                             </span>
@@ -355,19 +440,73 @@ export default function AchievementsPage() {
                         })}
                     </div>
 
+                    {upNext.length > 0 && (
+                        <div className="mt-8">
+                            <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+                                <h2 className="flex items-center gap-2.5 font-display text-xl font-extrabold text-banana-800">
+                                    <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-100 text-banana-700">
+                                        <Sparkles size={18} />
+                                    </span>
+                                    Closest to unlocking
+                                </h2>
+                                <p className="hidden rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-700 sm:block">
+                                    Your next badges
+                                </p>
+                            </div>
+                            <div className="grid gap-3 md:grid-cols-3">
+                                {upNext.map((achievement) => {
+                                    const tier = TIER_STYLES[achievement?.tier] || TIER_STYLES.bronze;
+                                    const progress = Math.max(
+                                        0,
+                                        Math.min(100, Number(achievement?.progress) || 0)
+                                    );
+                                    return (
+                                        <div
+                                            key={achievement.id}
+                                            className="rounded-2xl border-2 border-banana-200 bg-white/90 p-4 shadow-game-sm"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white ${tier.gradient}`}>
+                                                    <AchievementIcon name={achievement.icon} size={18} />
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="truncate font-display text-sm font-extrabold text-banana-900">
+                                                        {achievement.title}
+                                                    </p>
+                                                    <p className="text-[11px] text-banana-700">
+                                                        {formatTarget(achievement)} · {tier.label}
+                                                    </p>
+                                                </div>
+                                                <span className="font-display text-sm font-extrabold text-banana-800 tabular-nums">
+                                                    {progress}%
+                                                </span>
+                                            </div>
+                                            <div className="mt-3 h-2 overflow-hidden rounded-full bg-banana-100">
+                                                <div
+                                                    className={`h-full rounded-full bg-gradient-to-r ${tier.gradient}`}
+                                                    style={{ width: `${Math.max(3, progress)}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
                     <div className="mt-8">
                         <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
                             <h2 className="flex items-center gap-2.5 font-display text-xl font-extrabold text-banana-800">
-                                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border-2 border-banana-300 bg-banana-200 text-banana-700">
+                                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-100 text-banana-700">
                                     <Flame size={18} />
                                 </span>
                                 Player stats
                             </h2>
-                            <p className="hidden rounded-full border-2 border-banana-200 bg-white/70 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-banana-600 sm:block">
+                            <p className="hidden rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-700 sm:block">
                                 Lifetime totals
                             </p>
                         </div>
-                        <div className="grid gap-3 sm:grid-cols-3">
+                        <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-4">
                             <MiniStat
                                 icon={<Trophy size={18} />}
                                 label="Points earned"
@@ -375,16 +514,52 @@ export default function AchievementsPage() {
                                 color="from-banana-300 to-banana-500"
                             />
                             <MiniStat
-                                icon={<Flame size={18} />}
-                                label="Best streak"
-                                value={displayStats.bestStreak ?? 0}
-                                color="from-orange-300 to-red-500"
+                                icon={<Gamepad2 size={18} />}
+                                label="Rounds played"
+                                value={displayStats.gamesPlayed ?? 0}
+                                color="from-sky-300 to-sky-500"
                             />
                             <MiniStat
                                 icon={<Target size={18} />}
                                 label="Rounds won"
                                 value={displayStats.gamesWon ?? 0}
                                 color="from-sky-300 to-violet-500"
+                            />
+                            <MiniStat
+                                icon={<Award size={18} />}
+                                label="Win rate"
+                                value={`${winRate}%`}
+                                color="from-emerald-300 to-emerald-500"
+                            />
+                            <MiniStat
+                                icon={<Flame size={18} />}
+                                label="Current streak"
+                                value={displayStats.currentStreak ?? 0}
+                                color="from-orange-300 to-red-500"
+                            />
+                            <MiniStat
+                                icon={<Flame size={18} />}
+                                label="Best streak"
+                                value={displayStats.bestStreak ?? 0}
+                                color="from-orange-300 to-amber-500"
+                            />
+                            <MiniStat
+                                icon={<Zap size={18} />}
+                                label="Fastest answer"
+                                value={
+                                    displayStats.fastestAnswerMs
+                                        ? `${(displayStats.fastestAnswerMs / 1000).toFixed(1)}s`
+                                        : '—'
+                                }
+                                color="from-pink-300 to-pink-500"
+                            />
+                            <MiniStat
+                                icon={<Sparkles size={18} />}
+                                label="Points per round"
+                                value={displayStats.gamesPlayed
+                                    ? Math.round((displayStats.totalPoints ?? 0) / displayStats.gamesPlayed)
+                                    : 0}
+                                color="from-banana-300 to-banana-500"
                             />
                         </div>
                     </div>
@@ -417,7 +592,7 @@ function MiniStat({ icon, label, value, color }) {
                     {icon}
                 </div>
                 <div>
-                    <div className="text-[11px] font-extrabold uppercase tracking-wide text-banana-500">
+                    <div className="text-[11px] font-bold uppercase tracking-wide text-banana-700">
                         {label}
                     </div>
                     <div className="font-display text-2xl font-extrabold leading-none text-banana-800">

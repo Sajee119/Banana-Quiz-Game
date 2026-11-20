@@ -108,10 +108,10 @@ export default function OtpInput({
                     disabled={disabled}
                     aria-label={`Digit ${index + 1} of ${length}`}
                     aria-invalid={invalid || undefined}
-                    className={`h-14 w-11 rounded-2xl border-2 bg-white text-center font-display text-2xl font-extrabold text-banana-900 shadow-game-sm outline-none transition sm:h-16 sm:w-14 sm:text-3xl ${
+                    className={`h-14 w-11 rounded-2xl border-2 bg-white/90 text-center font-display text-2xl font-extrabold text-banana-900 shadow-game-sm outline-none transition sm:h-16 sm:w-14 sm:text-3xl ${
                         invalid
                             ? 'border-red-400 focus:border-red-500'
-                            : 'border-banana-200 focus:border-banana-400'
+                            : 'border-banana-300 focus:border-banana-500'
                     } disabled:cursor-not-allowed disabled:opacity-60`}
                 />
             ))}

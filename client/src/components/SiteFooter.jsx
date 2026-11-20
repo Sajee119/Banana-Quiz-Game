@@ -33,10 +33,10 @@ export default function SiteFooter({ className = '' }) {
 
     return (
         <footer
-            className={`border-t-4 border-banana-300 bg-gradient-to-b from-banana-50/95 to-white/90 backdrop-blur-sm ${className}`}
+            className={`border-t-2 border-banana-200 bg-banana-50/95 shadow-game-sm backdrop-blur-md ${className}`}
             aria-labelledby="site-footer-title"
         >
-            <div className="mx-auto w-full max-w-[1560px] px-4 py-8 md:px-6 md:py-10">
+            <div className="mx-auto w-full px-4 py-8 sm:px-6 md:py-10">
                 <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 lg:gap-10">
                     {/* Brand block */}
                     <div className="max-w-md md:col-span-2 lg:col-span-1">
@@ -44,15 +44,15 @@ export default function SiteFooter({ className = '' }) {
                             to={user ? '/dashboard' : '/'}
                             className="inline-flex items-center gap-2"
                         >
-                            <BananaLogo size={40} />
+                            <BananaLogo size={40} className="h-10 w-10 rounded-xl border-2 border-banana-400 bg-gradient-to-b from-banana-200 to-banana-300 p-1.5 shadow-game-sm" />
                             <span
                                 id="site-footer-title"
-                                className="font-display text-xl font-extrabold text-banana-800"
+                                className="font-display text-xl font-extrabold text-banana-900"
                             >
                                 {SITE_NAME}
                             </span>
                         </Link>
-                        <p className="mt-2 text-sm text-banana-600">
+                        <p className="mt-2 text-sm font-semibold text-banana-700">
                             A free banana-value calculation game for quick breaks and long
                             leaderboard climbs. Solve the puzzle, beat the clock and grow your
                             streak.
@@ -61,19 +61,19 @@ export default function SiteFooter({ className = '' }) {
                         <div className="mt-4 flex flex-wrap gap-2 text-xs font-bold">
                             <Link
                                 to="/help"
-                                className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-banana-50 px-3 py-1 text-banana-700 transition hover:bg-banana-100"
+                                className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-800 transition hover:bg-banana-100"
                             >
                                 <Mail size={14} /> Help &amp; support
                             </Link>
                             <Link
                                 to="/privacy"
-                                className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-banana-50 px-3 py-1 text-banana-700 transition hover:bg-banana-100"
+                                className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-800 transition hover:bg-banana-100"
                             >
                                 <ShieldCheck size={14} /> Privacy
                             </Link>
                             <Link
                                 to="/faq"
-                                className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-banana-50 px-3 py-1 text-banana-700 transition hover:bg-banana-100"
+                                className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-800 transition hover:bg-banana-100"
                             >
                                 <Sparkles size={14} /> FAQ
                             </Link>
@@ -87,7 +87,7 @@ export default function SiteFooter({ className = '' }) {
                     </div>
                 </div>
 
-                <div className="mt-8 flex flex-col items-center justify-between gap-3 border-t border-banana-200 pt-4 text-xs font-semibold text-banana-500 sm:flex-row">
+                <div className="mt-8 flex flex-col items-center justify-between gap-3 border-t-2 border-banana-200 pt-4 text-xs font-semibold text-banana-700 sm:flex-row">
                     <p className="flex items-center gap-1.5">
                         © {YEAR} {SITE_NAME} · Made for banana lovers
                         <Heart size={12} className="text-red-400" />
@@ -97,14 +97,14 @@ export default function SiteFooter({ className = '' }) {
                             href={BANANA_API_URL}
                             target="_blank"
                             rel="noreferrer"
-                            className="transition hover:text-banana-700"
+                            className="transition hover:text-banana-900"
                         >
                             Powered by Banana API
                         </a>
                         <button
                             type="button"
                             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                            className="inline-flex items-center gap-1 transition hover:text-banana-700"
+                            className="inline-flex items-center gap-1.5 rounded-xl px-2 py-1 transition hover:bg-banana-100 hover:text-banana-900"
                         >
                             <ArrowUp size={13} /> Back to top
                         </button>
@@ -118,10 +118,10 @@ export default function SiteFooter({ className = '' }) {
 function FooterColumn({ title, links }) {
     return (
         <div className="min-w-0">
-            <p className="mb-2 font-display text-sm font-extrabold uppercase tracking-wide text-banana-700">
+            <p className="mb-2 font-display text-sm font-extrabold uppercase tracking-wide text-banana-900">
                 {title}
             </p>
-            <ul className="space-y-1.5 text-sm text-banana-600">
+            <ul className="space-y-1.5 text-sm font-semibold text-banana-700">
                 {links.map((link) => (
                     <li key={`${title}-${link.label}`}>
                         {link.href ? (

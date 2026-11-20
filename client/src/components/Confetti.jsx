@@ -39,7 +39,7 @@ export default function Confetti({ count = 40 }) {
                     opacity: 0,
                 }}
                 transition={{ duration: piece.duration, ease: 'easeOut' }}
-                className="absolute w-3 h-3 rounded-sm"
+                className="absolute h-3 w-3 rounded-sm"
                 style={{ backgroundColor: piece.color }}
                 />
             ))}

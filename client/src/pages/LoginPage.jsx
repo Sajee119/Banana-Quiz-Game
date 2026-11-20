@@ -18,7 +18,7 @@ import {
 } from '../lib/rememberMe.js';
 
 const inputClass =
-    'w-full rounded-2xl border-2 border-banana-200 bg-white px-4 py-3 font-semibold text-banana-900 placeholder:text-banana-400 transition focus:border-banana-400 focus:outline-none focus:ring-2 focus:ring-banana-300/60';
+    'w-full rounded-2xl border-2 border-banana-300 bg-white/90 px-4 py-3 font-body text-banana-900 shadow-game-sm outline-none transition placeholder:text-banana-400 focus:border-banana-500';
 
 const BENEFITS = [
     {
@@ -143,10 +143,33 @@ export default function LoginPage() {
 
                 await signIn(async () => data);
             } else {
-                await signIn(() =>
-                    authApi.login({ email: form.email, password: form.password, remember })
-                );
+                const data = await authApi.login({
+                    email: form.email,
+                    password: form.password,
+                    remember,
+                });
 
+                // When email two-factor is on, the password is only the first
+                // step. The emailed code finishes the sign-in on the next page.
+                if (data.requiresVerification && data.verificationId) {
+                    persistRememberChoice();
+                    navigate(
+                        `/verify-email?verificationId=${encodeURIComponent(
+                            data.verificationId
+                        )}&purpose=login_2fa`,
+                        {
+                            replace: true,
+                            state: {
+                                email: data.email,
+                                devOtp: data.devOtp,
+                                expiresAt: data.expiresAt,
+                            },
+                        }
+                    );
+                    return;
+                }
+
+                await signIn(async () => data);
                 persistRememberChoice();
             }
             navigate('/dashboard', { replace: true });
@@ -161,17 +184,17 @@ export default function LoginPage() {
     const oauthRememberQuery = remember ? '?remember=1' : '';
 
     return (
-        <div className="flex min-h-screen flex-col px-3 py-4 sm:px-6 sm:py-5">
+        <div className="flex min-h-screen flex-col px-4 py-4 sm:px-6 sm:py-5">
             <PublicPageHeader />
 
-            <main className="mx-auto flex w-full max-w-[1560px] flex-1 flex-col py-4 sm:py-6">
+            <main className="mx-auto flex w-full flex-1 flex-col py-4 sm:py-6">
                 <motion.section
                     initial={{ y: 24, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    className="grid w-full flex-1 overflow-hidden rounded-[1.75rem] border-2 border-banana-400 bg-gradient-to-b from-white to-banana-50/70 shadow-game lg:grid-cols-[1.05fr_1fr]"
+                    className="grid w-full flex-1 overflow-hidden rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/60 shadow-game lg:grid-cols-[1.05fr_1fr]"
                 >
                     {/* Desktop introduction panel */}
-                    <aside className="banana-promo-panel relative hidden overflow-hidden border-r-2 border-banana-400/30 bg-gradient-to-br from-banana-300 via-banana-400 to-amber-500 p-8 lg:flex lg:flex-col xl:p-10">
+                    <aside className="banana-promo-panel relative hidden overflow-hidden rounded-2xl border-2 border-banana-400 bg-gradient-to-br from-banana-300 via-banana-400 to-amber-500 p-8 lg:flex lg:flex-col xl:p-10">
                         <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full border-[20px] border-white/20" />
                         <div className="pointer-events-none absolute -bottom-28 -left-24 h-80 w-80 rounded-full border-[20px] border-white/15" />
                         <BananaLogo
@@ -181,7 +204,7 @@ export default function LoginPage() {
                         />
 
                         <div className="relative flex flex-1 flex-col">
-                            <span className="inline-flex w-fit items-center gap-2 rounded-full border-2 border-banana-900/20 bg-banana-900/10 px-3 py-1 text-xs font-extrabold uppercase tracking-widest text-banana-900">
+                            <span className="inline-flex w-fit items-center gap-2 rounded-full border-2 border-banana-400 bg-gradient-to-b from-banana-100 to-white px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wide text-banana-900 shadow-game-sm">
                                 <Sparkles size={14} /> Free browser game
                             </span>
 
@@ -218,14 +241,14 @@ export default function LoginPage() {
                                 ))}
                             </ul>
 
-                            <div className="relative mt-auto flex flex-wrap items-center gap-2 pt-8 text-[11px] font-extrabold uppercase tracking-wide text-banana-900/75">
-                                <span className="rounded-full border-2 border-white/50 bg-banana-50/70 px-3 py-1.5">
+                            <div className="relative mt-auto flex flex-wrap items-center gap-2 pt-8 text-[11px] font-bold uppercase tracking-wide text-banana-900">
+                                <span className="rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1">
                                     3 game modes
                                 </span>
-                                <span className="rounded-full border-2 border-white/50 bg-banana-50/70 px-3 py-1.5">
+                                <span className="rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1">
                                     14 achievements
                                 </span>
-                                <span className="rounded-full border-2 border-white/50 bg-banana-50/70 px-3 py-1.5">
+                                <span className="rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1">
                                     Global leaderboard
                                 </span>
                             </div>
@@ -248,13 +271,13 @@ export default function LoginPage() {
                         </div>
 
                         <div className="mx-auto w-full max-w-md">
-                            <p className="font-display text-xs font-extrabold uppercase tracking-[0.2em] text-banana-500">
+                            <p className="inline-flex w-fit items-center gap-1.5 rounded-full border-2 border-banana-400 bg-gradient-to-b from-banana-100 to-white px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wide text-banana-800 shadow-game-sm">
                                 Banana Quiz account
                             </p>
-                            <h1 className="mt-1 font-display text-3xl font-extrabold leading-tight text-banana-800 sm:text-4xl">
+                            <h1 className="mt-3 font-display text-3xl font-extrabold leading-tight text-banana-900 sm:text-4xl">
                                 {isRegister ? 'Join the bunch!' : 'Welcome back!'}
                             </h1>
-                            <p className="mt-2 text-sm font-semibold text-banana-700 sm:text-base">
+                            <p className="mt-2 text-sm font-semibold leading-relaxed text-banana-800 sm:text-base">
                                 {isRegister
                                     ? 'Create a free account to save your scores and streaks.'
                                     : 'Sign in to pick up where you left off.'}
@@ -263,7 +286,7 @@ export default function LoginPage() {
                             <div
                                 role="tablist"
                                 aria-label="Sign in or create an account"
-                                className="mt-5 grid grid-cols-2 gap-1.5 rounded-2xl border-2 border-banana-200 bg-banana-100/80 p-1.5"
+                                className="mt-5 grid grid-cols-2 gap-1.5 rounded-2xl border-2 border-banana-300 bg-banana-100/60 p-1.5"
                             >
                                 <button
                                     type="button"
@@ -271,10 +294,10 @@ export default function LoginPage() {
                                     aria-selected={mode === 'login'}
                                     disabled={submitting}
                                     onClick={() => switchMode('login')}
-                                    className={`rounded-xl border-2 px-3 py-2.5 font-display text-sm font-extrabold transition disabled:cursor-not-allowed ${
+                                    className={`rounded-2xl border-2 px-3 py-2.5 font-display text-sm font-bold shadow-game-sm transition hover:bg-banana-50 active:translate-y-0.5 disabled:cursor-not-allowed ${
                                         mode === 'login'
-                                            ? 'border-banana-400 bg-white text-banana-900 shadow-game-sm'
-                                            : 'border-transparent text-banana-700 hover:bg-white/60'
+                                            ? 'border-banana-400 bg-white text-banana-900'
+                                            : 'border-banana-200 bg-white/70 text-banana-700'
                                     }`}
                                 >
                                     Sign In
@@ -285,10 +308,10 @@ export default function LoginPage() {
                                     aria-selected={mode === 'register'}
                                     disabled={submitting}
                                     onClick={() => switchMode('register')}
-                                    className={`rounded-xl border-2 px-3 py-2.5 font-display text-sm font-extrabold transition disabled:cursor-not-allowed ${
+                                    className={`rounded-2xl border-2 px-3 py-2.5 font-display text-sm font-bold shadow-game-sm transition hover:bg-banana-50 active:translate-y-0.5 disabled:cursor-not-allowed ${
                                         mode === 'register'
-                                            ? 'border-banana-400 bg-white text-banana-900 shadow-game-sm'
-                                            : 'border-transparent text-banana-700 hover:bg-white/60'
+                                            ? 'border-banana-400 bg-white text-banana-900'
+                                            : 'border-banana-200 bg-white/70 text-banana-700'
                                     }`}
                                 >
                                     Create Account
@@ -310,7 +333,7 @@ export default function LoginPage() {
                                     <div>
                                         <label
                                             htmlFor="name"
-                                            className="mb-1 block text-sm font-bold text-banana-700"
+                                            className="mb-1 block text-sm font-bold text-banana-800"
                                         >
                                             Display name
                                         </label>
@@ -333,7 +356,7 @@ export default function LoginPage() {
                                 <div>
                                     <label
                                         htmlFor="email"
-                                        className="mb-1 block text-sm font-bold text-banana-700"
+                                        className="mb-1 block text-sm font-bold text-banana-800"
                                     >
                                         Email
                                     </label>
@@ -359,6 +382,7 @@ export default function LoginPage() {
                                     label="Password"
                                     value={form.password}
                                     onChange={updateField('password')}
+                                    inputClassName={inputClass}
                                     autoComplete={isRegister ? 'new-password' : 'current-password'}
                                     minLength={isRegister ? 8 : undefined}
                                     placeholder={
@@ -388,6 +412,7 @@ export default function LoginPage() {
                                             label="Confirm password"
                                             value={form.confirmPassword}
                                             onChange={updateField('confirmPassword')}
+                                            inputClassName={inputClass}
                                             autoComplete="new-password"
                                             minLength={8}
                                             placeholder="Repeat your password"
@@ -404,7 +429,7 @@ export default function LoginPage() {
                                 {!isRegister && (
                                     <label
                                         htmlFor="remember"
-                                        className="flex cursor-pointer items-start gap-3 rounded-2xl border-2 border-banana-100 bg-banana-50/70 px-3 py-2.5 transition hover:border-banana-200 hover:bg-banana-50"
+                                        className="flex cursor-pointer items-start gap-3 rounded-2xl border-2 border-banana-200 bg-white/80 px-3 py-2.5 shadow-game-sm transition hover:border-banana-300 hover:bg-banana-50 active:translate-y-0.5"
                                     >
                                         <input
                                             id="remember"
@@ -413,7 +438,7 @@ export default function LoginPage() {
                                             checked={remember}
                                             onChange={(event) => setRemember(event.target.checked)}
                                             disabled={submitting}
-                                            className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-2 border-banana-400 accent-banana-500 focus:ring-banana-400 disabled:cursor-not-allowed"
+                                            className="mt-0.5 h-4 w-4 flex-shrink-0 rounded-lg border-2 border-banana-400 accent-banana-500 focus:ring-banana-400 disabled:cursor-not-allowed"
                                         />
                                         <span className="min-w-0">
                                             <span className="block text-sm font-bold text-banana-800">
@@ -439,7 +464,7 @@ export default function LoginPage() {
                                 </Button>
                             </form>
 
-                            <div className="my-5 flex items-center gap-3 text-xs font-bold uppercase tracking-wide text-banana-400">
+                            <div className="my-5 flex items-center gap-3 text-[11px] font-bold uppercase tracking-wide text-banana-600">
                                 <span className="h-px flex-1 bg-banana-200" />
                                 or continue with
                                 <span className="h-px flex-1 bg-banana-200" />
@@ -449,7 +474,7 @@ export default function LoginPage() {
                                 <a
                                     href={`${authApi.googleLoginUrl}${oauthRememberQuery}`}
                                     onClick={persistRememberChoice}
-                                    className="flex w-full items-center justify-center gap-2.5 rounded-2xl border-2 border-gray-200 bg-white px-4 py-3 font-bold text-gray-700 shadow-game-sm transition hover:bg-gray-50 active:translate-y-1 active:shadow-none"
+                                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-banana-300 bg-white px-4 py-3 font-display text-sm font-bold text-banana-800 shadow-game-sm transition hover:bg-banana-50 active:translate-y-0.5"
                                 >
                                     <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
                                         <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.3-.4-3.5z" />
@@ -462,9 +487,9 @@ export default function LoginPage() {
                                 <a
                                     href={`${authApi.facebookLoginUrl}${oauthRememberQuery}`}
                                     onClick={persistRememberChoice}
-                                    className="flex w-full items-center justify-center gap-2.5 rounded-2xl border-2 border-transparent bg-[#1877F2] px-4 py-3 font-bold text-white shadow-game-sm transition hover:bg-[#166fe0] active:translate-y-1 active:shadow-none"
+                                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-banana-300 bg-white px-4 py-3 font-display text-sm font-bold text-banana-800 shadow-game-sm transition hover:bg-banana-50 active:translate-y-0.5"
                                 >
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white" aria-hidden="true">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white" aria-hidden="true" className="fill-banana-700">
                                         <path d="M22 12a10 10 0 10-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.3v7A10 10 0 0022 12z" />
                                     </svg>
                                     Facebook
@@ -476,7 +501,7 @@ export default function LoginPage() {
                                     ? 'We email a 6-digit code to confirm your address before your account is created.'
                                     : 'Passwords are hashed and never stored in plain text.'}
                             </p>
-                            <p className="mt-2 text-center text-xs text-banana-500">
+                            <p className="mt-2 text-center text-[11px] font-semibold text-banana-600">
                                 <Link
                                     to="/terms"
                                     className="font-bold underline hover:text-banana-800"

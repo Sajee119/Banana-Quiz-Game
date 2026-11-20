@@ -49,6 +49,12 @@ const userSchema = new mongoose.Schema(
             emailNotifications: { type: Boolean, default: true },
             loginAlerts: { type: Boolean, default: true },
             productUpdates: { type: Boolean, default: false },
+            twoFactorEnabled: { type: Boolean, default: false },
+            twoFactorTrustDays: {
+                type: Number,
+                enum: [1, 5, 10],
+                default: 10,
+            },
             defaultMode: {
                 type: String,
                 enum: ['easy', 'hard', 'custom'],

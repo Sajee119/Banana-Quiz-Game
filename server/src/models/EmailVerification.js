@@ -3,9 +3,10 @@ const mongoose = require('mongoose');
 /**
  * A short-lived email verification challenge.
  *
- * Two kinds are supported:
+ * Three kinds are supported:
  *  - `registration`     proves ownership of an email before a User is created.
  *  - `email_verification` confirms the email on an already signed-in account.
+ *  - `login_2fa`        acts as the second factor when finishing a sign-in.
  *
  * Only hashes of the challenge token and the 6-digit OTP are stored. The
  * plain code is sent once by email and is never written to the database, so a
@@ -15,7 +16,7 @@ const emailVerificationSchema = new mongoose.Schema(
     {
         kind: {
             type: String,
-            enum: ['registration', 'email_verification'],
+            enum: ['registration', 'email_verification', 'login_2fa'],
             required: true,
             index: true,
         },

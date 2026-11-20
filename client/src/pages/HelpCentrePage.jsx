@@ -149,10 +149,10 @@ export default function HelpCentrePage() {
                 ))}
             </div>
 
-            <section className="mt-7">
+            <section className="border-y-2 border-banana-200 bg-banana-100/60 py-8 md:py-10">
                 <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
                     <div>
-                        <h2 className="font-display text-2xl font-extrabold text-banana-800">
+                        <h2 className="font-display text-2xl font-extrabold text-banana-900">
                             Browse help topics
                         </h2>
                         <p className="text-sm font-semibold text-banana-800">
@@ -174,7 +174,7 @@ export default function HelpCentrePage() {
                 </div>
             </section>
 
-            <section className="banana-promo-panel relative mt-6 overflow-hidden rounded-[1.75rem] border-2 border-banana-400 bg-gradient-to-br from-banana-300 via-banana-400 to-amber-500 p-5 shadow-game md:p-7">
+            <section className="banana-promo-panel relative mt-6 overflow-hidden rounded-2xl border-2 border-banana-400 bg-gradient-to-br from-banana-300 via-banana-400 to-amber-500 p-5 shadow-game md:p-7">
                 <div
                     aria-hidden="true"
                     className="pointer-events-none absolute -right-12 -top-14 h-44 w-44 rounded-full border-[14px] border-white/25"
@@ -221,16 +221,16 @@ export default function HelpCentrePage() {
 
                     <Link
                         to="/contact"
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-banana-300/60 bg-banana-50 px-5 py-3 font-display text-base font-bold text-banana-900 shadow-game-sm transition hover:bg-banana-100 active:translate-y-0.5 md:w-auto"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-white/50 bg-white/90 px-4 py-2.5 font-display text-sm font-bold text-banana-900 shadow-game-sm transition hover:bg-white active:translate-y-0.5 md:w-auto"
                     >
                         <Mail size={18} /> Open contact form
                     </Link>
                 </div>
             </section>
 
-            <section className="mt-6">
+            <section className="py-8 md:py-10">
                 <div className="mb-3">
-                    <h2 className="font-display text-2xl font-extrabold text-banana-800">
+                    <h2 className="font-display text-2xl font-extrabold text-banana-900">
                         Looking for the rules or privacy details?
                     </h2>
                     <p className="text-sm font-semibold text-banana-800">
@@ -261,7 +261,7 @@ export default function HelpCentrePage() {
 function QuickLink({ item }) {
     const Icon = item.icon;
     const className =
-        'group relative flex flex-col overflow-hidden rounded-2xl border-2 border-banana-300 bg-white/90 p-4 shadow-game-sm transition hover:-translate-y-0.5 hover:border-banana-400';
+        'group relative flex flex-col overflow-hidden rounded-2xl border-2 border-banana-200 bg-white/90 p-4 shadow-game-sm transition hover:-translate-y-0.5 hover:border-banana-300';
 
     const content = (
         <>
@@ -270,13 +270,13 @@ function QuickLink({ item }) {
                 className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${item.color}`}
             />
             <div
-                className={`mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-game-sm ${item.color}`}
+                className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-game-sm ${item.color}`}
             >
                 <Icon size={21} />
             </div>
-            <p className="font-display text-lg font-extrabold text-banana-800">{item.title}</p>
+            <p className="font-display text-lg font-extrabold text-banana-900">{item.title}</p>
             <p className="mt-1 flex-1 text-sm text-banana-800">{item.text}</p>
-            <span className="mt-3 inline-flex items-center gap-1 text-sm font-extrabold text-banana-800 group-hover:text-banana-900">
+            <span className="mt-3 inline-flex items-center gap-1.5 font-display text-sm font-bold text-banana-800 group-hover:text-banana-900">
                 Open <ArrowRight size={15} />
             </span>
         </>
@@ -303,18 +303,18 @@ function TopicCard({ topic }) {
     return (
         <Link
             to={topic.to}
-            className="group relative flex flex-col overflow-hidden rounded-2xl border-2 border-banana-300 bg-white/90 p-5 shadow-game-sm transition hover:-translate-y-0.5 hover:border-banana-400"
+            className="group relative flex flex-col overflow-hidden rounded-2xl border-2 border-banana-200 bg-white/90 p-5 shadow-game-sm transition hover:-translate-y-0.5 hover:border-banana-300"
         >
             <span
                 aria-hidden="true"
                 className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${topic.accent}`}
             />
             <div
-                className={`mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-game-sm ${topic.accent}`}
+                className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-game-sm ${topic.accent}`}
             >
                 <Icon size={21} />
             </div>
-            <h3 className="font-display text-xl font-extrabold text-banana-800">{topic.title}</h3>
+            <h3 className="font-display text-xl font-extrabold text-banana-900">{topic.title}</h3>
             <p className="mt-1 text-sm text-banana-800">{topic.text}</p>
             <ul className="mt-3 space-y-1 text-sm font-semibold text-banana-800">
                 {topic.items.map((item) => (
@@ -324,7 +324,7 @@ function TopicCard({ topic }) {
                     </li>
                 ))}
             </ul>
-            <span className="mt-4 inline-flex items-center gap-1 text-sm font-extrabold text-banana-800 group-hover:text-banana-900">
+            <span className="mt-4 inline-flex items-center gap-1.5 font-display text-sm font-bold text-banana-800 group-hover:text-banana-900">
                 Browse answers <ArrowRight size={15} />
             </span>
         </Link>
@@ -335,15 +335,15 @@ function LegalLink({ to, icon: Icon, tone, title, text }) {
     return (
         <Link
             to={to}
-            className="group flex items-center gap-3 rounded-2xl border-2 border-banana-300 bg-white/90 p-4 shadow-game-sm transition hover:-translate-y-0.5 hover:border-banana-400"
+            className="group flex items-center gap-3 rounded-2xl border-2 border-banana-200 bg-white/90 p-4 shadow-game-sm transition hover:-translate-y-0.5 hover:border-banana-300"
         >
             <div
-                className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl border-2 ${tone}`}
+                className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border-2 ${tone}`}
             >
                 <Icon size={21} />
             </div>
             <div className="min-w-0 flex-1">
-                <p className="font-display text-lg font-extrabold text-banana-800">{title}</p>
+                <p className="font-display text-lg font-extrabold text-banana-900">{title}</p>
                 <p className="text-sm font-semibold text-banana-800">{text}</p>
             </div>
             <ArrowRight

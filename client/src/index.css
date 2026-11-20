@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap');
 @import 'tailwindcss';
 
 /* Game UI palette: warm playfield neutrals with a vivid banana accent and
@@ -18,11 +18,24 @@
   --font-display: 'Baloo 2', cursive;
   --font-body: 'Nunito', sans-serif;
 
+  /* Shared chart/status palette so charts follow the active theme. */
+  --color-correct: #34d399;
+  --color-incorrect: #f87171;
+  --color-warning: #facc15;
+  --color-expired: #fb923c;
+  --color-info: #60a5fa;
+  --color-danger-soft: #fb7185;
+  --color-chart-grid: #e3e1d7;
+  --color-chart-label: #4a4236;
+  --color-chart-text: #24211b;
+
   --shadow-game: 0 4px 0 rgba(109, 74, 14, 0.18), 0 10px 22px rgba(109, 74, 14, 0.12);
   --shadow-game-sm: 0 2px 0 rgba(109, 74, 14, 0.16), 0 6px 14px rgba(109, 74, 14, 0.1);
 
   --animate-pop: pop 0.25s ease-out;
   --animate-shake: shake 0.4s ease-in-out;
+  --animate-wiggle: wiggle 1.6s ease-in-out infinite;
+  --animate-float: float 5s ease-in-out infinite;
 
   @keyframes pop {
     0% { transform: scale(0.96); opacity: 0; }
@@ -33,6 +46,16 @@
     0%, 100% { transform: translateX(0); }
     25% { transform: translateX(-4px); }
     75% { transform: translateX(4px); }
+  }
+
+  @keyframes wiggle {
+    0%, 100% { transform: rotate(-3deg); }
+    50% { transform: rotate(3deg); }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
   }
 }
 
@@ -61,6 +84,10 @@ html[data-theme='dark'] {
 
   --color-amber-50: #20180f;
   --color-amber-100: #261c10;
+
+  --color-chart-grid: #3a352a;
+  --color-chart-label: #d9d2bf;
+  --color-chart-text: #fff8dc;
 }
 
 html[data-theme='dark'] body {
@@ -308,8 +335,11 @@ body {
 }
 
 .rounded-\[2rem\],
-.rounded-3xl {
-  border-radius: 20px;
+.rounded-3xl,
+.rounded-\[1\.5rem\],
+.rounded-\[1\.75rem\],
+.rounded-\[20px\] {
+  border-radius: 16px;
 }
 
 .rounded-2xl {
@@ -320,9 +350,33 @@ body {
   border-radius: 12px;
 }
 
+/* Landing-page fallbacks: one-off controls keep the same flat, tactile feel even
+   if an older utility combination is missed during a page restyle. */
+#root button {
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+#root input,
+#root textarea,
+#root select {
+  font-family: var(--font-body);
+}
+
+#root button.font-display,
+#root input.font-display {
+  font-family: var(--font-display);
+}
+
+button.border-b-4,
+a.border-b-4 {
+  border-bottom-width: 2px;
+}
+
 /* Shared game-panel utility for consistent card treatment. */
 .game-panel {
-  border: 2px solid var(--color-banana-300);
+  border: 2px solid var(--color-banana-200);
+  border-radius: 16px;
   background: linear-gradient(180deg, #ffffff 0%, #fffdf5 100%);
   box-shadow: var(--shadow-game);
 }

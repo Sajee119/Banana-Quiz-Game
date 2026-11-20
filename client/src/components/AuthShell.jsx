@@ -33,19 +33,19 @@ export default function AuthShell({
     footer,
 }) {
     return (
-        <div className="flex min-h-screen flex-col px-3 py-4 sm:px-6 sm:py-5">
+        <div className="flex min-h-screen flex-col">
             <PublicPageHeader />
 
-            <main className="mx-auto flex w-full max-w-[1560px] flex-1 flex-col py-4 sm:py-6">
+            <main className="mx-auto flex w-full flex-1 flex-col px-4 py-6 sm:px-6">
                 <motion.section
                     initial={{ y: 24, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    className="grid w-full flex-1 overflow-hidden rounded-[1.5rem] border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/50 shadow-game lg:grid-cols-[1.05fr_1fr]"
+                    className="grid w-full flex-1 overflow-hidden rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/60 shadow-game lg:grid-cols-[1.05fr_1fr]"
                 >
                     {/* Desktop recovery panel */}
-                    <aside className="banana-promo-panel relative hidden overflow-hidden bg-gradient-to-br from-banana-400 via-banana-500 to-amber-500 p-8 lg:flex lg:flex-col xl:p-10">
-                        <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full border-[20px] border-white/20" />
-                        <div className="pointer-events-none absolute -bottom-28 -left-24 h-80 w-80 rounded-full border-[20px] border-white/15" />
+                    <aside className="banana-promo-panel relative hidden overflow-hidden bg-gradient-to-br from-banana-300 via-banana-400 to-banana-600 p-8 lg:flex lg:flex-col xl:p-10">
+                        <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full border-[14px] border-white/25" />
+                        <div className="pointer-events-none absolute -bottom-28 -left-24 h-80 w-80 rounded-full border-[14px] border-white/20" />
                         <BananaLogo
                             size={240}
                             aria-hidden="true"
@@ -53,18 +53,18 @@ export default function AuthShell({
                         />
 
                         <div className="relative flex flex-1 flex-col">
-                            <span className="inline-flex w-fit items-center gap-2 rounded-full border-2 border-banana-900/20 bg-banana-900/10 px-3 py-1 text-xs font-extrabold uppercase tracking-widest text-banana-900">
+                            <span className="inline-flex w-fit items-center gap-1.5 rounded-full border-2 border-white/40 bg-white/20 px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wide text-white">
                                 <ShieldCheck size={14} /> Secure account recovery
                             </span>
 
-                            <h2 className="mt-6 font-display text-4xl font-extrabold leading-[1.03] text-banana-900 xl:text-5xl">
+                            <h2 className="mt-6 font-display text-4xl font-extrabold leading-[1.03] text-white xl:text-5xl">
                                 Locked out?
                                 <br />
-                                <span className="text-white drop-shadow-[0_3px_0_rgba(107,50,0,0.28)]">
+                                <span className="text-banana-50 drop-shadow-[0_3px_0_rgba(107,50,0,0.28)]">
                                     Let&apos;s get you back in.
                                 </span>
                             </h2>
-                            <p className="mt-4 max-w-md text-lg font-semibold text-banana-900/80">
+                            <p className="mt-4 max-w-md text-lg font-semibold text-banana-50">
                                 Recovery links are private, single-use and expire quickly, so only
                                 you can open the door to your account.
                             </p>
@@ -73,16 +73,16 @@ export default function AuthShell({
                                 {RECOVERY_POINTS.map(({ icon: Icon, title: pointTitle, text }) => (
                                     <li
                                         key={pointTitle}
-                                        className="flex gap-3 rounded-2xl border-2 border-white/50 bg-banana-50/70 p-3.5 backdrop-blur-sm"
+                                        className="flex gap-3 rounded-2xl border-2 border-white/40 bg-white/20 p-3.5 backdrop-blur-sm"
                                     >
-                                        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-500/30 bg-white/80 text-banana-700">
+                                        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-white/40 bg-white/20 text-white">
                                             <Icon size={19} />
                                         </span>
                                         <span className="min-w-0">
-                                            <span className="block font-display text-base font-extrabold leading-tight text-banana-900">
+                                            <span className="block font-display text-base font-extrabold leading-tight text-white">
                                                 {pointTitle}
                                             </span>
-                                            <span className="mt-0.5 block text-xs font-semibold leading-snug text-banana-900/75">
+                                            <span className="mt-0.5 block text-xs font-semibold leading-snug text-banana-50">
                                                 {text}
                                             </span>
                                         </span>
@@ -90,14 +90,14 @@ export default function AuthShell({
                                 ))}
                             </ul>
 
-                            <div className="relative mt-auto flex flex-wrap items-center gap-2 pt-8 text-[11px] font-extrabold uppercase tracking-wide text-banana-900/75">
-                                <span className="rounded-full border-2 border-white/50 bg-banana-50/70 px-3 py-1.5">
+                            <div className="relative mt-auto flex flex-wrap items-center gap-2 pt-8 text-[11px] font-bold uppercase tracking-wide text-banana-50">
+                                <span className="inline-flex items-center rounded-full border-2 border-white/40 bg-white/20 px-2.5 py-1">
                                     Single-use links
                                 </span>
-                                <span className="rounded-full border-2 border-white/50 bg-banana-50/70 px-3 py-1.5">
+                                <span className="inline-flex items-center rounded-full border-2 border-white/40 bg-white/20 px-2.5 py-1">
                                     30-minute expiry
                                 </span>
-                                <span className="rounded-full border-2 border-white/50 bg-banana-50/70 px-3 py-1.5">
+                                <span className="inline-flex items-center rounded-full border-2 border-white/40 bg-white/20 px-2.5 py-1">
                                     Encrypted passwords
                                 </span>
                             </div>
@@ -106,8 +106,8 @@ export default function AuthShell({
 
                     {/* Recovery panel */}
                     <div className="relative flex flex-col justify-center bg-white/90 p-5 sm:p-8 lg:p-10 xl:p-12">
-                        <div className="mb-5 flex items-center gap-3 rounded-2xl border-2 border-banana-400 bg-gradient-to-br from-banana-200 to-banana-300 p-3.5 shadow-game-sm lg:hidden">
-                            <BananaLogo size={46} className="animate-wiggle" />
+                        <div className="mb-5 flex items-center gap-3 rounded-2xl border-2 border-banana-300 bg-gradient-to-br from-banana-100 via-white to-amber-50 p-3.5 shadow-game-sm lg:hidden">
+                            <BananaLogo size={46} className="h-12 w-12 rounded-xl border-2 border-banana-400 bg-gradient-to-b from-banana-200 to-banana-300 p-1.5 shadow-game-sm" />
                             <div className="min-w-0">
                                 <p className="font-display text-lg font-extrabold leading-none text-banana-900">
                                     Banana Quiz
@@ -119,14 +119,14 @@ export default function AuthShell({
                         </div>
 
                         <div className="mx-auto w-full max-w-md">
-                            <p className="font-display text-xs font-extrabold uppercase tracking-[0.2em] text-banana-500">
+                            <p className="inline-flex w-fit items-center gap-1.5 rounded-full border-2 border-banana-400 bg-gradient-to-b from-banana-100 to-white px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wide text-banana-800 shadow-game-sm">
                                 {eyebrow}
                             </p>
-                            <h1 className="mt-1 font-display text-3xl font-extrabold leading-tight text-banana-800 sm:text-4xl">
+                            <h1 className="mt-3 font-display text-3xl font-extrabold leading-tight text-banana-900 sm:text-4xl">
                                 {title}
                             </h1>
                             {subtitle && (
-                                <p className="mt-2 text-sm font-semibold text-banana-700 sm:text-base">
+                                <p className="mt-2 text-sm font-semibold leading-relaxed text-banana-800 sm:text-base">
                                     {subtitle}
                                 </p>
                             )}

@@ -12,6 +12,8 @@ const DEFAULT_PREFERENCES = {
     emailNotifications: true,
     loginAlerts: true,
     productUpdates: false,
+    twoFactorEnabled: false,
+    twoFactorTrustDays: 10,
     defaultMode: 'easy',
     autoSubmit: true,
     celebrations: true,
@@ -56,6 +58,11 @@ function buildUserPayload(user) {
                 preferences.emailNotifications ?? DEFAULT_PREFERENCES.emailNotifications,
             loginAlerts: preferences.loginAlerts ?? DEFAULT_PREFERENCES.loginAlerts,
             productUpdates: preferences.productUpdates ?? DEFAULT_PREFERENCES.productUpdates,
+            twoFactorEnabled:
+                preferences.twoFactorEnabled ?? DEFAULT_PREFERENCES.twoFactorEnabled,
+            twoFactorTrustDays: [1, 5, 10].includes(Number(preferences.twoFactorTrustDays))
+                ? Number(preferences.twoFactorTrustDays)
+                : DEFAULT_PREFERENCES.twoFactorTrustDays,
             defaultMode: preferences.defaultMode ?? DEFAULT_PREFERENCES.defaultMode,
             autoSubmit: preferences.autoSubmit ?? DEFAULT_PREFERENCES.autoSubmit,
             celebrations: preferences.celebrations ?? DEFAULT_PREFERENCES.celebrations,

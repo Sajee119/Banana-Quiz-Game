@@ -71,16 +71,16 @@ export default function AppHeader({ className = '' }) {
 
     return (
         <header
-            className={`sticky top-0 z-40 border-b-4 border-banana-300 bg-banana-50/95 shadow-[0_4px_16px_rgba(109,74,14,0.12)] backdrop-blur-md ${className}`}
+            className={`sticky top-0 z-40 border-b-2 border-banana-200 bg-banana-50/95 shadow-game-sm backdrop-blur-md ${className}`}
         >
-            <div className="mx-auto flex w-full max-w-[1560px] items-center justify-between gap-2 px-3 py-2 sm:gap-3 sm:px-5 lg:px-8">
+            <div className="mx-auto flex w-full items-center justify-between gap-3 px-4 py-3 sm:px-6">
                 <Link to={user ? '/dashboard' : '/'} className="flex flex-shrink-0 items-center gap-2">
-                    <BananaLogo size={40} className="animate-wiggle" />
-                    <span className="hidden font-display text-xl font-extrabold text-banana-800 sm:inline">
+                    <BananaLogo size={40} className="h-10 w-10 rounded-xl border-2 border-banana-400 bg-gradient-to-b from-banana-200 to-banana-300 p-1.5 shadow-game-sm" />
+                    <span className="hidden font-display text-xl font-extrabold text-banana-900 sm:inline">
                         Banana Quiz
                     </span>
                     {user && (
-                        <span className="hidden rounded-full border-2 border-banana-500 bg-gradient-to-b from-banana-300 to-banana-400 px-2.5 py-0.5 font-display text-[11px] font-bold text-banana-900 shadow-game-sm md:inline-flex">
+                        <span className="hidden inline-flex items-center gap-1.5 rounded-full border-2 border-banana-300 bg-white/80 px-2.5 py-1 font-display text-[11px] font-bold uppercase tracking-wide text-banana-900 shadow-game-sm md:inline-flex">
                             Lv {level.level}
                         </span>
                     )}
@@ -97,10 +97,10 @@ export default function AppHeader({ className = '' }) {
                             title={label}
                             onClick={() => play('click')}
                             className={({ isActive }) =>
-                                `flex flex-shrink-0 items-center gap-1.5 rounded-xl border-2 px-2 py-1.5 font-display text-sm font-semibold transition sm:px-2.5 md:px-3 ${
+                                `flex flex-shrink-0 items-center gap-1.5 rounded-xl border-2 px-2.5 py-2 font-display text-sm font-semibold transition sm:px-3 ${
                                     isActive
-                                        ? 'border-banana-500 bg-gradient-to-b from-banana-300 to-banana-400 text-banana-900 shadow-game-sm'
-                                        : 'border-banana-200/70 bg-white/60 text-banana-800 hover:border-banana-300 hover:bg-banana-100'
+                                        ? 'border-banana-400 bg-gradient-to-b from-banana-100 to-white text-banana-900 shadow-game-sm'
+                                        : 'border-transparent text-banana-800 hover:border-banana-300 hover:bg-banana-100 hover:text-banana-900'
                                 }`
                             }
                         >
@@ -133,7 +133,7 @@ export default function AppHeader({ className = '' }) {
                             <Link
                                 to="/profile"
                                 title="Account settings"
-                                className="hidden h-10 w-10 items-center justify-center overflow-hidden rounded-xl border-2 border-banana-300 bg-banana-200 font-display text-sm font-extrabold text-banana-700 sm:flex"
+                                className="hidden h-10 w-10 items-center justify-center overflow-hidden rounded-xl border-2 border-banana-300 bg-banana-100 font-display text-sm font-extrabold text-banana-700 sm:flex"
                             >
                                 {user.avatar ? (
                                     <img src={user.avatar} alt="" className="h-full w-full object-cover" />
@@ -150,7 +150,7 @@ export default function AppHeader({ className = '' }) {
                                 }}
                                 title="Log out"
                                 aria-label="Log out"
-                                className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-banana-700 transition hover:bg-banana-200/60"
+                                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border-2 border-transparent text-banana-700 transition hover:border-banana-200 hover:bg-banana-100 hover:text-banana-900"
                             >
                                 <LogOut size={18} />
                             </button>
@@ -158,7 +158,7 @@ export default function AppHeader({ className = '' }) {
                     ) : (
                         <Link
                             to="/login"
-                            className="inline-flex items-center justify-center rounded-xl border-b-4 border-banana-700 bg-gradient-to-b from-banana-400 to-banana-500 px-4 py-2 font-display font-bold text-banana-900 shadow-game-sm transition hover:brightness-[1.02] active:translate-y-[2px] active:border-b-2"
+                            className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-banana-500 bg-gradient-to-b from-banana-400 to-banana-500 px-4 py-2.5 font-display text-sm font-bold text-banana-900 shadow-game-sm transition hover:brightness-[1.02] active:translate-y-0.5"
                         >
                             Sign in
                         </Link>
@@ -183,17 +183,17 @@ export default function AppHeader({ className = '' }) {
 
 function HudStat({ icon: Icon, label, value, tone = 'banana' }) {
     const tones = {
-        banana: 'border-banana-300 from-banana-100 to-banana-50 text-banana-900',
-        orange: 'border-orange-300 from-orange-100 to-orange-50 text-orange-900',
+        banana: 'border-banana-200 text-banana-900',
+        orange: 'border-orange-300 bg-orange-50 text-orange-800',
     };
 
     return (
         <div
             title={label}
-            className={`flex items-center gap-1.5 rounded-xl border-2 bg-gradient-to-b px-2.5 py-1 shadow-game-sm ${tones[tone]}`}
+            className={`inline-flex items-center gap-1.5 rounded-full border-2 bg-white/80 px-2.5 py-1 font-display text-[11px] font-bold uppercase tracking-wide shadow-game-sm ${tones[tone]}`}
         >
             <Icon size={15} />
-            <span className="font-display text-sm font-bold leading-none tabular-nums">{value}</span>
+            <span className="font-display text-xs font-extrabold leading-none tabular-nums">{value}</span>
         </div>
     );
 }
@@ -201,7 +201,7 @@ function HudStat({ icon: Icon, label, value, tone = 'banana' }) {
 function LogoutDialog({ loading, error, onClose, onLogout, onLogoutOtherDevices, onLogoutAll }) {
     return (
         <div
-            className="absolute right-3 top-full z-50 w-[min(calc(100vw-1.5rem),24rem)] pt-2 md:right-6"
+            className="absolute right-4 top-full z-50 w-[min(calc(100vw-2rem),24rem)] pt-2 sm:right-6"
             role="presentation"
             onMouseDown={(event) => {
                 if (event.target === event.currentTarget) onClose();
@@ -211,7 +211,7 @@ function LogoutDialog({ loading, error, onClose, onLogout, onLogoutOtherDevices,
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="logout-dialog-title"
-                className="rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50 p-5 shadow-game"
+                className="rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/60 p-5 shadow-game"
             >
                 <div className="mb-4 flex items-start justify-between gap-4">
                     <div>
@@ -227,14 +227,14 @@ function LogoutDialog({ loading, error, onClose, onLogout, onLogoutOtherDevices,
                         onClick={onClose}
                         disabled={loading}
                         aria-label="Close logout dialog"
-                        className="rounded-xl p-2 text-banana-700 hover:bg-banana-200 disabled:opacity-50"
+                        className="rounded-xl border-2 border-transparent p-2 text-banana-700 transition hover:border-banana-200 hover:bg-banana-100 disabled:opacity-50"
                     >
                         <X size={20} />
                     </button>
                 </div>
 
                 {error && (
-                    <p className="mb-4 rounded-xl bg-red-50 px-3 py-2 text-sm font-bold text-red-700" role="alert">
+                    <p className="mb-4 rounded-2xl border-2 border-red-200 bg-red-50 px-3 py-2 text-sm font-bold text-red-700" role="alert">
                         {error}
                     </p>
                 )}

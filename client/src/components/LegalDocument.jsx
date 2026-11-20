@@ -61,14 +61,14 @@ export default function LegalDocument({ intro, sections }) {
 
     return (
         <div className="grid gap-4 lg:grid-cols-[260px_minmax(0,1fr)]">
-            <aside className="lg:sticky lg:top-20 lg:self-start">
-                <div className="overflow-hidden rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/70 shadow-game">
+            <aside className="lg:sticky lg:top-24 lg:self-start">
+                <div className="overflow-hidden rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/60 shadow-game">
                     <div className="flex items-center gap-2 border-b-2 border-banana-200 bg-banana-100/80 px-4 py-3">
                         <ListChecks size={16} className="flex-shrink-0 text-banana-800" />
-                        <p className="text-[11px] font-extrabold uppercase tracking-widest text-banana-800">
+                        <p className="font-display text-[11px] font-extrabold uppercase tracking-wide text-banana-900">
                             On this page
                         </p>
-                        <span className="ml-auto rounded-full border-2 border-banana-300 bg-white px-2 py-0.5 text-[10px] font-extrabold text-banana-800">
+                        <span className="ml-auto inline-flex items-center rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-800">
                             {sections.length}
                         </span>
                     </div>
@@ -84,17 +84,17 @@ export default function LegalDocument({ intro, sections }) {
                                         <a
                                             href={`#${section.id}`}
                                             aria-current={active ? 'location' : undefined}
-                                            className={`flex items-start gap-2 rounded-xl px-2 py-1.5 text-sm font-semibold transition ${
+                                            className={`flex items-start gap-2 rounded-xl border-2 border-transparent px-2.5 py-2 font-display text-sm font-semibold transition ${
                                                 active
-                                                    ? 'bg-banana-200 text-banana-900'
-                                                    : 'text-banana-800 hover:bg-banana-100 hover:text-banana-900'
+                                                    ? 'border-banana-300 bg-banana-100 text-banana-900'
+                                                    : 'text-banana-800 hover:border-banana-300 hover:bg-banana-100 hover:text-banana-900'
                                             }`}
                                         >
                                             <span
                                                 className={`mt-0.5 inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 text-[10px] font-extrabold ${
                                                     active
                                                         ? 'border-banana-500 bg-banana-300 text-banana-900'
-                                                        : 'border-banana-300 bg-white text-banana-800'
+                                                        : 'border-banana-300 bg-white/90 text-banana-800'
                                                 }`}
                                             >
                                                 {index + 1}
@@ -119,7 +119,7 @@ export default function LegalDocument({ intro, sections }) {
                     />
                     <div className="p-5 md:p-7">
                         {intro && (
-                            <div className="rounded-2xl border-2 border-banana-200 bg-banana-50/80 p-4">
+                            <div className="rounded-2xl border-2 border-banana-200 bg-white/80 p-4 shadow-game-sm">
                                 <p className="text-sm font-semibold leading-relaxed text-banana-800">
                                     {intro}
                                 </p>
@@ -134,15 +134,15 @@ export default function LegalDocument({ intro, sections }) {
                                     className="scroll-mt-24 border-t-2 border-dashed border-banana-200 pt-6 first:border-0 first:pt-0"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-400 bg-banana-200 font-display text-base font-extrabold text-banana-900">
+                                        <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-100 font-display text-base font-extrabold text-banana-700">
                                             {index + 1}
                                         </span>
-                                        <h2 className="font-display text-2xl font-extrabold leading-tight text-banana-800">
+                                        <h2 className="font-display text-2xl font-extrabold leading-tight text-banana-900">
                                             {stripLeadingNumber(section.title)}
                                         </h2>
                                     </div>
 
-                                    <div className="mt-3 space-y-2.5 text-sm leading-relaxed text-banana-800 md:pl-12">
+                                    <div className="mt-3 space-y-2.5 text-sm font-semibold leading-relaxed text-banana-800 md:pl-12">
                                         {section.body?.map((paragraph, bodyIndex) => (
                                             <p key={bodyIndex}>{paragraph}</p>
                                         ))}
@@ -169,7 +169,7 @@ export default function LegalDocument({ intro, sections }) {
                     </div>
                 </article>
 
-                <section className="banana-promo-panel relative overflow-hidden rounded-[1.5rem] border-2 border-banana-400 bg-gradient-to-br from-banana-300 via-banana-400 to-amber-500 p-5 shadow-game md:p-7">
+                <section className="banana-promo-panel relative overflow-hidden rounded-2xl border-2 border-banana-400 bg-gradient-to-br from-banana-300 via-banana-400 to-banana-600 p-5 shadow-game md:p-7">
                     <div
                         aria-hidden="true"
                         className="pointer-events-none absolute -right-12 -top-14 h-44 w-44 rounded-full border-[14px] border-white/25"
@@ -180,7 +180,7 @@ export default function LegalDocument({ intro, sections }) {
                     />
                     <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                         <div className="flex items-start gap-3">
-                            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-banana-900/25 bg-banana-50/80 text-banana-900">
+                            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-900/25 bg-banana-50/80 text-banana-900">
                                 <LifeBuoy size={24} />
                             </div>
                             <div>
@@ -196,13 +196,13 @@ export default function LegalDocument({ intro, sections }) {
                         <div className="flex flex-wrap gap-2">
                             <Link
                                 to="/help"
-                                className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50 px-4 py-2.5 font-display text-base font-bold text-banana-900 shadow-game-sm transition hover:from-banana-50 hover:to-banana-100 active:translate-y-[1px]"
+                                className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-banana-400 bg-white/90 px-4 py-2.5 font-display text-sm font-bold text-banana-900 shadow-game-sm transition hover:bg-banana-100 active:translate-y-0.5"
                             >
                                 Help Centre <ArrowRight size={16} />
                             </Link>
                             <Link
                                 to="/contact"
-                                className="inline-flex items-center justify-center gap-2 rounded-xl border-b-4 border-banana-900/40 bg-banana-900 px-4 py-2.5 font-display text-base font-bold text-banana-50 shadow-game-sm transition hover:brightness-110 active:translate-y-[2px] active:border-b-2"
+                                className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-banana-900 bg-banana-900 px-4 py-2.5 font-display text-sm font-bold text-banana-50 shadow-game-sm transition hover:brightness-110 active:translate-y-0.5"
                             >
                                 <Mail size={16} /> Contact us
                             </Link>

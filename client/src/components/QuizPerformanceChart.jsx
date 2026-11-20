@@ -14,17 +14,18 @@ import {
 import Card from './Card.jsx';
 
 const STATUS_COLORS = {
-    correct: '#34d399',
-    incorrect: '#f87171',
-    expired: '#fb923c',
-    skipped: '#facc15',
+    correct: 'var(--color-correct)',
+    incorrect: 'var(--color-incorrect)',
+    expired: 'var(--color-expired)',
+    skipped: 'var(--color-warning)',
 };
 
 const chartTooltipStyle = {
-    background: '#fffceb',
-    border: '2px solid #ffec85',
+    background: 'var(--color-banana-100)',
+    border: '2px solid var(--color-banana-300)',
     borderRadius: 12,
-    boxShadow: '0 10px 24px rgba(107,50,0,.12)',
+    boxShadow: 'var(--shadow-game)',
+    color: 'var(--color-banana-900)',
 };
 
 function buildChartData(quizzes, timeLimit) {
@@ -76,17 +77,17 @@ export default function QuizPerformanceChart({
         >
             <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={data} margin={{ top: 8, right: 0, bottom: 0, left: compact ? -24 : -16 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e3e1d7" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-chart-grid)" />
                     <XAxis
                         dataKey="label"
-                        tick={{ fontSize: compact ? 10 : 12, fill: '#4a4236' }}
+                        tick={{ fontSize: compact ? 10 : 12, fill: 'var(--color-chart-label)' }}
                         axisLine={false}
                         tickLine={false}
                     />
                     <YAxis
                         yAxisId="points"
                         allowDecimals={false}
-                        tick={{ fontSize: compact ? 10 : 12, fill: '#4a4236' }}
+                        tick={{ fontSize: compact ? 10 : 12, fill: 'var(--color-chart-label)' }}
                         axisLine={false}
                         tickLine={false}
                         width={compact ? 24 : 32}
@@ -95,13 +96,13 @@ export default function QuizPerformanceChart({
                         yAxisId="seconds"
                         orientation="right"
                         unit="s"
-                        tick={{ fontSize: compact ? 10 : 12, fill: '#4a4236' }}
+                        tick={{ fontSize: compact ? 10 : 12, fill: 'var(--color-chart-label)' }}
                         axisLine={false}
                         tickLine={false}
                         width={compact ? 24 : 32}
                     />
                     <Tooltip content={<QuizChartTooltip />} />
-                    {!compact && <Legend wrapperStyle={{ fontSize: 12, color: '#4a4236' }} />}
+                    {!compact && <Legend wrapperStyle={{ fontSize: 12, color: 'var(--color-chart-label)' }} />}
                     <Bar
                         yAxisId="points"
                         dataKey="points"
@@ -121,9 +122,9 @@ export default function QuizPerformanceChart({
                         type="monotone"
                         dataKey="seconds"
                         name="Response time (s)"
-                        stroke="#60a5fa"
+                        stroke="var(--color-info)"
                         strokeWidth={2}
-                        dot={{ r: compact ? 2 : 3, fill: '#60a5fa' }}
+                        dot={{ r: compact ? 2 : 3, fill: 'var(--color-info)' }}
                         activeDot={{ r: compact ? 3 : 5 }}
                     />
                 </ComposedChart>
@@ -135,7 +136,7 @@ export default function QuizPerformanceChart({
         return (
             <div className={className}>
                 {chart}
-                <div className="mt-1.5 flex flex-wrap gap-x-2 gap-y-0.5 text-[10px] text-banana-700">
+                <div className="mt-1.5 flex flex-wrap gap-x-2 gap-y-0.5 text-[10px] font-bold text-banana-700">
                     <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-emerald-400" />Correct</span>
                     <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-red-400" />Incorrect</span>
                     <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-orange-400" />Timed out</span>
@@ -148,15 +149,15 @@ export default function QuizPerformanceChart({
         <Card className={`!p-5 ${className}`}>
             <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
                 <div>
-                    <h2 className="flex items-center gap-2 font-display text-xl text-banana-900">
+                    <h2 className="flex items-center gap-2 font-display text-xl font-extrabold text-banana-900">
                         <BarChart3 size={20} className="text-banana-700" />
                         {title}
                     </h2>
-                    <p className="text-xs text-banana-800">{subtitle}</p>
+                    <p className="text-xs font-semibold text-banana-800">{subtitle}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                     {showBest && (
-                        <span className="rounded-full bg-banana-100 px-3 py-1 text-xs font-semibold text-banana-700">
+                        <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-800 shadow-game-sm">
                             Best: {best.label} · {best.points} pts
                         </span>
                     )}
@@ -166,7 +167,7 @@ export default function QuizPerformanceChart({
 
             {chart}
 
-            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-banana-700">
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11px] font-semibold text-banana-700">
                 <span className="flex items-center gap-1.5">
                     <span className="h-2.5 w-2.5 rounded-sm bg-emerald-400" /> Correct
                 </span>
@@ -193,9 +194,9 @@ function QuizChartTooltip({ active, payload, label }) {
     return (
         <div
             style={chartTooltipStyle}
-            className="min-w-[160px] px-3 py-2 text-sm font-bold text-banana-800"
+            className="min-w-[160px] rounded-2xl px-3 py-2 text-sm font-bold text-banana-900"
         >
-            <p className="mb-1 text-xs font-extrabold uppercase tracking-wide text-banana-500">
+            <p className="mb-1 text-[11px] font-extrabold uppercase tracking-wide text-banana-700">
                 {label}
             </p>
             <p className="flex items-center justify-between gap-5">
@@ -206,7 +207,7 @@ function QuizChartTooltip({ active, payload, label }) {
                 <span className="text-sky-600">Response</span>
                 <span>{Number(values.seconds) || 0}s</span>
             </p>
-            <p className="mt-1 text-xs capitalize text-banana-500">{status}</p>
+            <p className="mt-1 text-xs font-semibold capitalize text-banana-700">{status}</p>
         </div>
     );
 }

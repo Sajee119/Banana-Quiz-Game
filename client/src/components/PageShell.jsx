@@ -5,7 +5,7 @@ import AppHeader from './AppHeader.jsx';
 import BananaLogo from './BananaLogo.jsx';
 
 const CHIP_TONES = {
-    banana: 'border-banana-200 bg-white/70 text-banana-800',
+    banana: 'border-banana-200 bg-white/80 text-banana-800',
     emerald: 'border-emerald-300 bg-emerald-100 text-emerald-800',
     amber: 'border-amber-300 bg-amber-50 text-banana-900',
     sky: 'border-sky-300 bg-sky-100 text-sky-800',
@@ -14,10 +14,10 @@ const CHIP_TONES = {
 };
 
 export const secondaryActionClass =
-    'inline-flex items-center justify-center gap-2 rounded-xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50 px-4 py-2.5 font-display text-base font-bold text-banana-900 shadow-game-sm transition hover:from-banana-50 hover:to-banana-100 active:translate-y-[1px]';
+    'inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-banana-400 bg-white/90 px-4 py-2.5 font-display text-sm font-bold text-banana-900 shadow-game-sm transition hover:bg-banana-100 active:translate-y-0.5';
 
 export const primaryActionClass =
-    'inline-flex items-center justify-center gap-2 rounded-xl border-b-4 border-banana-700 bg-gradient-to-b from-banana-400 to-banana-500 px-4 py-2.5 font-display text-base font-bold text-banana-900 shadow-game-sm transition hover:brightness-[1.02] active:translate-y-[2px] active:border-b-2';
+    'inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-banana-500 bg-gradient-to-b from-banana-400 to-banana-500 px-4 py-2.5 font-display text-sm font-bold text-banana-900 shadow-game-sm transition hover:brightness-[1.02] active:translate-y-0.5';
 
 /**
  * Shared frame for public information pages (FAQ, help, terms, privacy).
@@ -37,46 +37,46 @@ export default function PageShell({
         <div className="min-h-screen">
             <AppHeader />
 
-            <main className="mx-auto w-full max-w-[1560px] px-4 py-6 md:px-6 md:py-8">
+            <main className="mx-auto w-full px-4 py-6 sm:px-6 md:py-8">
                 <motion.section
                     initial={{ y: 16, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    className="relative mb-5 overflow-hidden rounded-[1.5rem] border-2 border-banana-300 bg-gradient-to-br from-banana-100 via-white to-amber-50 p-5 shadow-game sm:p-7"
+                    className="relative mb-5 overflow-hidden rounded-2xl border-2 border-banana-300 bg-gradient-to-br from-banana-100 via-white to-amber-50 p-5 shadow-game sm:p-7"
                 >
                     <div
                         aria-hidden="true"
-                        className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full border-[18px] border-banana-300/40"
+                        className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full border-[14px] border-banana-300/40"
                     />
                     <div
                         aria-hidden="true"
-                        className="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full border-[18px] border-white/50"
+                        className="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full border-[14px] border-white/70"
                     />
                     <BananaLogo
                         size={190}
                         aria-hidden="true"
-                        className="pointer-events-none absolute -bottom-12 right-6 rotate-12 opacity-10"
+                        className="pointer-events-none absolute -bottom-12 right-6 rotate-12 opacity-10 animate-float"
                     />
 
                     <div className="relative flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
                         <div className="max-w-3xl">
-                            <p className="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.2em] text-banana-800">
+                            <p className="inline-flex w-fit items-center gap-1.5 rounded-full border-2 border-banana-400 bg-gradient-to-b from-banana-100 to-white px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wide text-banana-800 shadow-game-sm">
                                 {Icon ? <Icon size={13} /> : <Sparkles size={13} />}
                                 {eyebrow || 'Banana Quiz'}
                             </p>
-                            <h1 className="mt-1 font-display text-4xl font-extrabold leading-tight text-banana-900 sm:text-5xl">
+                            <h1 className="mt-3 font-display text-4xl font-extrabold leading-tight text-banana-900 sm:text-5xl">
                                 {title}
                             </h1>
                             {subtitle && (
-                                <p className="mt-2 max-w-2xl text-sm font-semibold text-banana-800 sm:text-base">
+                                <p className="mt-2 max-w-2xl text-sm font-semibold leading-relaxed text-banana-800 sm:text-base">
                                     {subtitle}
                                 </p>
                             )}
 
                             {(meta || chips.length > 0) && (
-                                <div className="mt-3.5 flex flex-wrap items-center gap-1.5 text-[11px] font-extrabold">
+                                <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-wide">
                                     {meta && (
                                         <span
-                                            className={`inline-flex items-center gap-1 rounded-full border-2 px-2.5 py-1 ${CHIP_TONES.banana}`}
+                                            className={`inline-flex items-center gap-1.5 rounded-full border-2 px-2.5 py-1 ${CHIP_TONES.banana}`}
                                         >
                                             <CalendarDays size={12} /> {meta}
                                         </span>
@@ -84,7 +84,7 @@ export default function PageShell({
                                     {chips.map(({ icon: ChipIcon, label, tone = 'banana' }) => (
                                         <span
                                             key={label}
-                                            className={`inline-flex items-center gap-1 rounded-full border-2 px-2.5 py-1 ${CHIP_TONES[tone] || CHIP_TONES.banana}`}
+                                            className={`inline-flex items-center gap-1.5 rounded-full border-2 px-2.5 py-1 ${CHIP_TONES[tone] || CHIP_TONES.banana}`}
                                         >
                                             {ChipIcon && <ChipIcon size={12} />} {label}
                                         </span>

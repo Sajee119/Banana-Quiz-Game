@@ -45,16 +45,16 @@ export default function PasswordStrengthMeter({
                         />
                     ))}
                 </div>
-                <span className={`w-16 text-right text-[11px] font-extrabold uppercase tracking-wide ${TEXT_COLORS[score]}`}>
+                <span className={`w-16 text-right font-display text-[11px] font-extrabold uppercase tracking-wide ${TEXT_COLORS[score]}`}>
                     {hasValue ? result.label : 'Empty'}
                 </span>
             </div>
 
             {hasValue && !result.valid && result.message && (
-                <p className="mt-1.5 text-xs font-semibold text-red-600">{result.message}</p>
+                <p className="mt-1.5 text-xs font-bold text-red-700">{result.message}</p>
             )}
             {hasValue && result.valid && (
-                <p className="mt-1.5 text-xs font-semibold text-emerald-700">
+                <p className="mt-1.5 text-xs font-bold text-emerald-700">
                     Great password — this meets all requirements.
                 </p>
             )}

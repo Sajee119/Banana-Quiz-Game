@@ -2,26 +2,25 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-    Banana,
-    Timer,
-    Leaf,
-    Zap,
-    Flame,
-    Trophy,
-    Award,
-    ShieldCheck,
-    Sparkles,
-    MousePointerClick,
-    Users,
-    ChevronDown,
     ArrowRight,
-    Play,
-    Star,
+    Award,
+    Banana,
+    ChevronDown,
     CircleCheck,
-    Globe,
-    Smartphone,
-    Gamepad2,
     Crown,
+    Flame,
+    Gamepad2,
+    Globe,
+    Leaf,
+    MousePointerClick,
+    Play,
+    ShieldCheck,
+    Smartphone,
+    Sparkles,
+    Timer,
+    Trophy,
+    Users,
+    Zap,
 } from 'lucide-react';
 import BananaLogo from '../components/BananaLogo.jsx';
 import Button from '../components/Button.jsx';
@@ -31,6 +30,14 @@ import { userApi } from '../api/client.js';
 import { MODE_LIST } from '../lib/format.js';
 import { usePageTitle } from '../hooks/usePageTitle.js';
 
+const NAV_LINKS = [
+    { href: '#features', label: 'Features' },
+    { href: '#modes', label: 'Modes' },
+    { href: '#progress', label: 'Progress' },
+    { href: '#how', label: 'How it works' },
+    { href: '#faq', label: 'FAQ' },
+];
+
 const MODE_ICONS = { easy: Banana, hard: Timer, custom: Leaf };
 
 const MODE_ACCENTS = {
@@ -39,81 +46,61 @@ const MODE_ACCENTS = {
     custom: 'from-sky-400 to-violet-500',
 };
 
-const TIER_TONES = {
-    Bronze: 'border-amber-300 bg-amber-100 text-amber-800',
-    Silver: 'border-slate-300 bg-slate-100 text-slate-700',
-    Gold: 'border-yellow-300 bg-yellow-100 text-yellow-800',
-};
-
-const NAV_LINKS = [
-    { href: '#features', label: 'Features' },
-    { href: '#modes', label: 'Modes' },
-    { href: '#achievements', label: 'Achievements' },
-    { href: '#how', label: 'How it works' },
-    { href: '#faq', label: 'FAQ' },
-];
-
 const FEATURES = [
     {
         icon: MousePointerClick,
         title: 'Instant rounds',
-        text: 'No downloads, no tutorials. Open the page, pick a mode and start calculating banana values in seconds.',
+        text: 'Open a mode and start calculating banana values in seconds. No downloads or tutorials.',
         color: 'from-banana-300 to-banana-500',
     },
     {
         icon: Timer,
-        title: 'Three play modes',
-        text: 'Standard Easy, Standard Hard and Custom practice give every player a comfortable challenge.',
+        title: 'Beat the clock',
+        text: 'Quick answers earn speed bonuses. Every second counts when the timer is running.',
         color: 'from-sky-300 to-sky-500',
     },
     {
         icon: Flame,
-        title: 'Streak multipliers',
-        text: 'Every correct answer in a row raises your multiplier, while quick responses earn extra points.',
+        title: 'Build streaks',
+        text: 'Chain correct answers to raise your multiplier and turn a good round into a great one.',
         color: 'from-orange-300 to-orange-500',
     },
     {
-        icon: Zap,
-        title: 'Speed bonuses',
-        text: 'The faster you calculate the banana value, the more bonus points you earn on top of the base score.',
-        color: 'from-pink-300 to-pink-500',
-    },
-    {
-        icon: Award,
-        title: '14 achievements',
-        text: 'From First Peel to Golden Bunch â€” earn badges for streaks, speed and persistence.',
-        color: 'from-violet-300 to-violet-500',
-    },
-    {
         icon: Globe,
-        title: 'Global leaderboard',
-        text: 'Standard scores join the leaderboard; Custom games stay private practice.',
+        title: 'Climb the board',
+        text: 'Standard scores join the global leaderboard. Custom games stay private practice.',
         color: 'from-emerald-300 to-emerald-500',
     },
 ];
 
-const ACHIEVEMENT_TEASERS = [
+const ACHIEVEMENTS = [
     { icon: Banana, title: 'First Peel', tier: 'Bronze', text: 'Finish your first round', color: 'from-amber-300 to-amber-500' },
     { icon: Flame, title: 'On a Roll', tier: 'Bronze', text: '3 correct answers in a row', color: 'from-amber-300 to-amber-500' },
     { icon: Zap, title: 'Quick Draw', tier: 'Silver', text: 'Answer in under 5 seconds', color: 'from-slate-300 to-slate-500' },
     { icon: Crown, title: 'Golden Bunch', tier: 'Gold', text: 'Bank 10,000 total points', color: 'from-yellow-300 to-amber-500' },
 ];
 
+const TIER_TONES = {
+    Bronze: 'border-amber-300 bg-amber-100 text-amber-800',
+    Silver: 'border-slate-300 bg-slate-100 text-slate-700',
+    Gold: 'border-yellow-300 bg-yellow-100 text-yellow-800',
+};
+
 const STEPS = [
     {
         icon: Users,
         title: 'Create your account',
-        text: 'Sign up with email or one tap using Google or Facebook. Email accounts confirm a 6-digit code before the account is created.',
+        text: 'Sign up with email, Google or Facebook. Email accounts confirm a 6-digit code before activation.',
     },
     {
         icon: Gamepad2,
         title: 'Pick a play mode',
-        text: 'Standard Easy, Standard Hard or Custom. Each mode changes the timer and challenge settings.',
+        text: 'Choose Standard Easy, Standard Hard or Custom. Each mode changes the timer and challenge.',
     },
     {
         icon: Trophy,
         title: 'Calculate and climb',
-        text: 'Calculate each banana value, beat the clock, build streaks, unlock achievements and rise up the global leaderboard.',
+        text: 'Answer banana puzzles, build streaks, unlock achievements and rise up the leaderboard.',
     },
 ];
 
@@ -124,7 +111,7 @@ const FAQS = [
     },
     {
         q: 'Do I need an account to play?',
-        a: 'You need an account to save scores, streaks and achievements. Sign up with email, Google or Facebook â€” it takes a few seconds.',
+        a: 'You need an account to save scores, streaks and achievements. Sign up with email, Google or Facebook — it takes a few seconds.',
     },
     {
         q: 'Why do I need to verify my email?',
@@ -144,7 +131,7 @@ const FAQS = [
     },
 ];
 
-const MEDALS = ['ðŸ¥‡', 'ðŸ¥ˆ', 'ðŸ¥‰'];
+const MEDALS = ['🥇', '🥈', '🥉'];
 
 export default function LandingPage() {
     usePageTitle();
@@ -175,36 +162,32 @@ export default function LandingPage() {
 
     return (
         <div className="min-h-screen">
-            {/* Playfield background */}
             <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(244,197,66,0.16),transparent_35%),radial-gradient(circle_at_20%_80%,rgba(244,197,66,0.12),transparent_30%)]" />
-                {[...Array(10)].map((_, i) => (
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(244,197,66,0.18),transparent_38%),radial-gradient(circle_at_15%_85%,rgba(244,197,66,0.12),transparent_30%)]" />
+                {[...Array(8)].map((_, i) => (
                     <BananaLogo
                         key={i}
-                        size={28 + (i % 4) * 14}
+                        size={28 + (i % 4) * 12}
                         alt=""
-                        className="absolute opacity-[0.08] animate-float"
+                        className="absolute opacity-[0.07] animate-float"
                         style={{
-                            left: `${(i * 11) % 96}%`,
-                            top: `${(i * 17) % 92}%`,
-                            animationDelay: `${i * 0.35}s`,
+                            left: `${(i * 13) % 94}%`,
+                            top: `${(i * 19) % 90}%`,
+                            animationDelay: `${i * 0.4}s`,
                         }}
                     />
                 ))}
             </div>
 
             {/* Header */}
-            <header className="sticky top-0 z-30 border-b-4 border-banana-300 bg-banana-50/95 shadow-[0_4px_16px_rgba(109,74,14,0.12)] backdrop-blur-md">
-                <div className="mx-auto flex w-full max-w-[1560px] items-center justify-between gap-2 px-3 py-2.5 sm:gap-3 sm:px-5 lg:px-8">
+            <header className="sticky top-0 z-30 border-b-2 border-banana-200 bg-banana-50/95 shadow-game-sm backdrop-blur-md">
+                <div className="mx-auto flex w-full items-center justify-between gap-3 px-4 py-3 sm:px-6">
                     <Link to="/" className="flex flex-shrink-0 items-center gap-2">
-                        <span className="flex h-11 w-11 items-center justify-center rounded-xl border-2 border-banana-400 bg-gradient-to-b from-banana-200 to-banana-300 shadow-game-sm">
-                            <BananaLogo size={30} className="animate-wiggle" />
+                        <span className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-banana-400 bg-gradient-to-b from-banana-200 to-banana-300 shadow-game-sm">
+                            <BananaLogo size={28} className="animate-wiggle" />
                         </span>
-                        <span className="font-display text-xl font-extrabold text-banana-900 sm:text-2xl">
+                        <span className="font-display text-xl font-extrabold text-banana-900">
                             Banana Quiz
-                        </span>
-                        <span className="hidden rounded-full border-2 border-banana-500 bg-gradient-to-b from-banana-300 to-banana-400 px-2.5 py-0.5 font-display text-[11px] font-bold text-banana-900 shadow-game-sm md:inline-flex">
-                            Free to play
                         </span>
                     </Link>
 
@@ -224,12 +207,12 @@ export default function LandingPage() {
                         <FullscreenButton />
                         <Link to="/leaderboard" className="hidden sm:block">
                             <Button variant="ghost" className="!px-3 !py-2 !text-sm">
-                                <Trophy size={17} /> Leaderboard
+                                <Trophy size={17} /> Rankings
                             </Button>
                         </Link>
                         <Link to={headerTarget}>
-                            <Button className="!px-4 !py-2 !text-sm sm:!text-base">
-                                {user ? 'Dashboard' : 'Sign In'}
+                            <Button className="!px-4 !py-2 !text-sm">
+                                {user ? 'Dashboard' : 'Sign in'}
                             </Button>
                         </Link>
                     </div>
@@ -238,25 +221,25 @@ export default function LandingPage() {
 
             <main className="relative z-10">
                 {/* Hero */}
-                <section className="relative mx-auto grid w-full max-w-[1560px] items-center gap-10 px-4 pb-14 pt-10 sm:px-6 lg:min-h-[calc(100dvh-4.5rem)] lg:grid-cols-[1.02fr_1fr] lg:gap-14 lg:pb-20 lg:pt-12">
+                <section className="relative mx-auto grid w-full items-center gap-12 px-4 pb-16 pt-12 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:pb-24 lg:pt-20">
                     <div>
                         <motion.span
                             initial={{ y: 12, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             className="inline-flex items-center gap-2 rounded-full border-2 border-banana-400 bg-gradient-to-b from-banana-100 to-white px-3 py-1.5 font-display text-xs font-bold text-banana-900 shadow-game-sm"
                         >
-                            <Sparkles size={14} className="text-banana-600" /> Free browser arcade · no downloads
+                            <Sparkles size={14} className="text-banana-600" /> Free browser arcade
                         </motion.span>
 
                         <motion.h1
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             transition={{ delay: 0.05 }}
-                            className="mt-4 font-display text-5xl font-extrabold leading-[0.98] text-banana-900 xl:text-6xl"
+                            className="mt-5 font-display text-5xl font-extrabold leading-[0.98] text-banana-900 xl:text-6xl"
                         >
                             Count the bananas.
                             <br />
-                            <span className="text-banana-600">Beat the timer.</span>
+                            <span className="text-banana-600">Beat the clock.</span>
                             <br />
                             Climb the ranks.
                         </motion.h1>
@@ -265,18 +248,18 @@ export default function LandingPage() {
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             transition={{ delay: 0.12 }}
-                            className="mt-5 max-w-xl text-lg font-semibold leading-relaxed text-banana-800"
+                            className="mt-6 max-w-xl text-lg font-semibold leading-relaxed text-banana-800"
                         >
-                            Banana Quiz is a fast, playful calculation game. Read each banana puzzle,
-                            enter its value, and chain correct answers for streak multipliers.
-                            Three modes, fourteen achievements, and a global leaderboard are ready.
+                            Banana Quiz is a fast, playful calculation game. Read each puzzle, enter its
+                            value, and chain correct answers for streak multipliers. Three modes,
+                            fourteen achievements, and a global leaderboard are ready.
                         </motion.p>
 
                         <motion.div
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             transition={{ delay: 0.2 }}
-                            className="mt-7 flex flex-col gap-3 sm:flex-row"
+                            className="mt-8 flex flex-col gap-3 sm:flex-row"
                         >
                             <Link to={primaryTarget}>
                                 <Button className="w-full !px-8 !py-4 !text-xl sm:w-auto">
@@ -294,179 +277,55 @@ export default function LandingPage() {
                             </Link>
                         </motion.div>
 
-                        <motion.div
-                            initial={{ y: 20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ delay: 0.28 }}
-                            className="mt-7 grid max-w-md grid-cols-3 gap-2.5"
-                        >
-                            {[
-                                { value: '3', label: 'Game modes' },
-                                { value: '14', label: 'Badges' },
-                                { value: '100%', label: 'Free' },
-                            ].map((item) => (
-                                <div
-                                    key={item.label}
-                                    className="rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50 px-3 py-3 text-center shadow-game-sm"
-                                >
-                                    <p className="font-display text-xl font-extrabold leading-none text-banana-900">
-                                        {item.value}
-                                    </p>
-                                    <p className="mt-1 text-[10px] font-bold uppercase tracking-wide text-banana-700">
-                                        {item.label}
-                                    </p>
-                                </div>
-                            ))}
-                        </motion.div>
-
-                        <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm font-bold text-banana-800">
-                            <span className="inline-flex items-center gap-1.5 rounded-full border border-banana-300 bg-white/70 px-2.5 py-1">
+                        <div className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm font-bold text-banana-800">
+                            <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1">
                                 <CircleCheck size={15} className="text-emerald-600" /> No downloads
                             </span>
-                            <span className="inline-flex items-center gap-1.5 rounded-full border border-banana-300 bg-white/70 px-2.5 py-1">
-                                <CircleCheck size={15} className="text-emerald-600" /> Sound &amp; music
+                            <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1">
+                                <Smartphone size={15} className="text-emerald-600" /> Mobile friendly
                             </span>
-                            <span className="inline-flex items-center gap-1.5 rounded-full border border-banana-300 bg-white/70 px-2.5 py-1">
-                                <CircleCheck size={15} className="text-emerald-600" /> Mobile friendly
+                            <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1">
+                                <ShieldCheck size={15} className="text-emerald-600" /> Free forever
                             </span>
                         </div>
                     </div>
 
-                    {/* Hero game cabinet */}
+                    {/* Logo only */}
                     <motion.div
-                        initial={{ scale: 0.94, opacity: 0, rotate: 1.5 }}
-                        animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                        initial={{ scale: 0.94, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
                         transition={{ type: 'spring', damping: 14 }}
-                        className="relative mx-auto w-full max-w-lg"
+                        className="relative mx-auto flex w-full max-w-md items-center justify-center py-8"
                     >
                         <div
                             aria-hidden="true"
-                            className="absolute -inset-6 rounded-[2.5rem] bg-banana-400/30 blur-2xl"
+                            className="absolute inset-4 rounded-full bg-banana-400/25 blur-3xl"
                         />
-
-                        <div className="relative overflow-hidden rounded-[1.75rem] border-2 border-banana-400 bg-gradient-to-b from-white to-banana-50 p-4 shadow-game sm:p-5">
-                            <div className="mb-3 flex items-center justify-between gap-2 rounded-2xl border-2 border-banana-300 bg-gradient-to-r from-banana-100 to-amber-50 px-3 py-2.5">
-                                <div className="flex min-w-0 items-center gap-2">
-                                    <span className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-banana-400 bg-white shadow-game-sm">
-                                        <BananaLogo size={24} className="animate-wiggle" />
-                                    </span>
-                                    <div className="min-w-0">
-                                        <p className="truncate font-display text-base font-bold leading-none text-banana-900">
-                                            Today&apos;s bunch
-                                        </p>
-                                        <p className="text-[11px] font-bold text-banana-700">
-                                            Standard · Easy
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="flex flex-shrink-0 items-center gap-1.5">
-                                    <span className="rounded-full border-2 border-banana-400 bg-white px-2 py-0.5 font-display text-xs font-bold text-banana-900">
-                                        30s
-                                    </span>
-                                    <span className="hidden rounded-full border-2 border-orange-300 bg-orange-100 px-2 py-0.5 font-display text-xs font-bold text-orange-800 sm:inline-flex">
-                                        Lv 7
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className="rounded-2xl border-2 border-banana-300 bg-gradient-to-br from-banana-100 via-amber-50 to-white p-3 shadow-[inset_0_2px_0_rgba(255,255,255,0.7)] sm:p-4">
-                                <div className="grid grid-cols-3 gap-2">
-                                    {[...Array(9)].map((_, i) => (
-                                        <div
-                                            key={i}
-                                            className="flex aspect-square items-center justify-center rounded-xl border-2 border-banana-200 bg-white/80 shadow-[inset_0_-3px_0_rgba(109,74,14,0.08)]"
-                                        >
-                                            <Banana
-                                                size={24 + (i % 3) * 4}
-                                                aria-hidden="true"
-                                                className="text-banana-500"
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="mt-3 flex items-center gap-2">
-                                <div className="flex-1 rounded-xl border-2 border-banana-300 bg-white px-3 py-3 text-center font-display text-xl font-extrabold text-banana-400 shadow-[inset_0_2px_4px_rgba(109,74,14,0.06)]">
-                                    ?
-                                </div>
-                                <div className="rounded-xl border-b-4 border-banana-700 bg-gradient-to-b from-banana-400 to-banana-500 px-4 py-3 font-display text-lg font-bold text-banana-900 shadow-game-sm">
-                                    Submit
-                                </div>
-                            </div>
-
-                            <div className="mt-3 rounded-2xl border-2 border-emerald-300 bg-gradient-to-r from-emerald-50 to-white px-3 py-2.5">
-                                <div className="flex items-center justify-between text-xs font-bold text-emerald-800">
-                                    <span className="flex items-center gap-1.5">
-                                        <Flame size={14} aria-hidden="true" /> 7 answer streak
-                                    </span>
-                                    <span>+175 pts</span>
-                                </div>
-                                <div className="mt-2 h-2.5 overflow-hidden rounded-full border border-emerald-200 bg-emerald-100">
-                                    <div className="h-full w-2/3 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500" />
-                                </div>
-                            </div>
-
-                            <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                                {[
-                                    { label: 'Points', value: '1,240' },
-                                    { label: 'Multiplier', value: '2×' },
-                                    { label: 'Best streak', value: '18' },
-                                ].map((item) => (
-                                    <div
-                                        key={item.label}
-                                        className="rounded-xl border-2 border-banana-200 bg-gradient-to-b from-white to-banana-50 px-2 py-2 shadow-game-sm"
-                                    >
-                                        <p className="font-display text-sm font-extrabold leading-none text-banana-900 tabular-nums">
-                                            {item.value}
-                                        </p>
-                                        <p className="mt-0.5 text-[9px] font-bold uppercase tracking-wide text-banana-700">
-                                            {item.label}
-                                        </p>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="absolute -right-2 -top-3 hidden rotate-6 rounded-xl border-2 border-banana-400 bg-white px-3 py-2 shadow-game sm:block">
-                            <p className="flex items-center gap-1 font-display text-xs font-bold text-banana-900">
-                                <Star size={14} className="text-banana-500" /> 2× multiplier
-                            </p>
-                        </div>
-                        <div className="absolute -left-4 bottom-24 hidden -rotate-6 rounded-xl border-2 border-emerald-300 bg-white px-3 py-2 shadow-game sm:block">
-                            <p className="flex items-center gap-1 font-display text-xs font-bold text-emerald-800">
-                                <Flame size={14} /> Streak bonus
-                            </p>
-                        </div>
+                        <BananaLogo
+                            size={420}
+                            className="relative h-auto w-full animate-float drop-shadow-[0_20px_35px_rgba(109,74,14,0.22)]"
+                        />
                     </motion.div>
                 </section>
 
                 {/* Stat strip */}
-                <section className="border-y-4 border-banana-300 bg-gradient-to-r from-banana-100/80 via-white/70 to-banana-100/80">
-                    <div className="mx-auto grid w-full max-w-[1560px] grid-cols-2 gap-3 px-4 py-6 sm:px-6 md:grid-cols-4 md:gap-4">
+                <section className="border-y-2 border-banana-200 bg-white/70">
+                    <div className="mx-auto grid w-full grid-cols-2 gap-3 px-4 py-6 sm:px-6 md:grid-cols-4">
                         <StripStat icon={<Gamepad2 size={20} />} value="3" label="Play modes" />
                         <StripStat icon={<Award size={20} />} value="14" label="Achievements" />
-                        <StripStat
-                            icon={<Smartphone size={20} />}
-                            value="100%"
-                            label="Mobile friendly"
-                        />
-                        <StripStat
-                            icon={<ShieldCheck size={20} />}
-                            value="Free"
-                            label="No downloads"
-                        />
+                        <StripStat icon={<Globe size={20} />} value="Global" label="Leaderboard" />
+                        <StripStat icon={<Zap size={20} />} value="Free" label="No downloads" />
                     </div>
                 </section>
 
                 {/* Features */}
                 <section
                     id="features"
-                    className="mx-auto w-full max-w-[1560px] scroll-mt-24 px-4 py-14 sm:px-6 md:py-20"
+                    className="mx-auto w-full scroll-mt-24 px-4 py-16 sm:px-6 md:py-24"
                 >
                     <SectionIntro
                         eyebrow="Why play"
-                        title="A tiny game with a lot to master"
+                        title="Small puzzles. Big momentum."
                         text="Simple to learn, hard to put down. Every round is a fresh puzzle and every answer can push your stats higher."
                     />
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -476,8 +335,8 @@ export default function LandingPage() {
                                 initial={{ y: 16, opacity: 0 }}
                                 whileInView={{ y: 0, opacity: 1 }}
                                 viewport={{ once: true, amount: 0.3 }}
-                                transition={{ delay: i * 0.04 }}
-                                className="group relative overflow-hidden rounded-3xl border-2 border-banana-200 bg-white/90 p-6 shadow-game-sm transition hover:-translate-y-1 hover:shadow-game"
+                                transition={{ delay: i * 0.05 }}
+                                className="rounded-2xl border-2 border-banana-200 bg-white/90 p-6 shadow-game-sm"
                             >
                                 <div
                                     className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-game-sm ${feature.color}`}
@@ -498,12 +357,12 @@ export default function LandingPage() {
                 {/* Modes */}
                 <section
                     id="modes"
-                    className="scroll-mt-24 border-y-2 border-banana-200 bg-banana-100/60 py-14 md:py-20"
+                    className="scroll-mt-24 border-y-2 border-banana-200 bg-banana-100/60 py-16 md:py-24"
                 >
-                    <div className="mx-auto w-full max-w-[1560px] px-4 sm:px-6">
+                    <div className="mx-auto w-full px-4 sm:px-6">
                         <SectionIntro
                             eyebrow="Play your way"
-                            title="Three modes, three vibes"
+                            title="Three modes, three paces"
                             text="Pick the pace that suits you. Switch modes any time from your dashboard."
                         />
                         <div className="grid gap-4 md:grid-cols-3">
@@ -513,7 +372,7 @@ export default function LandingPage() {
                                 return (
                                     <div
                                         key={mode.id}
-                                        className="flex flex-col overflow-hidden rounded-3xl border-4 border-banana-300 bg-white/90 shadow-game"
+                                        className="flex flex-col overflow-hidden rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/60 shadow-game"
                                     >
                                         <div
                                             className={`flex items-center justify-between gap-2 bg-gradient-to-br px-5 py-4 text-white ${accent}`}
@@ -560,53 +419,136 @@ export default function LandingPage() {
                     </div>
                 </section>
 
-                {/* Achievements teaser */}
+                {/* Progress */}
                 <section
-                    id="achievements"
-                    className="mx-auto w-full max-w-[1560px] scroll-mt-24 px-4 py-14 sm:px-6 md:py-20"
+                    id="progress"
+                    className="mx-auto w-full scroll-mt-24 px-4 py-16 sm:px-6 md:py-24"
                 >
-                    <div className="grid items-center gap-8 md:grid-cols-2">
-                        <div>
-                            <SectionIntro
-                                eyebrow="Trophy cabinet"
-                                title="Earn badges as you improve"
-                                text="Achievements unlock automatically from your real stats. Chase streaks, speed records, point milestones and mode mastery."
-                                align="left"
-                            />
-                            <Link to={user ? '/achievements' : '/login?mode=register'}>
+                    <SectionIntro
+                        eyebrow="Your progress"
+                        title="Badges to earn. Ranks to climb."
+                        text="Achievements unlock from your real stats, while the leaderboard shows how you stack up against every other player."
+                    />
+                    <div className="grid gap-6 lg:grid-cols-2">
+                        <div className="rounded-2xl border-2 border-banana-200 bg-white/90 p-6 shadow-game-sm">
+                            <div className="flex items-center gap-2.5">
+                                <span className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-100 text-banana-700">
+                                    <Award size={20} />
+                                </span>
+                                <div>
+                                    <h3 className="font-display text-xl font-extrabold text-banana-800">
+                                        Trophy cabinet
+                                    </h3>
+                                    <p className="text-xs font-bold uppercase tracking-wide text-banana-500">
+                                        14 achievements
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="mt-5 grid grid-cols-2 gap-3">
+                                {ACHIEVEMENTS.map((item, i) => (
+                                    <motion.div
+                                        key={item.title}
+                                        initial={{ y: 12, opacity: 0 }}
+                                        whileInView={{ y: 0, opacity: 1 }}
+                                        viewport={{ once: true }}
+                                        transition={{ delay: i * 0.05 }}
+                                        className="rounded-2xl border-2 border-banana-200 bg-banana-50/60 p-4 text-center"
+                                    >
+                                        <div
+                                            className={`mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-game-sm ${item.color}`}
+                                        >
+                                            <item.icon size={22} aria-hidden="true" />
+                                        </div>
+                                        <p className="font-display text-base font-extrabold text-banana-800">
+                                            {item.title}
+                                        </p>
+                                        <span
+                                            className={`mt-1 inline-flex rounded-full border-2 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide ${TIER_TONES[item.tier]}`}
+                                        >
+                                            {item.tier}
+                                        </span>
+                                        <p className="mt-1.5 text-xs font-semibold text-banana-600">
+                                            {item.text}
+                                        </p>
+                                    </motion.div>
+                                ))}
+                            </div>
+                            <Link to={user ? '/achievements' : '/login?mode=register'} className="mt-5 inline-block">
                                 <Button variant="secondary" className="!py-3">
                                     <Award size={18} /> Explore achievements
                                 </Button>
                             </Link>
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
-                            {ACHIEVEMENT_TEASERS.map((item, i) => (
-                                <motion.div
-                                    key={item.title}
-                                    initial={{ y: 12, opacity: 0 }}
-                                    whileInView={{ y: 0, opacity: 1 }}
-                                    viewport={{ once: true }}
-                                    transition={{ delay: i * 0.05 }}
-                                    className="rounded-2xl border-2 border-banana-200 bg-white/90 p-4 text-center shadow-game-sm"
+
+                        <div className="overflow-hidden rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/60 shadow-game">
+                            <div className="flex items-center justify-between gap-2 border-b-2 border-banana-200 bg-banana-50/80 px-4 py-3">
+                                <p className="flex items-center gap-2 font-display text-lg font-extrabold text-banana-800">
+                                    <Trophy size={18} className="text-banana-500" /> Top bananas
+                                </p>
+                                <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-emerald-300 bg-emerald-100 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-emerald-700">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Live
+                                </span>
+                            </div>
+
+                            {loadingTop && (
+                                <div className="py-12 text-center text-sm font-semibold text-banana-500">
+                                    Loading rankings…
+                                </div>
+                            )}
+                            {!loadingTop && topPlayers.length === 0 && (
+                                <div className="py-12 text-center">
+                                    <Trophy size={36} className="mx-auto mb-2 text-banana-400" aria-hidden="true" />
+                                    <p className="font-bold text-banana-700">
+                                        No scores yet — the first crown is up for grabs.
+                                    </p>
+                                </div>
+                            )}
+                            {topPlayers.map((entry, i) => (
+                                <div
+                                    key={`${entry.displayName}-${i}`}
+                                    className={`flex items-center gap-3 px-4 py-3 ${
+                                        i !== topPlayers.length - 1 ? 'border-b border-banana-100' : ''
+                                    }`}
                                 >
                                     <div
-                                        className={`mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-game-sm ${item.color}`}
+                                        className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border-2 font-display text-sm font-extrabold ${
+                                            i === 0
+                                                ? 'border-yellow-300 bg-yellow-100 text-yellow-800'
+                                                : i === 1
+                                                  ? 'border-slate-300 bg-slate-100 text-slate-700'
+                                                  : i === 2
+                                                    ? 'border-amber-300 bg-amber-100 text-amber-800'
+                                                    : 'border-banana-200 bg-banana-50 text-banana-700'
+                                        }`}
                                     >
-                                        <item.icon size={24} aria-hidden="true" />
+                                        {MEDALS[i] || entry.rank}
                                     </div>
-                                    <p className="font-display text-base font-extrabold text-banana-800">
-                                        {item.title}
-                                    </p>
-                                    <span
-                                        className={`mt-1 inline-flex rounded-full border-2 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide ${TIER_TONES[item.tier]}`}
-                                    >
-                                        {item.tier}
-                                    </span>
-                                    <p className="mt-1.5 text-xs font-semibold text-banana-600">
-                                        {item.text}
-                                    </p>
-                                </motion.div>
+                                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-banana-200 bg-banana-200 font-bold text-banana-700">
+                                        {entry.avatar ? (
+                                            <img src={entry.avatar} alt="" className="h-full w-full object-cover" />
+                                        ) : (
+                                            entry.displayName?.[0]?.toUpperCase()
+                                        )}
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="truncate font-bold text-banana-800">{entry.displayName}</p>
+                                        <p className="text-xs text-banana-500">
+                                            🔥 best streak {entry.bestStreak} · 🏆 {entry.gamesWon} wins
+                                        </p>
+                                    </div>
+                                    <div className="font-display text-lg font-extrabold text-banana-700">
+                                        {entry.totalPoints}
+                                    </div>
+                                </div>
                             ))}
+                            <div className="border-t-2 border-banana-200 bg-banana-50/60 px-4 py-3 text-center">
+                                <Link
+                                    to="/leaderboard"
+                                    className="inline-flex items-center gap-1.5 font-display text-sm font-extrabold text-banana-700 hover:text-banana-900"
+                                >
+                                    View full leaderboard <ArrowRight size={15} />
+                                </Link>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -614,9 +556,9 @@ export default function LandingPage() {
                 {/* How it works */}
                 <section
                     id="how"
-                    className="scroll-mt-24 border-y-2 border-banana-200 bg-white/60 py-14 md:py-20"
+                    className="scroll-mt-24 border-y-2 border-banana-200 bg-white/60 py-16 md:py-24"
                 >
-                    <div className="mx-auto w-full max-w-[1560px] px-4 sm:px-6">
+                    <div className="mx-auto w-full px-4 sm:px-6">
                         <SectionIntro
                             eyebrow="Getting started"
                             title="From zero to banana hero in three steps"
@@ -626,7 +568,7 @@ export default function LandingPage() {
                             {STEPS.map((step, i) => (
                                 <div
                                     key={step.title}
-                                    className="relative overflow-hidden rounded-3xl border-2 border-banana-200 bg-white/90 p-6 shadow-game-sm"
+                                    className="relative overflow-hidden rounded-2xl border-2 border-banana-200 bg-white/90 p-6 shadow-game-sm"
                                 >
                                     <span
                                         aria-hidden="true"
@@ -649,119 +591,12 @@ export default function LandingPage() {
                     </div>
                 </section>
 
-                {/* Leaderboard preview */}
-                <section className="mx-auto w-full max-w-[1560px] px-4 py-14 sm:px-6 md:py-20">
-                    <div className="grid items-center gap-8 lg:grid-cols-[0.85fr_1.15fr]">
-                        <div>
-                            <SectionIntro
-                                eyebrow="Hall of bananas"
-                                title="Who is on top right now?"
-                                text="Live rankings from every player. Your position updates after every round."
-                                align="left"
-                            />
-                            <Link to="/leaderboard">
-                                <Button variant="secondary" className="!py-3">
-                                    <Trophy size={18} /> View full leaderboard{' '}
-                                    <ArrowRight size={16} />
-                                </Button>
-                            </Link>
-                            <div className="mt-5 flex flex-wrap gap-2 text-[11px] font-extrabold uppercase tracking-wide text-banana-700">
-                                <span className="rounded-full border-2 border-banana-200 bg-white/80 px-3 py-1.5">
-                                    Updated live
-                                </span>
-                                <span className="rounded-full border-2 border-banana-200 bg-white/80 px-3 py-1.5">
-                                    Global players
-                                </span>
-                                <span className="rounded-full border-2 border-banana-200 bg-white/80 px-3 py-1.5">
-                                    Standard modes
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="overflow-hidden rounded-3xl border-4 border-banana-300 bg-white/90 shadow-game">
-                            <div className="flex items-center justify-between gap-2 border-b-2 border-banana-200 bg-banana-50/80 px-4 py-3">
-                                <p className="flex items-center gap-2 font-display text-lg font-extrabold text-banana-800">
-                                    <Trophy size={18} className="text-banana-500" /> Top bananas
-                                </p>
-                                <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-emerald-300 bg-emerald-100 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-emerald-700">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Live
-                                </span>
-                            </div>
-
-                            {loadingTop && (
-                                <div className="py-10 text-center text-sm font-semibold text-banana-500">
-                                    Loading rankingsâ€¦
-                                </div>
-                            )}
-                            {!loadingTop && topPlayers.length === 0 && (
-                                <div className="py-10 text-center">
-                                    <Trophy
-                                        size={36}
-                                        className="mx-auto mb-2 text-banana-400"
-                                        aria-hidden="true"
-                                    />
-                                    <p className="font-bold text-banana-700">
-                                        No scores yet â€” the first crown is up for grabs.
-                                    </p>
-                                </div>
-                            )}
-                            {topPlayers.map((entry, i) => (
-                                <div
-                                    key={`${entry.displayName}-${i}`}
-                                    className={`flex items-center gap-3 px-4 py-3 ${
-                                        i !== topPlayers.length - 1
-                                            ? 'border-b border-banana-100'
-                                            : ''
-                                    }`}
-                                >
-                                    <div
-                                        className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border-2 font-display text-sm font-extrabold ${
-                                            i === 0
-                                                ? 'border-yellow-300 bg-yellow-100 text-yellow-800'
-                                                : i === 1
-                                                  ? 'border-slate-300 bg-slate-100 text-slate-700'
-                                                  : i === 2
-                                                    ? 'border-amber-300 bg-amber-100 text-amber-800'
-                                                    : 'border-banana-200 bg-banana-50 text-banana-700'
-                                        }`}
-                                    >
-                                        {MEDALS[i] || entry.rank}
-                                    </div>
-                                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-banana-200 bg-banana-200 font-bold text-banana-700">
-                                        {entry.avatar ? (
-                                            <img
-                                                src={entry.avatar}
-                                                alt=""
-                                                className="h-full w-full object-cover"
-                                            />
-                                        ) : (
-                                            entry.displayName?.[0]?.toUpperCase()
-                                        )}
-                                    </div>
-                                    <div className="min-w-0 flex-1">
-                                        <p className="truncate font-bold text-banana-800">
-                                            {entry.displayName}
-                                        </p>
-                                        <p className="text-xs text-banana-500">
-                                            ðŸ”¥ best streak {entry.bestStreak} Â· ðŸ† {entry.gamesWon}{' '}
-                                            wins
-                                        </p>
-                                    </div>
-                                    <div className="font-display text-lg font-extrabold text-banana-700">
-                                        {entry.totalPoints}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-
                 {/* FAQ */}
                 <section
                     id="faq"
-                    className="scroll-mt-24 border-y-2 border-banana-200 bg-banana-100/60 py-14 md:py-20"
+                    className="scroll-mt-24 border-b-2 border-banana-200 bg-banana-100/60 py-16 md:py-24"
                 >
-                    <div className="mx-auto grid w-full max-w-[1560px] gap-8 px-4 sm:px-6 lg:grid-cols-[0.8fr_1.2fr]">
+                    <div className="mx-auto grid w-full gap-8 px-4 sm:px-6 lg:grid-cols-[0.8fr_1.2fr]">
                         <div>
                             <SectionIntro
                                 eyebrow="Good to know"
@@ -774,8 +609,8 @@ export default function LandingPage() {
                                     Still curious?
                                 </p>
                                 <p className="mt-1 text-sm font-semibold text-banana-700">
-                                    Read the help centre or send us a message â€” we answer every
-                                    banana question.
+                                    Read the help centre or send us a message — we answer every banana
+                                    question.
                                 </p>
                                 <Link
                                     to="/help"
@@ -799,9 +634,7 @@ export default function LandingPage() {
                                             className="flex-shrink-0 text-banana-500 transition group-open:rotate-180"
                                         />
                                     </summary>
-                                    <p className="mt-2 text-sm font-semibold text-banana-700">
-                                        {item.a}
-                                    </p>
+                                    <p className="mt-2 text-sm font-semibold text-banana-700">{item.a}</p>
                                 </details>
                             ))}
                         </div>
@@ -809,8 +642,8 @@ export default function LandingPage() {
                 </section>
 
                 {/* Final CTA */}
-                <section className="mx-auto w-full max-w-[1560px] px-4 py-14 sm:px-6 md:py-20">
-                    <div className="banana-promo-panel relative overflow-hidden rounded-[2rem] border-4 border-banana-400 bg-gradient-to-br from-banana-300 via-banana-400 to-banana-600 p-8 text-center shadow-game md:p-12">
+                <section className="mx-auto w-full px-4 py-16 sm:px-6 md:py-24">
+                    <div className="banana-promo-panel relative overflow-hidden rounded-2xl border-2 border-banana-400 bg-gradient-to-br from-banana-300 via-banana-400 to-banana-600 p-8 text-center shadow-game md:p-12">
                         <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-20">
                             {[...Array(12)].map((_, i) => (
                                 <Banana
@@ -832,8 +665,8 @@ export default function LandingPage() {
                                 Ready to calculate?
                             </h2>
                             <p className="mx-auto mt-2 max-w-xl font-semibold text-banana-50">
-                                Your first bunch is one click away. Play free, earn badges and see
-                                how high you can climb.
+                                Your first bunch is one click away. Play free, earn badges and see how
+                                high you can climb.
                             </p>
                             <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
                                 <Link to={primaryTarget}>
@@ -888,7 +721,7 @@ function SectionIntro({ eyebrow, title, text, align = 'center' }) {
 function StripStat({ icon, value, label }) {
     return (
         <div className="flex items-center gap-3 rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50 px-3.5 py-3 shadow-game-sm">
-            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-100 text-banana-700 shadow-[inset_0_-2px_0_rgba(109,74,14,0.08)]">
+            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-100 text-banana-700">
                 {icon}
             </div>
             <div className="min-w-0">

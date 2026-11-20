@@ -15,5 +15,5 @@ export default function ScrollActivity() {
             window.clearTimeout(timer);
         };
     }, []);
-    return scrolling ? <div className="fixed left-0 right-0 top-0 z-[70] h-1 overflow-hidden bg-banana-200"><div className="h-full w-1/3 animate-pulse bg-banana-600" /></div> : null;
+    return scrolling ? <div className="fixed inset-x-0 top-0 z-[70] h-1 overflow-hidden bg-banana-200"><div className="h-full w-1/3 animate-pulse rounded-full bg-banana-500" /></div> : null;
 }

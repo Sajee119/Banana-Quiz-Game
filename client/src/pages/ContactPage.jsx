@@ -27,11 +27,11 @@ import { usePageTitle } from '../hooks/usePageTitle.js';
 import { CONTACT_SUBJECTS, SUPPORT_EMAIL } from '../lib/site.js';
 
 const inputClass =
-    'w-full rounded-2xl border-2 border-banana-200 bg-white px-4 py-3 font-semibold text-banana-900 placeholder:text-banana-400 transition focus:border-banana-400 focus:outline-none focus:ring-2 focus:ring-banana-300/60';
+    'w-full rounded-2xl border-2 border-banana-300 bg-white/90 px-4 py-3 font-body font-semibold text-banana-900 shadow-game-sm transition placeholder:text-banana-500 focus:border-banana-500 focus:outline-none';
 const labelClass =
-    'mb-1.5 block text-[11px] font-extrabold uppercase tracking-[0.16em] text-banana-800';
+    'mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-banana-800';
 const errorInputClass =
-    'border-red-400 focus:border-red-500 focus:ring-red-200';
+    'border-red-400 focus:border-red-500';
 
 const WRITING_TIPS = [
     'Check the FAQ first — the answer may already be there.',
@@ -163,12 +163,12 @@ export default function ContactPage() {
                 <motion.section
                     initial={{ y: 16, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    className="rounded-[1.75rem] border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/70 p-5 shadow-game sm:p-7"
+                    className="rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/60 p-5 shadow-game sm:p-7"
                     aria-labelledby="contact-form-title"
                 >
                     {sent ? (
                         <div className="py-6 text-center" aria-live="polite">
-                            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border-4 border-emerald-300 bg-emerald-100 text-emerald-700">
+                            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-emerald-300 bg-emerald-100 text-emerald-700 shadow-game-sm">
                                 <CircleCheck size={32} />
                             </div>
                             <h2 className="font-display text-3xl font-extrabold text-banana-900">
@@ -205,7 +205,7 @@ export default function ContactPage() {
                                     <MessageSquare size={24} />
                                 </div>
                                 <div>
-                                    <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-banana-800">
+                                    <p className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-400 bg-gradient-to-b from-banana-100 to-white px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wide text-banana-800 shadow-game-sm">
                                         Send a message
                                     </p>
                                     <h2
@@ -332,7 +332,7 @@ export default function ContactPage() {
                                             Message *
                                         </label>
                                         <span
-                                            className={`mb-1.5 text-[11px] font-extrabold ${
+                                            className={`mb-1.5 text-[11px] font-bold ${
                                                 form.message.length > 4000
                                                     ? 'text-red-600'
                                                     : 'text-banana-800'
@@ -412,8 +412,8 @@ export default function ContactPage() {
                         </div>
                     </div>
 
-                    <div className="rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/70 p-5 shadow-game">
-                        <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-banana-800">
+                    <div className="rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/60 p-5 shadow-game">
+                        <p className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-400 bg-gradient-to-b from-banana-100 to-white px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wide text-banana-800 shadow-game-sm">
                             Direct contact
                         </p>
                         <h2 className="mt-1 font-display text-2xl font-extrabold text-banana-900">
@@ -421,9 +421,9 @@ export default function ContactPage() {
                         </h2>
                         <a
                             href={`mailto:${SUPPORT_EMAIL}`}
-                            className="mt-3 flex items-center gap-3 rounded-xl border-2 border-banana-200 bg-banana-50/70 p-3 transition hover:border-banana-300 hover:bg-banana-100"
+                            className="mt-3 flex items-center gap-3 rounded-2xl border-2 border-banana-200 bg-white/90 p-3 shadow-game-sm transition hover:border-banana-300 hover:bg-banana-50"
                         >
-                            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-white text-banana-800">
+                            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-100 text-banana-700">
                                 <Mail size={17} />
                             </span>
                             <span className="min-w-0">
@@ -458,10 +458,10 @@ export default function ContactPage() {
                         </div>
                     </div>
 
-                    <div className="rounded-2xl border-2 border-banana-300 bg-white/90 p-5 shadow-game-sm">
+                    <div className="rounded-2xl border-2 border-banana-200 bg-white/90 p-5 shadow-game-sm">
                         <div className="flex items-center gap-2">
                             <Sparkles size={17} className="flex-shrink-0 text-banana-700" />
-                            <h2 className="font-display text-xl font-extrabold text-banana-800">
+                            <h2 className="font-display text-xl font-extrabold text-banana-900">
                                 Before you write
                             </h2>
                         </div>
@@ -532,9 +532,9 @@ function ContactLink({ href, icon: Icon, label, value }) {
             href={href}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-3 rounded-xl border-2 border-banana-200 bg-banana-50/70 p-3 transition hover:border-banana-300 hover:bg-banana-100"
+            className="flex items-center gap-3 rounded-2xl border-2 border-banana-200 bg-white/90 p-3 shadow-game-sm transition hover:border-banana-300 hover:bg-banana-50"
         >
-            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-white text-banana-800">
+            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-100 text-banana-700">
                 <Icon size={17} />
             </span>
             <span className="min-w-0">

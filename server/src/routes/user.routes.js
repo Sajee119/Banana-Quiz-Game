@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const Joi = require('joi');
 const User = require('../models/User');
+const TrustedDevice = require('../models/TrustedDevice');
 const { ensureAuthenticated } = require('../middleware/auth.middleware');
 const gameService = require('../services/game.service');
 const { evaluateAchievements } = require('../services/achievement.service');
@@ -40,6 +41,8 @@ const profileSchema = Joi.object({
         emailNotifications: Joi.boolean(),
         loginAlerts: Joi.boolean(),
         productUpdates: Joi.boolean(),
+        twoFactorEnabled: Joi.boolean(),
+        twoFactorTrustDays: Joi.number().valid(1, 5, 10),
         defaultMode: Joi.string().valid('easy', 'hard', 'custom'),
         autoSubmit: Joi.boolean(),
         celebrations: Joi.boolean(),
@@ -95,6 +98,10 @@ router.patch('/me', ensureAuthenticated, asyncHandler(async (req, res) => {
     if (value.bio !== undefined) user.bio = value.bio;
     if (value.avatar !== undefined) user.avatar = value.avatar || null;
     if (value.favoriteMode !== undefined) user.favoriteMode = value.favoriteMode;
+    const twoFactorChanged =
+        value.preferences &&
+        ('twoFactorEnabled' in value.preferences || 'twoFactorTrustDays' in value.preferences);
+
     if (value.preferences) {
         user.preferences = {
             ...DEFAULT_PREFERENCES,
@@ -104,6 +111,12 @@ router.patch('/me', ensureAuthenticated, asyncHandler(async (req, res) => {
     }
 
     await user.save();
+
+    // A new setting starts a fresh trust window on the next sign-in.
+    if (twoFactorChanged) {
+        await TrustedDevice.deleteMany({ user: user._id });
+        res.clearCookie('bq_2fa_trust', { path: '/' });
+    }
 
     res.json({
         success: true,
@@ -153,6 +166,7 @@ router.patch('/me/password', ensureAuthenticated, asyncHandler(async (req, res) 
     // Revoke sessions on other devices but keep this one signed in.
     user.authVersion = (user.authVersion || 0) + 1;
     await user.save();
+    await TrustedDevice.deleteMany({ user: user._id });
     if (req.session) req.session.authVersion = user.authVersion;
 
     // Best-effort notification; never hold up the password change response.
@@ -200,6 +214,14 @@ router.get('/me/security', ensureAuthenticated, asyncHandler(async (req, res) =>
                 : 'Add a password as a backup sign-in method.',
         },
         {
+            id: 'two-factor',
+            label: 'Two-factor sign-in enabled',
+            passed: Boolean(user.preferences?.twoFactorEnabled),
+            hint: user.preferences?.twoFactorEnabled
+                ? `A login code is required on new devices, with a ${user.preferences?.twoFactorTrustDays || 10}-day trust window.`
+                : 'Turn on email two-factor authentication in the Security tab.',
+        },
+        {
             id: 'fresh',
             label: 'Password changed in the last year',
             passed: Boolean(user.passwordChangedAt) && passwordAgeDays <= 365,
@@ -234,6 +256,8 @@ router.get('/me/security', ensureAuthenticated, asyncHandler(async (req, res) =>
             score,
             level,
             hasPassword,
+            twoFactorEnabled: Boolean(user.preferences?.twoFactorEnabled),
+            twoFactorTrustDays: user.preferences?.twoFactorTrustDays || 10,
             emailVerified: userPayload.emailVerified,
             emailVerifiedAt: userPayload.emailVerifiedAt,
             passwordChangedAt: user.passwordChangedAt || null,
@@ -255,12 +279,24 @@ router.post('/me/logout-others', ensureAuthenticated, asyncHandler(async (req, r
     // next request. This session is moved to the new version.
     user.authVersion = (user.authVersion || 0) + 1;
     await user.save();
+    await TrustedDevice.deleteMany({ user: user._id });
     if (req.session) req.session.authVersion = user.authVersion;
 
     res.json({
         success: true,
         message: 'All other devices have been signed out.',
         user: buildUserPayload(user),
+    });
+}));
+
+// Forget every device that skipped the login code during its trust window.
+router.post('/me/trusted-devices/clear', ensureAuthenticated, asyncHandler(async (req, res) => {
+    const result = await TrustedDevice.deleteMany({ user: req.user.id });
+    res.clearCookie('bq_2fa_trust', { path: '/' });
+    res.json({
+        success: true,
+        message: 'Trusted devices were forgotten. A login code will be required everywhere.',
+        cleared: result.deletedCount || 0,
     });
 }));
 
@@ -299,6 +335,7 @@ router.post('/me/deactivate', ensureAuthenticated, asyncHandler(async (req, res)
     user.isActive = false;
     user.authVersion = (user.authVersion || 0) + 1;
     await user.save();
+    await TrustedDevice.deleteMany({ user: user._id });
 
     await new Promise((resolve, reject) => {
         req.logout((err) => (err ? reject(err) : resolve()));

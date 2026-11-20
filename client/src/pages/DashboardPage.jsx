@@ -183,20 +183,20 @@ export default function DashboardPage() {
         <div className="min-h-screen">
             <AppHeader />
 
-            <main className="mx-auto w-full max-w-[1560px] px-4 py-6 md:px-6 md:py-8">
+            <main className="mx-auto w-full px-4 py-6 sm:px-6 md:py-8">
                 {/* Player HUD */}
                 <motion.section
                     initial={{ y: 16, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    className="relative mb-6 overflow-hidden rounded-[1.75rem] border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/70 p-4 shadow-game sm:p-6 md:p-7"
+                    className="relative mb-6 overflow-hidden rounded-2xl border-2 border-banana-300 bg-gradient-to-br from-banana-100 via-white to-amber-50 p-5 shadow-game sm:p-7"
                 >
                     <div
                         aria-hidden="true"
-                        className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full border-[18px] border-banana-300/40"
+                        className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full border-[10px] border-banana-300/30"
                     />
                     <div
                         aria-hidden="true"
-                        className="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full border-[18px] border-white/50"
+                        className="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full border-[10px] border-banana-200/40"
                     />
                     <BananaLogo
                         size={190}
@@ -218,36 +218,36 @@ export default function DashboardPage() {
                                         initials(user.displayName)
                                     )}
                                 </div>
-                                <span className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border-2 border-banana-900/20 bg-banana-900 px-2.5 py-0.5 font-display text-[11px] font-extrabold uppercase tracking-wide text-banana-100 shadow-game-sm">
+                                <span className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border-2 border-banana-400 bg-gradient-to-b from-banana-100 to-white px-2.5 py-0.5 font-display text-[11px] font-extrabold uppercase tracking-wide text-banana-900 shadow-game-sm">
                                     Lv {level.level}
                                 </span>
                             </div>
 
                             <div className="min-w-0">
-                                <p className="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.2em] text-banana-600">
+                                <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-banana-700">
                                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                                     Player online
                                 </p>
-                                <h1 className="mt-1 break-words font-display text-3xl font-extrabold leading-tight text-banana-900 sm:text-4xl">
+                                <h1 className="mt-1 break-words font-display text-4xl font-extrabold leading-tight text-banana-900 sm:text-5xl">
                                     {user.displayName}
                                 </h1>
                                 <p className="break-all text-sm font-semibold text-banana-600">
                                     {user.email}
                                 </p>
                                 <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-[11px] font-extrabold">
-                                    <span className="inline-flex items-center gap-1 rounded-full border-2 border-banana-300 bg-white/80 px-2.5 py-1 text-banana-800">
+                                    <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-800">
                                         <Crown size={12} /> {level.title}
                                     </span>
-                                    <span className="inline-flex items-center gap-1 rounded-full border-2 border-banana-200 bg-white/60 px-2.5 py-1 text-banana-700">
+                                    <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-700">
                                         <CalendarDays size={12} /> Since{' '}
                                         {formatDate(user.createdAt)}
                                     </span>
                                     {user.emailVerified ? (
-                                        <span className="inline-flex items-center gap-1 rounded-full border-2 border-emerald-300 bg-emerald-100 px-2.5 py-1 text-emerald-700">
+                                        <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-emerald-300 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-emerald-700">
                                             <ShieldCheck size={12} /> Verified
                                         </span>
                                     ) : (
-                                        <span className="inline-flex items-center gap-1 rounded-full border-2 border-amber-300 bg-amber-50 px-2.5 py-1 text-banana-800">
+                                        <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-amber-300 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-800">
                                             <Mail size={12} /> Unverified
                                         </span>
                                     )}
@@ -255,10 +255,10 @@ export default function DashboardPage() {
                             </div>
                         </div>
 
-                        <div className="w-full rounded-2xl border-2 border-banana-300 bg-white/80 p-4 shadow-game-sm xl:max-w-sm">
+                        <div className="w-full rounded-2xl border-2 border-banana-300 bg-white/90 p-4 shadow-game-sm xl:max-w-sm">
                             <div className="flex items-center justify-between gap-3">
                                 <div className="min-w-0">
-                                    <p className="text-[11px] font-extrabold uppercase tracking-widest text-banana-500">
+                                    <p className="text-[11px] font-bold uppercase tracking-wide text-banana-700">
                                         Next level
                                     </p>
                                     <p className="truncate font-display text-2xl font-extrabold leading-tight text-banana-800">
@@ -294,7 +294,7 @@ export default function DashboardPage() {
                 {!user.emailVerified && (
                     <Link
                         to="/profile?tab=security"
-                        className="group mb-6 flex items-center gap-3 rounded-2xl border-2 border-amber-300 bg-amber-50 px-4 py-3 text-left shadow-game-sm transition hover:-translate-y-0.5 hover:bg-amber-100 hover:shadow-game"
+                        className="group mb-6 flex items-center gap-3 rounded-2xl border-2 border-amber-300 bg-amber-50/70 px-4 py-3 text-left shadow-game-sm transition hover:bg-amber-100 hover:shadow-game"
                     >
                         <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border-2 border-amber-300 bg-amber-200 text-amber-800">
                             <Mail size={20} />
@@ -330,7 +330,7 @@ export default function DashboardPage() {
                         action={
                             <Link
                                 to="/leaderboard"
-                                className="inline-flex items-center gap-1 rounded-lg border border-banana-200 bg-white px-2.5 py-1 text-xs font-semibold text-banana-700 transition hover:bg-banana-50"
+                                className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-700 transition hover:bg-banana-100"
                             >
                                 <Trophy size={13} /> Rankings
                             </Link>
@@ -381,7 +381,7 @@ export default function DashboardPage() {
                 </section>
 
                 {analyticsError && analyticsVisible && (
-                    <p className="mb-5 rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
+                    <p className="mb-5 rounded-2xl border-2 border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
                         {analyticsError}
                     </p>
                 )}
@@ -395,7 +395,7 @@ export default function DashboardPage() {
                             action={
                                 <Link
                                     to="/history"
-                                    className="inline-flex items-center gap-1 text-xs font-semibold text-banana-700 hover:underline"
+                                    className="inline-flex items-center gap-1 text-xs font-bold text-banana-700 hover:underline"
                                 >
                                     Game history <ArrowRight size={14} />
                                 </Link>
@@ -409,14 +409,14 @@ export default function DashboardPage() {
                                             <TrendingUp size={14} className="text-banana-700" />
                                             Score & accuracy
                                         </h3>
-                                        <div className="flex gap-0.5 rounded-md bg-banana-100 p-0.5">
+                                        <div className="flex gap-0.5 rounded-xl border-2 border-banana-200 bg-banana-50 p-0.5">
                                             {[7, 14, 30].map((days) => (
                                                 <button
                                                     key={days}
                                                     type="button"
                                                     onClick={() => setTrendRange(days)}
                                                     aria-pressed={trendRange === days}
-                                                    className={`rounded px-1.5 py-0.5 text-[10px] font-semibold transition ${
+                                                    className={`rounded-lg px-1.5 py-0.5 font-display text-[11px] font-bold transition ${
                                                         trendRange === days
                                                             ? 'bg-white text-banana-900'
                                                             : 'text-banana-700 hover:text-banana-900'
@@ -507,7 +507,7 @@ export default function DashboardPage() {
                     <Card className="mb-6 !p-5">
                         <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
                             <div className="flex items-start gap-3">
-                                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-banana-200 bg-banana-100 text-banana-700">
+                                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-100 text-banana-700">
                                     <BarChart3 size={18} />
                                 </span>
                                 <div>
@@ -537,7 +537,7 @@ export default function DashboardPage() {
                         action={
                             <Link
                                 to="/play"
-                                className="inline-flex items-center gap-1 text-xs font-semibold text-banana-700 hover:underline"
+                                className="inline-flex items-center gap-1 text-xs font-bold text-banana-700 hover:underline"
                             >
                                 Open mode select <ArrowRight size={14} />
                             </Link>
@@ -563,11 +563,11 @@ export default function DashboardPage() {
                                     }`}
                                 >
                                     <div className="mb-2 flex items-start justify-between gap-2">
-                                        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-banana-100 text-banana-700">
+                                        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-100 text-banana-700">
                                             <Icon size={18} />
                                         </span>
                                         {active && (
-                                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
+                                            <span className="inline-flex items-center gap-1 rounded-full border-2 border-emerald-300 bg-white/80 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-800">
                                                 <CircleCheck size={11} /> Selected
                                             </span>
                                         )}
@@ -578,8 +578,8 @@ export default function DashboardPage() {
                                     <p className="text-xs text-banana-700">{mode.tagline}</p>
                                     <p className="mt-1 flex-1 text-sm text-banana-800">{mode.description}</p>
                                     <div className="mt-3 flex flex-wrap gap-1.5 text-[11px] text-banana-700">
-                                        <span className="rounded-md bg-banana-100 px-2 py-0.5">{mode.time}</span>
-                                        <span className="rounded-md bg-banana-100 px-2 py-0.5">
+                                        <span className="inline-flex items-center rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide">{mode.time}</span>
+                                        <span className="inline-flex items-center rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide">
                                             {mode.multiplier === 'Practice' ? 'Practice' : `${mode.multiplier} points`}
                                         </span>
                                     </div>
@@ -599,7 +599,7 @@ export default function DashboardPage() {
                                         <Award size={24} />
                                     </span>
                                     <div>
-                                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-banana-500">
+                                        <p className="text-[11px] font-bold uppercase tracking-wide text-banana-700">
                                             Trophy cabinet
                                         </p>
                                         <h2 className="font-display text-xl font-extrabold text-banana-800">
@@ -614,7 +614,7 @@ export default function DashboardPage() {
                                 </div>
                                 <Link
                                     to="/achievements"
-                                    className="inline-flex items-center gap-1 rounded-xl border-2 border-banana-200 bg-white/70 px-3 py-1.5 text-xs font-extrabold text-banana-700 transition hover:border-banana-300 hover:bg-banana-100"
+                                    className="inline-flex items-center gap-1.5 rounded-2xl border-2 border-banana-200 bg-white/80 px-3 py-2 font-display text-xs font-bold text-banana-700 shadow-game-sm transition hover:border-banana-300 hover:bg-banana-100"
                                 >
                                     View all <ChevronRight size={14} />
                                 </Link>
@@ -720,7 +720,7 @@ export default function DashboardPage() {
                                                         }`}
                                                     >
                                                         {achievement.unlocked ? (
-                                                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-1.5 py-0.5">
+                                                            <span className="inline-flex items-center gap-1 rounded-full border-2 border-emerald-300 bg-white/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-800">
                                                                 <CircleCheck size={11} /> Unlocked
                                                             </span>
                                                         ) : (
@@ -737,11 +737,11 @@ export default function DashboardPage() {
 
                         <Card className="!p-5">
                             <div className="mb-3 flex items-center gap-2.5">
-                                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-200 text-banana-700">
+                                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-100 text-banana-700">
                                     <Sparkles size={19} />
                                 </span>
                                 <div>
-                                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-banana-500">
+                                    <p className="text-[11px] font-bold uppercase tracking-wide text-banana-700">
                                         Shortcuts
                                     </p>
                                     <h2 className="font-display text-xl font-extrabold text-banana-800">
@@ -759,7 +759,7 @@ export default function DashboardPage() {
                                     <Link
                                         key={to}
                                         to={to}
-                                        className="group flex items-center gap-2.5 rounded-xl border-2 border-banana-100 bg-banana-50/70 px-3 py-2 text-sm font-extrabold text-banana-800 transition hover:border-banana-300 hover:bg-banana-100"
+                                        className="group flex items-center gap-2.5 rounded-2xl border-2 border-banana-200 bg-white/90 px-3 py-2 font-display text-sm font-bold text-banana-800 shadow-game-sm transition hover:border-banana-300 hover:bg-banana-50"
                                     >
                                         <Icon size={16} className="text-banana-500" />
                                         <span className="flex-1">{label}</span>
@@ -777,11 +777,11 @@ export default function DashboardPage() {
                     <div className="space-y-5">
                         <Card className="!p-5">
                             <div className="mb-4 flex items-center gap-2.5">
-                                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-200 text-banana-700">
+                                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-100 text-banana-700">
                                     <Headphones size={19} />
                                 </span>
                                 <div>
-                                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-banana-500">
+                                    <p className="text-[11px] font-bold uppercase tracking-wide text-banana-700">
                                         Audio &amp; feedback
                                     </p>
                                     <h2 className="font-display text-xl font-extrabold text-banana-800">
@@ -794,11 +794,11 @@ export default function DashboardPage() {
 
                         <Card className="!p-5">
                             <div className="mb-3 flex items-center gap-2.5">
-                                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-200 text-banana-700">
+                                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-100 text-banana-700">
                                     <ShieldCheck size={19} />
                                 </span>
                                 <div>
-                                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-banana-500">
+                                    <p className="text-[11px] font-bold uppercase tracking-wide text-banana-700">
                                         Your account
                                     </p>
                                     <h2 className="font-display text-xl font-extrabold text-banana-800">
@@ -847,12 +847,12 @@ export default function DashboardPage() {
 
 function PlayerStat({ icon, label, value, hint }) {
     return (
-        <div className="rounded-xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/80 px-3 py-2.5 shadow-game-sm">
+        <div className="rounded-2xl border-2 border-banana-200 bg-white/90 p-4 shadow-game-sm">
             <div className="flex items-center gap-1.5 text-banana-700">
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-banana-300 bg-banana-100 text-banana-700 shadow-[inset_0_-1px_0_rgba(109,74,14,0.08)]">
+                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-100 text-banana-700">
                     {icon}
                 </span>
-                <p className="truncate text-[11px] font-bold text-banana-800">{label}</p>
+                <p className="truncate text-[11px] font-bold uppercase tracking-wide text-banana-800">{label}</p>
             </div>
             <p className="mt-1.5 font-display text-xl leading-none text-banana-900 tabular-nums">{value}</p>
             {hint && <p className="mt-0.5 truncate text-[11px] text-banana-700">{hint}</p>}
@@ -904,14 +904,14 @@ function SectionTitle({ icon, title, hint, action = null }) {
     return (
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
             <h2 className="flex items-center gap-2.5 font-display text-xl font-extrabold text-banana-800">
-                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border-2 border-banana-300 bg-banana-200 text-banana-700">
+                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-100 text-banana-700">
                     {icon}
                 </span>
                 {title}
             </h2>
             <div className="flex flex-wrap items-center gap-2">
                 {hint && (
-                    <p className="hidden rounded-full border-2 border-banana-200 bg-white/70 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-banana-600 sm:block">
+                    <p className="hidden rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-700 sm:block">
                         {hint}
                     </p>
                 )}
@@ -922,18 +922,23 @@ function SectionTitle({ icon, title, hint, action = null }) {
 }
 
 const chartTooltipStyle = {
-    background: '#fffceb',
-    border: '2px solid #ffec85',
+    background: 'var(--color-banana-100)',
+    border: '2px solid var(--color-banana-300)',
     borderRadius: 12,
-    boxShadow: '0 10px 24px rgba(107,50,0,.12)',
+    boxShadow: 'var(--shadow-game)',
+    color: 'var(--color-banana-900)',
 };
-const MODE_COLORS = { easy: '#facc15', hard: '#fb7185', custom: '#60a5fa' };
+const MODE_COLORS = {
+    easy: 'var(--color-warning)',
+    hard: 'var(--color-danger-soft)',
+    custom: 'var(--color-info)',
+};
 
 const THINKING_BUCKETS = [
-    { name: '<5s', label: 'Under 5s', color: '#34d399' },
-    { name: '5–10s', label: '5–10s', color: '#facc15' },
-    { name: '10–20s', label: '10–20s', color: '#fb923c' },
-    { name: '20s+', label: '20s or more', color: '#fb7185' },
+    { name: '<5s', label: 'Under 5s', color: 'var(--color-correct)' },
+    { name: '5–10s', label: '5–10s', color: 'var(--color-warning)' },
+    { name: '10–20s', label: '10–20s', color: 'var(--color-expired)' },
+    { name: '20s+', label: '20s or more', color: 'var(--color-danger-soft)' },
 ];
 
 function LazySection({ loading, loaderLabel, skeletonHeight, children }) {
@@ -944,7 +949,7 @@ function LazySection({ loading, loaderLabel, skeletonHeight, children }) {
                 className="flex flex-col items-center justify-center"
             >
                 <div
-                    className="w-full rounded-lg bg-banana-100"
+                    className="w-full rounded-2xl border-2 border-banana-200 bg-banana-50/60"
                     style={{ height: Math.max(60, skeletonHeight - 24) }}
                 />
                 <p className="mt-2 text-[11px] text-banana-600">{loaderLabel}</p>
@@ -1007,22 +1012,22 @@ function AccuracyChart({ games, range = 14, compact = false }) {
                 <ComposedChart data={rows} margin={{ top: 6, right: 0, bottom: 0, left: compact ? -24 : -16 }}>
                     <defs>
                         <linearGradient id="trendBarFill" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#e8b635" stopOpacity=".95" />
-                            <stop offset="100%" stopColor="#a87200" stopOpacity=".55" />
+                            <stop offset="0%" stopColor="var(--color-banana-400)" stopOpacity=".95" />
+                            <stop offset="100%" stopColor="var(--color-banana-600)" stopOpacity=".55" />
                         </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e3e1d7" />
                     <XAxis
                         dataKey="label"
                         interval={range > 14 ? 4 : 0}
-                        tick={{ fontSize: compact ? 10 : 11, fill: '#4a4236' }}
+                        tick={{ fontSize: compact ? 10 : 11, fill: 'var(--color-chart-label)' }}
                         axisLine={false}
                         tickLine={false}
                     />
                     <YAxis
                         yAxisId="score"
                         allowDecimals={false}
-                        tick={{ fontSize: compact ? 10 : 12, fill: '#4a4236' }}
+                        tick={{ fontSize: compact ? 10 : 12, fill: 'var(--color-chart-label)' }}
                         axisLine={false}
                         tickLine={false}
                         width={compact ? 24 : 32}
@@ -1032,13 +1037,13 @@ function AccuracyChart({ games, range = 14, compact = false }) {
                         orientation="right"
                         domain={[0, 100]}
                         unit="%"
-                        tick={{ fontSize: compact ? 10 : 12, fill: '#4a4236' }}
+                        tick={{ fontSize: compact ? 10 : 12, fill: 'var(--color-chart-label)' }}
                         axisLine={false}
                         tickLine={false}
                         width={compact ? 24 : 32}
                     />
                     <Tooltip content={<TrendTooltip />} />
-                    {!compact && <Legend wrapperStyle={{ fontSize: 12, color: '#4a4236' }} />}
+                    {!compact && <Legend wrapperStyle={{ fontSize: 12, color: 'var(--color-chart-label)' }} />}
                     <Bar
                         yAxisId="score"
                         dataKey="score"
@@ -1053,7 +1058,7 @@ function AccuracyChart({ games, range = 14, compact = false }) {
                         dataKey="accuracy"
                         stroke="#34d399"
                         strokeWidth={2}
-                        dot={compact ? false : { r: 3, fill: '#34d399' }}
+                        dot={compact ? false : { r: 3, fill: 'var(--color-correct)' }}
                         activeDot={{ r: 4 }}
                         connectNulls
                         name="Accuracy %"
@@ -1071,7 +1076,7 @@ function AccuracyChart({ games, range = 14, compact = false }) {
 
 function TrendStat({ label, value, tone }) {
     return (
-        <div className="rounded-xl bg-banana-50 px-3 py-2">
+        <div className="rounded-2xl border-2 border-banana-200 bg-white/90 px-3 py-2 shadow-game-sm">
             <p className="text-[10px] font-extrabold uppercase tracking-wide text-banana-500">
                 {label}
             </p>
@@ -1163,13 +1168,13 @@ function ModeChart({ games, compact = false }) {
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e3e1d7" />
                     <XAxis
                         dataKey="label"
-                        tick={{ fontSize: compact ? 10 : 12, fill: '#4a4236' }}
+                        tick={{ fontSize: compact ? 10 : 12, fill: 'var(--color-chart-label)' }}
                         axisLine={false}
                         tickLine={false}
                     />
                     <YAxis
                         allowDecimals={false}
-                        tick={{ fontSize: compact ? 10 : 12, fill: '#4a4236' }}
+                        tick={{ fontSize: compact ? 10 : 12, fill: 'var(--color-chart-label)' }}
                         axisLine={false}
                         tickLine={false}
                         width={compact ? 24 : 32}
@@ -1180,13 +1185,13 @@ function ModeChart({ games, compact = false }) {
                     />
                     <Bar dataKey="games" name="Games" radius={[4, 4, 0, 0]} maxBarSize={compact ? 28 : 64}>
                         {rows.map((row) => (
-                            <Cell key={row.id} fill={MODE_COLORS[row.id] || '#e8b635'} />
+                            <Cell key={row.id} fill={MODE_COLORS[row.id] || 'var(--color-banana-400)'} />
                         ))}
                         {!compact && (
                             <LabelList
                                 dataKey="games"
                                 position="top"
-                                style={{ fontSize: 12, fontWeight: 600, fill: '#4a4236' }}
+                                style={{ fontSize: 12, fontWeight: 600, fill: 'var(--color-chart-label)' }}
                             />
                         )}
                     </Bar>
@@ -1198,7 +1203,7 @@ function ModeChart({ games, compact = false }) {
                     <span key={row.id} className="flex items-center gap-1">
                         <span
                             className="h-2 w-2 rounded-sm"
-                            style={{ background: MODE_COLORS[row.id] || '#e8b635' }}
+                            style={{ background: MODE_COLORS[row.id] || 'var(--color-banana-400)' }}
                         />
                         {row.label} · {row.games}
                     </span>
@@ -1296,7 +1301,7 @@ function ThinkingChart({ games, compact = false }) {
                         y="48%"
                         textAnchor="middle"
                         dominantBaseline="middle"
-                        style={{ fontSize: compact ? 14 : 22, fontWeight: 600, fill: '#24211b' }}
+                        style={{ fontSize: compact ? 14 : 22, fontWeight: 600, fill: 'var(--color-chart-text)' }}
                     >
                         {avgSeconds}s
                     </text>
@@ -1306,7 +1311,7 @@ function ThinkingChart({ games, compact = false }) {
                             y="57%"
                             textAnchor="middle"
                             dominantBaseline="middle"
-                            style={{ fontSize: 9, fontWeight: 600, fill: '#4a4236' }}
+                            style={{ fontSize: 9, fontWeight: 600, fill: 'var(--color-chart-label)' }}
                         >
                             avg time
                         </text>

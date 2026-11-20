@@ -20,7 +20,7 @@ import { usePageTitle } from '../hooks/usePageTitle.js';
 import { evaluatePassword } from '../lib/passwordStrength.js';
 
 const inputClass =
-    'w-full rounded-2xl border-2 border-banana-200 bg-white px-4 py-3 font-semibold text-banana-900 placeholder:text-banana-400 transition focus:border-banana-400 focus:outline-none focus:ring-2 focus:ring-banana-300/60';
+    'w-full rounded-2xl border-2 border-banana-300 bg-white/90 px-4 py-3 font-body text-banana-900 shadow-game-sm outline-none transition placeholder:text-banana-400 focus:border-banana-500';
 
 const ALERT_CLASS =
     'rounded-2xl border-2 px-4 py-3 text-sm font-semibold shadow-game-sm';
@@ -135,7 +135,7 @@ export default function ResetPasswordPage() {
                 title="Checking your link"
                 subtitle="Just a moment while we verify this reset link."
             >
-                <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-banana-100 bg-banana-50/70 px-4 py-10">
+                <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-banana-300 bg-white/80 px-4 py-10 shadow-game-sm">
                     <span className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-banana-300 bg-banana-200 text-banana-700">
                         <Loader2 size={30} className="animate-spin" />
                     </span>
@@ -255,7 +255,7 @@ export default function ResetPasswordPage() {
             }
         >
             {expiresLabel && (
-                <p className="mb-4 inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-banana-100 px-3 py-1 text-xs font-bold text-banana-700">
+                <p className="mb-4 inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-800">
                     <Clock3 size={13} /> Link valid until {expiresLabel}
                 </p>
             )}

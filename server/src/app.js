@@ -52,7 +52,7 @@ app.use(['/auth/login', '/auth/register'], authLimiter);
 app.post(['/auth/forgot-password', '/auth/reset-password'], passwordResetLimiter);
 
 app.use(
-    ['/auth/register/verify', '/auth/register/resend', '/auth/verification/status', '/auth/email/verify'],
+    ['/auth/register/verify', '/auth/register/resend', '/auth/verification/status', '/auth/email/verify', '/auth/two-factor'],
     otpLimiter
 );
 

@@ -234,14 +234,14 @@ export default function FaqPage() {
                             placeholder="Search the FAQ…"
                             aria-label="Search the FAQ"
                             autoComplete="off"
-                            className="w-full rounded-2xl border-2 border-banana-300 bg-banana-50 py-3 pl-11 pr-11 font-semibold text-banana-900 shadow-game-sm outline-none transition placeholder:text-banana-600 focus:border-banana-500 focus:bg-white"
+                            className="w-full rounded-2xl border-2 border-banana-300 bg-white/90 py-3 pl-11 pr-11 font-body font-semibold text-banana-900 shadow-game-sm outline-none transition placeholder:text-banana-500 focus:border-banana-500 focus:bg-white"
                         />
                         {query && (
                             <button
                                 type="button"
                                 onClick={() => setQuery('')}
                                 aria-label="Clear search"
-                                className="absolute right-2.5 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-banana-600 transition hover:bg-banana-200 hover:text-banana-900"
+                                className="absolute right-2.5 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border-2 border-banana-200 bg-white/80 text-banana-600 shadow-game-sm transition hover:bg-banana-100 hover:text-banana-900"
                             >
                                 <X size={15} />
                             </button>
@@ -249,7 +249,7 @@ export default function FaqPage() {
                     </div>
                     <p
                         aria-live="polite"
-                        className="text-[11px] font-extrabold uppercase tracking-wide text-banana-800 sm:pl-1 sm:whitespace-nowrap"
+                        className="text-[11px] font-bold uppercase tracking-wide text-banana-800 sm:pl-1 sm:whitespace-nowrap"
                     >
                         {filtered.length} of {FAQS.length} answers
                     </p>
@@ -264,10 +264,10 @@ export default function FaqPage() {
                                 type="button"
                                 onClick={() => selectCategory(item.id)}
                                 aria-pressed={active}
-                                className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-xs font-extrabold transition ${
+                                className={`inline-flex items-center gap-1.5 rounded-full border-2 px-2.5 py-1 font-display text-[11px] font-bold uppercase tracking-wide transition ${
                                     active
                                         ? 'border-banana-500 bg-banana-300 text-banana-900 shadow-game-sm'
-                                        : 'border-banana-300 bg-white text-banana-800 hover:border-banana-400 hover:bg-banana-100'
+                                        : 'border-banana-200 bg-white/80 text-banana-800 hover:border-banana-300 hover:bg-banana-100'
                                 }`}
                             >
                                 {item.label}
@@ -286,10 +286,10 @@ export default function FaqPage() {
 
             {groups.length === 0 ? (
                 <Card className="py-10 text-center">
-                    <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl border-4 border-banana-300 bg-banana-100 text-banana-800">
+                    <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-banana-300 bg-banana-100 text-banana-800 shadow-game-sm">
                         <Search size={30} />
                     </div>
-                    <h2 className="font-display text-2xl font-extrabold text-banana-800">
+                    <h2 className="font-display text-2xl font-extrabold text-banana-900">
                         No answers found
                     </h2>
                     <p className="mt-1 font-semibold text-banana-800">
@@ -309,7 +309,7 @@ export default function FaqPage() {
                     </div>
                 </Card>
             ) : (
-                <div className="space-y-5">
+                <div className="space-y-5 border-y-2 border-banana-200 bg-banana-100/60 py-8 md:py-10">
                     {groups.map((group, groupIndex) => (
                         <section
                             key={group.id}
@@ -320,10 +320,10 @@ export default function FaqPage() {
                                 <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-400 bg-banana-200 font-display text-sm font-extrabold text-banana-900">
                                     {groupIndex + 1}
                                 </span>
-                                <h2 className="font-display text-xl font-extrabold text-banana-800">
+                                <h2 className="font-display text-xl font-extrabold text-banana-900">
                                     {group.label}
                                 </h2>
-                                <span className="rounded-full border-2 border-banana-200 bg-white px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-banana-800">
+                                <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-800">
                                     {group.items.length}{' '}
                                     {group.items.length === 1 ? 'answer' : 'answers'}
                                 </span>
@@ -333,9 +333,9 @@ export default function FaqPage() {
                                 {group.items.map((item, itemIndex) => (
                                     <details
                                         key={item.q}
-                                        className="group overflow-hidden rounded-2xl border-2 border-banana-300 bg-white/90 shadow-game-sm transition hover:border-banana-400 open:border-banana-400"
+                                        className="group rounded-2xl border-2 border-banana-200 bg-white/90 p-4 shadow-game-sm transition hover:border-banana-300 open:border-banana-300"
                                     >
-                                        <summary className="flex cursor-pointer list-none items-center gap-3 p-4 font-display text-lg font-extrabold text-banana-800">
+                                        <summary className="flex cursor-pointer list-none items-center gap-3 font-display text-lg font-extrabold text-banana-900">
                                             <span className="inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg border-2 border-banana-200 bg-banana-100 text-xs font-extrabold text-banana-800 transition group-open:border-banana-400 group-open:bg-banana-300 group-open:text-banana-900">
                                                 {itemIndex + 1}
                                             </span>
@@ -345,7 +345,7 @@ export default function FaqPage() {
                                                 className="flex-shrink-0 text-banana-500 transition group-open:rotate-180"
                                             />
                                         </summary>
-                                        <p className="border-t-2 border-dashed border-banana-200 px-4 pb-4 pt-3 text-sm leading-relaxed text-banana-800">
+                                        <p className="mt-2 text-sm font-semibold leading-relaxed text-banana-700">
                                             {item.a}
                                         </p>
                                     </details>
@@ -356,7 +356,7 @@ export default function FaqPage() {
                 </div>
             )}
 
-            <section className="banana-promo-panel relative mt-5 overflow-hidden rounded-[1.75rem] border-2 border-banana-400 bg-gradient-to-br from-banana-300 via-banana-400 to-amber-500 p-5 shadow-game md:p-6">
+            <section className="banana-promo-panel relative mt-5 overflow-hidden rounded-2xl border-2 border-banana-400 bg-gradient-to-br from-banana-300 via-banana-400 to-amber-500 p-5 shadow-game md:p-6">
                 <div
                     aria-hidden="true"
                     className="pointer-events-none absolute -right-12 -top-14 h-44 w-44 rounded-full border-[14px] border-white/25"
@@ -383,13 +383,13 @@ export default function FaqPage() {
                     <div className="flex flex-wrap gap-2">
                         <Link
                             to="/help"
-                            className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-banana-300/60 bg-banana-50 px-4 py-2.5 font-display text-base font-bold text-banana-900 shadow-game-sm transition hover:bg-banana-100 active:translate-y-0.5"
+                            className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-white/50 bg-white/90 px-4 py-2.5 font-display text-sm font-bold text-banana-900 shadow-game-sm transition hover:bg-white active:translate-y-0.5"
                         >
                             Help Centre <ArrowRight size={16} />
                         </Link>
                         <Link
                             to="/contact"
-                            className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-banana-900/20 bg-banana-900 px-4 py-2.5 font-display text-base font-bold text-banana-50 shadow-game-sm transition hover:brightness-110 active:translate-y-0.5"
+                            className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-banana-900/20 bg-banana-900 px-4 py-2.5 font-display text-sm font-bold text-banana-50 shadow-game-sm transition hover:brightness-110 active:translate-y-0.5"
                         >
                             <Mail size={16} /> Contact support
                         </Link>

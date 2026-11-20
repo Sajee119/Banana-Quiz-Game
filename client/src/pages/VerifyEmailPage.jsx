@@ -57,15 +57,24 @@ function formatCountdown(seconds) {
 }
 
 export default function VerifyEmailPage() {
-    usePageTitle('Verify email');
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const location = useLocation();
     const { user, loading: authLoading, signIn, setUser } = useAuth();
 
+    usePageTitle(
+        searchParams.get('purpose') === 'login_2fa'
+            ? 'Two-factor verification'
+            : 'Verify email'
+    );
+
     const verificationId = searchParams.get('verificationId') || '';
-    const isRegistration = searchParams.get('purpose') !== 'email_verification';
-    const purpose = isRegistration ? 'registration' : 'email_verification';
+    const purposeParam = searchParams.get('purpose');
+    const purpose = ['registration', 'email_verification', 'login_2fa'].includes(purposeParam)
+        ? purposeParam
+        : 'registration';
+    const isRegistration = purpose === 'registration';
+    const isTwoFactor = purpose === 'login_2fa';
 
     const [status, setStatus] = useState({
         ...INITIAL_STATUS,
@@ -75,7 +84,9 @@ export default function VerifyEmailPage() {
     const [otp, setOtp] = useState('');
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
-    const [devOtp, setDevOtp] = useState(location.state?.devOtp || '');
+    const [devOtp, setDevOtp] = useState(
+        location.state?.devOtp || searchParams.get('devOtp') || ''
+    );
     const [submitting, setSubmitting] = useState(false);
     const [resending, setResending] = useState(false);
     const [now, setNow] = useState(() => Date.now());
@@ -132,7 +143,7 @@ export default function VerifyEmailPage() {
     const expired =
         status.active === false || Boolean(status.expiresAt && secondsLeft <= 0);
     const resendLimitReached = status.resendCount >= status.resendLimit;
-    const requiresSignIn = !isRegistration && !authLoading && !user;
+    const requiresSignIn = !isRegistration && !isTwoFactor && !authLoading && !user;
 
     const maskedEmail = useMemo(
         () => status.email || location.state?.email || 'your email address',
@@ -155,11 +166,16 @@ export default function VerifyEmailPage() {
         try {
             const data = isRegistration
                 ? await authApi.verifyRegistration({ verificationId, otp })
-                : await authApi.confirmEmailVerification({ verificationId, otp });
+                : isTwoFactor
+                  ? await authApi.verifyTwoFactor({ verificationId, otp })
+                  : await authApi.confirmEmailVerification({ verificationId, otp });
 
-            if (isRegistration) {
+            if (isRegistration || isTwoFactor) {
                 await signIn(async () => data);
-                navigate('/dashboard', { replace: true, state: { justVerified: true } });
+                navigate('/dashboard', {
+                    replace: true,
+                    state: isRegistration ? { justVerified: true } : { justSignedIn: true },
+                });
             } else {
                 if (data.user) setUser(data.user);
                 navigate('/profile?tab=security&verified=1', { replace: true });
@@ -188,7 +204,9 @@ export default function VerifyEmailPage() {
         try {
             const data = isRegistration
                 ? await authApi.resendRegistration(verificationId)
-                : await authApi.resendEmailVerification(verificationId);
+                : isTwoFactor
+                  ? await authApi.resendTwoFactor(verificationId)
+                  : await authApi.resendEmailVerification(verificationId);
 
             setOtp('');
             setDevOtp(data.devOtp || '');
@@ -225,20 +243,22 @@ export default function VerifyEmailPage() {
             ? 'This verification code can no longer be used. Request a fresh one to continue.'
             : isRegistration
               ? 'Confirm your email address to finish creating your Banana Quiz account.'
-              : 'Confirm your email address to unlock recovery and security emails.';
+              : isTwoFactor
+                ? 'Enter the sign-in code we emailed to finish unlocking your account.'
+                : 'Confirm your email address to unlock recovery and security emails.';
 
     return (
-        <div className="flex min-h-screen flex-col px-3 py-4 sm:px-6 sm:py-5">
+        <div className="flex min-h-screen flex-col px-4 py-4 sm:px-6 sm:py-5">
             <PublicPageHeader />
 
-            <main className="mx-auto flex w-full max-w-[1560px] flex-1 flex-col py-4 sm:py-6">
+            <main className="mx-auto flex w-full flex-1 flex-col py-4 sm:py-6">
                 <motion.section
                     initial={{ y: 24, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    className="grid w-full flex-1 overflow-hidden rounded-[1.75rem] border-2 border-banana-400 bg-gradient-to-b from-white to-banana-50/70 shadow-game lg:grid-cols-[1fr_1.05fr]"
+                    className="grid w-full flex-1 overflow-hidden rounded-2xl border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/60 shadow-game lg:grid-cols-[1fr_1.05fr]"
                 >
                     {/* Desktop verification panel */}
-                    <aside className="banana-promo-panel relative hidden overflow-hidden border-r-2 border-banana-400/30 bg-gradient-to-br from-banana-300 via-banana-400 to-amber-500 p-8 lg:flex lg:flex-col xl:p-10">
+                    <aside className="banana-promo-panel relative hidden overflow-hidden rounded-2xl border-2 border-banana-400 bg-gradient-to-br from-banana-300 via-banana-400 to-amber-500 p-8 lg:flex lg:flex-col xl:p-10">
                         <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full border-[20px] border-white/20" />
                         <div className="pointer-events-none absolute -bottom-28 -left-24 h-80 w-80 rounded-full border-[20px] border-white/15" />
                         <BananaLogo
@@ -248,7 +268,7 @@ export default function VerifyEmailPage() {
                         />
 
                         <div className="relative flex flex-1 flex-col">
-                            <span className="inline-flex w-fit items-center gap-2 rounded-full border-2 border-banana-900/20 bg-banana-900/10 px-3 py-1 text-xs font-extrabold uppercase tracking-widest text-banana-900">
+                            <span className="inline-flex w-fit items-center gap-2 rounded-full border-2 border-banana-400 bg-gradient-to-b from-banana-100 to-white px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wide text-banana-900 shadow-game-sm">
                                 <ShieldCheck size={14} /> Secure verification
                             </span>
 
@@ -285,14 +305,14 @@ export default function VerifyEmailPage() {
                                 ))}
                             </ul>
 
-                            <div className="relative mt-auto flex flex-wrap items-center gap-2 pt-8 text-[11px] font-extrabold uppercase tracking-wide text-banana-900/75">
-                                <span className="rounded-full border-2 border-white/50 bg-banana-50/70 px-3 py-1.5">
+                            <div className="relative mt-auto flex flex-wrap items-center gap-2 pt-8 text-[11px] font-bold uppercase tracking-wide text-banana-900">
+                                <span className="rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1">
                                     6-digit code
                                 </span>
-                                <span className="rounded-full border-2 border-white/50 bg-banana-50/70 px-3 py-1.5">
+                                <span className="rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1">
                                     Single use
                                 </span>
-                                <span className="rounded-full border-2 border-white/50 bg-banana-50/70 px-3 py-1.5">
+                                <span className="rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1">
                                     Expires automatically
                                 </span>
                             </div>
@@ -302,7 +322,7 @@ export default function VerifyEmailPage() {
                     {/* Verification panel */}
                     <div className="relative flex flex-col justify-center bg-white/90 p-5 text-center sm:p-8 lg:p-10 xl:p-12">
                         {/* Compact brand strip for small screens */}
-                        <div className="mb-5 flex items-center gap-3 rounded-2xl border-2 border-banana-300 bg-gradient-to-br from-banana-200 to-banana-400 p-3.5 text-left lg:hidden">
+                        <div className="mb-5 flex items-center gap-3 rounded-2xl border-2 border-banana-400 bg-gradient-to-br from-banana-200 to-banana-300 p-3.5 text-left shadow-game-sm lg:hidden">
                             <BananaLogo size={46} className="animate-wiggle" />
                             <div className="min-w-0">
                                 <p className="font-display text-lg font-extrabold leading-none text-banana-900">
@@ -316,7 +336,7 @@ export default function VerifyEmailPage() {
 
                         <div className="mx-auto w-full max-w-md">
                             <div
-                                className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border-4 shadow-game-sm ${
+                                className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border-2 shadow-game-sm ${
                                     expired && !status.loading
                                         ? 'border-red-200 bg-red-50 text-red-500'
                                         : 'border-banana-300 bg-banana-100 text-banana-700'
@@ -329,19 +349,23 @@ export default function VerifyEmailPage() {
                                 )}
                             </div>
 
-                            <p className="flex items-center justify-center gap-1.5 font-display text-xs font-extrabold uppercase tracking-[0.2em] text-banana-500">
+                            <p className="mx-auto flex w-fit items-center justify-center gap-1.5 rounded-full border-2 border-banana-400 bg-gradient-to-b from-banana-100 to-white px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wide text-banana-800 shadow-game-sm">
                                 <Sparkles size={13} />{' '}
-                                {isRegistration ? 'One last step' : 'Account security'}
+                                {isRegistration
+                                    ? 'One last step'
+                                    : isTwoFactor
+                                      ? 'Two-factor check'
+                                      : 'Account security'}
                             </p>
-                            <h1 className="mt-1 font-display text-4xl font-extrabold leading-tight text-banana-800">
+                            <h1 className="mt-3 font-display text-4xl font-extrabold leading-tight text-banana-900">
                                 {headline}
                             </h1>
-                            <p className="mt-2 text-sm font-semibold text-banana-700 sm:text-base">
+                            <p className="mt-2 text-sm font-semibold leading-relaxed text-banana-800 sm:text-base">
                                 {subtitle}
                             </p>
 
                             {status.loading && (
-                                <div className="mt-4 flex items-center justify-center gap-2.5 rounded-2xl border-2 border-banana-200 bg-banana-50 px-4 py-3">
+                                <div className="mt-4 flex items-center justify-center gap-2.5 rounded-2xl border-2 border-banana-300 bg-white/80 px-4 py-3 shadow-game-sm">
                                     <RefreshCw
                                         size={17}
                                         className="animate-spin text-banana-500"
@@ -353,7 +377,7 @@ export default function VerifyEmailPage() {
                             )}
 
                             {!status.loading && !expired && (
-                                <div className="mt-4 flex items-start gap-3 rounded-2xl border-2 border-banana-200 bg-banana-50 px-4 py-3 text-left">
+                                <div className="mt-4 flex items-start gap-3 rounded-2xl border-2 border-banana-300 bg-white/80 px-4 py-3 text-left shadow-game-sm">
                                     <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-200 text-banana-700">
                                         <Mail size={17} />
                                     </span>
@@ -365,7 +389,9 @@ export default function VerifyEmailPage() {
                                         . Enter it below to{' '}
                                         {isRegistration
                                             ? 'create your account'
-                                            : 'confirm your email address'}
+                                            : isTwoFactor
+                                              ? 'finish signing in'
+                                              : 'confirm your email address'}
                                         .
                                     </p>
                                 </div>
@@ -441,13 +467,13 @@ export default function VerifyEmailPage() {
                                     />
 
                                     <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] font-extrabold">
-                                        <span className="inline-flex items-center gap-1 rounded-full border-2 border-banana-200 bg-banana-50 px-2.5 py-1 text-banana-700">
+                                        <span className="inline-flex items-center gap-1 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-800">
                                             <Clock3 size={12} />
                                             {status.expiresAt
                                                 ? `Expires in ${formatCountdown(secondsLeft)}`
                                                 : 'Codes expire shortly'}
                                         </span>
-                                        <span className="inline-flex items-center gap-1 rounded-full border-2 border-banana-200 bg-banana-50 px-2.5 py-1 text-banana-700">
+                                        <span className="inline-flex items-center gap-1 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-800">
                                             <ShieldCheck size={12} />
                                             {status.attemptsRemaining} attempt
                                             {status.attemptsRemaining === 1 ? '' : 's'} left
@@ -466,7 +492,7 @@ export default function VerifyEmailPage() {
                             )}
 
                             {!status.loading && (
-                                <div className="mt-5 rounded-2xl border-2 border-dashed border-banana-200 bg-banana-50/70 px-4 py-3.5">
+                                <div className="mt-5 rounded-2xl border-2 border-dashed border-banana-300 bg-white/80 px-4 py-3.5 shadow-game-sm">
                                     <p className="text-xs font-semibold text-banana-600">
                                         Didn&apos;t get the email? Check your spam folder or request a
                                         new code.
@@ -481,7 +507,7 @@ export default function VerifyEmailPage() {
                                             !verificationId ||
                                             requiresSignIn
                                         }
-                                        className="mt-2 inline-flex items-center gap-1.5 rounded-xl border-2 border-banana-300 bg-white px-3 py-1.5 text-sm font-extrabold text-banana-700 shadow-game-sm transition hover:bg-banana-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                        className="mt-2 inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-banana-300 bg-white px-4 py-3 font-display text-sm font-bold text-banana-800 shadow-game-sm transition hover:bg-banana-50 active:translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         <RefreshCw
                                             size={15}
@@ -495,7 +521,7 @@ export default function VerifyEmailPage() {
                                                 ? 'Sending…'
                                                 : 'Resend code'}
                                     </button>
-                                    <p className="mt-1.5 text-[11px] font-semibold text-banana-500">
+                                    <p className="mt-1.5 text-[11px] font-semibold text-banana-600">
                                         {status.resendCount}/{status.resendLimit} resends used
                                     </p>
                                 </div>
@@ -508,13 +534,17 @@ export default function VerifyEmailPage() {
                                             to={
                                                 isRegistration
                                                     ? '/login?mode=register'
-                                                    : '/profile?tab=security'
+                                                    : isTwoFactor
+                                                      ? '/login'
+                                                      : '/profile?tab=security'
                                             }
                                             className="text-banana-700 underline hover:text-banana-900"
                                         >
                                             {isRegistration
                                                 ? 'Start the sign-up again'
-                                                : 'Request a new code from your profile'}
+                                                : isTwoFactor
+                                                  ? 'Back to sign in'
+                                                  : 'Request a new code from your profile'}
                                         </Link>
                                         {isRegistration && (
                                             <Link
@@ -527,11 +557,17 @@ export default function VerifyEmailPage() {
                                     </>
                                 ) : (
                                     <Link
-                                        to={isRegistration ? '/login' : '/profile?tab=security'}
+                                        to={
+                                            isRegistration || isTwoFactor
+                                                ? '/login'
+                                                : '/profile?tab=security'
+                                        }
                                         className="inline-flex items-center gap-1 text-banana-600 underline hover:text-banana-800"
                                     >
                                         <ArrowLeft size={13} />{' '}
-                                        {isRegistration ? 'Back to sign in' : 'Back to profile'}
+                                        {isRegistration || isTwoFactor
+                                            ? 'Back to sign in'
+                                            : 'Back to profile'}
                                     </Link>
                                 )}
                             </div>

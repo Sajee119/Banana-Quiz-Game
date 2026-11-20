@@ -23,10 +23,10 @@ function IconToggle({ on, onClick, label, title, children }) {
             aria-pressed={on}
             aria-label={label}
             title={title || label}
-            className={`inline-flex h-10 w-10 items-center justify-center rounded-xl border-2 transition active:translate-y-[1px] ${
+            className={`inline-flex h-10 w-10 items-center justify-center rounded-xl border-2 transition active:translate-y-0.5 ${
                 on
-                    ? 'border-banana-400 bg-gradient-to-b from-white to-banana-50 text-banana-800 shadow-game-sm'
-                    : 'border-banana-200 bg-banana-100/70 text-banana-600 hover:text-banana-800 hover:bg-banana-100'
+                    ? 'border-banana-400 bg-gradient-to-b from-white to-banana-50 text-banana-900 shadow-game-sm'
+                    : 'border-banana-200 bg-white/80 text-banana-700 hover:border-banana-300 hover:bg-banana-100 hover:text-banana-900'
             }`}
         >
             {children}
@@ -60,7 +60,7 @@ function TestButton({ onClick, label, children }) {
         <button
             type="button"
             onClick={onClick}
-            className="inline-flex items-center gap-1.5 rounded-xl border-2 border-banana-200 bg-white px-2.5 py-1.5 text-xs font-extrabold text-banana-700 transition hover:border-banana-300 hover:bg-banana-50 active:translate-y-0.5"
+            className="inline-flex items-center justify-center gap-1.5 rounded-xl border-2 border-banana-200 bg-white/90 px-2.5 py-1.5 font-display text-[11px] font-bold text-banana-800 shadow-game-sm transition hover:border-banana-300 hover:bg-banana-100 active:translate-y-0.5"
         >
             {children}
             {label}
@@ -103,12 +103,12 @@ export default function AudioControls({ compact = false }) {
             <div className="space-y-3">
                 <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-banana-200 text-banana-700">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-100 text-banana-700">
                             {sfxEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
                         </div>
                         <div>
-                            <p className="font-bold text-banana-800">Sound effects</p>
-                            <p className="text-xs text-banana-600">
+                            <p className="font-display text-base font-extrabold text-banana-900">Sound effects</p>
+                            <p className="text-xs font-semibold text-banana-700">
                                 Ticks, answers, streaks and results
                             </p>
                         </div>
@@ -154,15 +154,15 @@ export default function AudioControls({ compact = false }) {
                 </p>
             </div>
 
-            <div className="space-y-3 border-t border-banana-200 pt-4">
+            <div className="space-y-3 border-t-2 border-banana-200 pt-4">
                 <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-banana-200 text-banana-700">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-100 text-banana-700">
                             <Headphones size={20} />
                         </div>
                         <div>
-                            <p className="font-bold text-banana-800">Background music</p>
-                            <p className="text-xs text-banana-600">
+                            <p className="font-display text-base font-extrabold text-banana-900">Background music</p>
+                            <p className="text-xs font-semibold text-banana-700">
                                 The banana quiz groove, looped from the bundled track
                             </p>
                         </div>
@@ -181,7 +181,7 @@ export default function AudioControls({ compact = false }) {
                 />
             </div>
 
-            <div className="border-t border-banana-200 pt-4">
+            <div className="border-t-2 border-banana-200 pt-4">
                 <VolumeSlider label="Master volume" value={volume} onChange={setVolume} />
             </div>
         </div>
@@ -196,7 +196,7 @@ function Switch({ on, onClick, label }) {
             aria-checked={on}
             aria-label={label}
             onClick={onClick}
-            className={`relative h-8 w-14 flex-shrink-0 rounded-full border-2 transition ${
+            className={`relative h-8 w-14 flex-shrink-0 rounded-full border-2 shadow-game-sm transition ${
                 on ? 'border-banana-500 bg-banana-400' : 'border-banana-300 bg-banana-100'
             }`}
         >

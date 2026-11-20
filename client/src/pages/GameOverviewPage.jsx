@@ -90,16 +90,16 @@ export default function GameOverviewPage() {
         return (
             <div className="min-h-screen">
                 <AppHeader />
-                <main className="mx-auto w-full max-w-[1560px] px-4 py-6 md:px-6 md:py-8" aria-busy="true">
-                    <div className="mb-6 h-28 rounded-xl border border-banana-200 bg-white/60" />
+                <main className="mx-auto w-full px-4 py-6 sm:px-6 md:py-8" aria-busy="true">
+                    <div className="mb-6 h-28 rounded-2xl border-2 border-banana-200 bg-white/90 shadow-game-sm" />
                     <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 2xl:grid-cols-5">
                         {[...Array(5)].map((_, index) => (
-                            <div key={index} className="h-24 rounded-xl border border-banana-200 bg-white/60" />
+                            <div key={index} className="h-24 rounded-2xl border-2 border-banana-200 bg-white/90 shadow-game-sm" />
                         ))}
                     </div>
                     <div className="grid gap-5 lg:grid-cols-[3fr_4fr_2fr]">
                         {[0, 1, 2].map((index) => (
-                            <div key={index} className="h-64 rounded-xl border border-banana-200 bg-white/60" />
+                            <div key={index} className="h-64 rounded-2xl border-2 border-banana-200 bg-white/90 shadow-game-sm" />
                         ))}
                     </div>
                 </main>
@@ -111,15 +111,15 @@ export default function GameOverviewPage() {
         return (
             <div className="min-h-screen">
                 <AppHeader />
-                <main className="mx-auto max-w-3xl px-4 py-12 md:px-6 md:py-16">
+                <main className="mx-auto w-full px-4 py-12 sm:px-6 md:py-16">
                     <Card className="py-12 text-center">
-                        <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-banana-100 text-banana-700">
+                        <span className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-100 text-banana-700">
                             <XCircle size={24} />
                         </span>
-                        <h1 className="font-display text-2xl text-banana-900">
+                        <h1 className="font-display text-2xl font-extrabold text-banana-900">
                             {error ? 'Could not load this game' : 'Game not found'}
                         </h1>
-                        <p className="mt-2 text-sm text-banana-800">
+                        <p className="mt-2 text-sm font-semibold text-banana-800">
                             {error || 'This game may belong to another account, or it may have been removed.'}
                         </p>
                         <div className="mt-6 flex flex-wrap justify-center gap-3">
@@ -141,11 +141,11 @@ export default function GameOverviewPage() {
     return (
         <div className="min-h-screen">
             <AppHeader />
-            <main className="mx-auto w-full max-w-[1560px] px-4 py-6 md:px-6 md:py-8">
-                                <section className="mb-6 overflow-hidden rounded-[1.75rem] border-2 border-banana-300 bg-gradient-to-b from-white to-banana-50/70 p-5 shadow-game md:p-6">
+            <main className="mx-auto w-full px-4 py-6 sm:px-6 md:py-8">
+                <section className="mb-6 overflow-hidden rounded-2xl border-2 border-banana-300 bg-gradient-to-br from-banana-100 via-white to-amber-50 p-5 shadow-game sm:p-7">
                     <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                         <div>
-                            <p className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-300 bg-banana-100 px-2.5 py-1 font-display text-[11px] font-bold uppercase tracking-wide text-banana-800">
+                            <p className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 font-display text-[11px] font-bold uppercase tracking-wide text-banana-800">
                                 <Trophy size={12} /> Game analysis
                             </p>
                             <h1 className="mt-2 font-display text-3xl font-extrabold leading-tight text-banana-900 md:text-4xl">
@@ -181,7 +181,7 @@ export default function GameOverviewPage() {
                 </div>
 
                 {game.quitPenalty ? (
-                    <p className="mb-5 flex items-start gap-2 rounded-xl border border-banana-200 bg-banana-100 px-4 py-3 text-sm text-banana-900">
+                    <p className="mb-5 flex items-start gap-2 rounded-2xl border-2 border-banana-300 bg-banana-100 px-4 py-3 text-sm font-semibold text-banana-900">
                         <XCircle size={17} className="mt-0.5 flex-shrink-0 text-banana-700" />
                         This game was quit early and a {game.quitPenalty} point penalty was applied.
                     </p>
@@ -189,11 +189,11 @@ export default function GameOverviewPage() {
 
                 {quizzes.length === 0 ? (
                     <Card className="py-14 text-center">
-                        <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-banana-100 text-banana-700">
+                        <span className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl border-2 border-banana-300 bg-banana-100 text-banana-700">
                             <Clock3 size={24} />
                         </span>
-                        <h2 className="font-display text-xl text-banana-900">No quizzes recorded</h2>
-                        <p className="mt-1 text-sm text-banana-800">
+                        <h2 className="font-display text-xl font-extrabold text-banana-900">No quizzes recorded</h2>
+                        <p className="mt-1 text-sm font-semibold text-banana-800">
                             This game was started but no answers were saved yet.
                         </p>
                     </Card>
@@ -207,11 +207,11 @@ export default function GameOverviewPage() {
 
                         <Card className="!p-4 md:!p-5">
                             <header className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-                                <h2 className="flex items-center gap-2 font-display text-xl text-banana-900">
+                                <h2 className="flex items-center gap-2 font-display text-lg font-extrabold text-banana-800">
                                     <ListChecks size={18} className="text-banana-700" />
                                     Game results
                                 </h2>
-                                <span className="text-xs text-banana-800 tabular-nums">
+                                <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-800 tabular-nums">
                                     {quizzes.length} recorded
                                 </span>
                             </header>
@@ -230,7 +230,7 @@ export default function GameOverviewPage() {
                                     type="button"
                                     onClick={() => setShowAll((value) => !value)}
                                     aria-expanded={showAll}
-                                    className="mt-4 w-full rounded-lg border border-banana-200 px-3 py-2 text-sm font-semibold text-banana-800 transition-colors hover:bg-banana-100"
+                                    className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-banana-300 bg-white/80 px-4 py-2.5 font-display text-sm font-bold text-banana-800 shadow-game-sm transition hover:bg-banana-100 active:translate-y-0.5"
                                 >
                                     {showAll ? 'Show latest four' : `Show all ${quizzes.length} quizzes`}
                                 </button>
@@ -239,7 +239,7 @@ export default function GameOverviewPage() {
 
                         <div className="space-y-4">
                             <Card className="!p-4 md:!p-5">
-                                <h2 className="mb-3 font-display text-lg text-banana-900">Summary</h2>
+                                <h2 className="mb-3 font-display text-lg font-extrabold text-banana-800">Summary</h2>
                                 <dl className="divide-y divide-banana-200 text-sm">
                                     <SummaryRow label="Mode" value={modeInfo.label} />
                                     <SummaryRow
@@ -259,18 +259,18 @@ export default function GameOverviewPage() {
                             </Card>
 
                             <Card className="!p-4 md:!p-5">
-                                <h2 className="mb-3 font-display text-lg text-banana-900">Next</h2>
+                                <h2 className="mb-3 font-display text-lg font-extrabold text-banana-800">Next</h2>
                                 <div className="space-y-2 text-sm">
                                     <Link
                                         to="/play"
-                                        className="flex items-center justify-between gap-2 rounded-lg border border-banana-200 px-3 py-2 transition-colors hover:bg-banana-100"
+                                        className="flex items-center justify-between gap-2 rounded-2xl border-2 border-banana-200 bg-white/80 px-3 py-2.5 font-display text-sm font-bold text-banana-800 shadow-game-sm transition hover:bg-banana-100 active:translate-y-0.5"
                                     >
                                         <span>Play another round</span>
                                         <Play size={15} className="text-banana-700" />
                                     </Link>
                                     <Link
                                         to="/history"
-                                        className="flex items-center justify-between gap-2 rounded-lg border border-banana-200 px-3 py-2 transition-colors hover:bg-banana-100"
+                                        className="flex items-center justify-between gap-2 rounded-2xl border-2 border-banana-200 bg-white/80 px-3 py-2.5 font-display text-sm font-bold text-banana-800 shadow-game-sm transition hover:bg-banana-100 active:translate-y-0.5"
                                     >
                                         <span>Browse game history</span>
                                         <ArrowLeft size={15} className="text-banana-700" />
@@ -288,8 +288,8 @@ export default function GameOverviewPage() {
 function SummaryRow({ label, value }) {
     return (
         <div className="flex items-baseline justify-between gap-3 py-2">
-            <dt className="text-banana-800">{label}</dt>
-            <dd className="text-right font-semibold text-banana-900 tabular-nums">{value}</dd>
+            <dt className="font-semibold text-banana-800">{label}</dt>
+            <dd className="text-right font-extrabold text-banana-900 tabular-nums">{value}</dd>
         </div>
     );
 }
@@ -327,9 +327,9 @@ function QuizResult({ quiz, index, defaultTime = 0 }) {
     };
 
     return (
-        <article className="rounded-lg border border-banana-200">
+        <article className="rounded-2xl border-2 border-banana-200 bg-white/90 shadow-game-sm">
             <div className="grid gap-3 p-3 sm:grid-cols-[96px_1fr_auto] sm:items-center">
-                <div className="h-16 w-full max-w-[96px] overflow-hidden rounded-md bg-banana-100">
+                <div className="h-16 w-full max-w-[96px] overflow-hidden rounded-2xl border-2 border-banana-300 bg-gradient-to-br from-banana-100 via-amber-50 to-white p-1 shadow-game-sm">
                     {quiz?.imageUrl ? (
                         <img
                             src={quiz.imageUrl}
@@ -346,20 +346,20 @@ function QuizResult({ quiz, index, defaultTime = 0 }) {
 
                 <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="font-display text-lg text-banana-900">Quiz {index + 1}</h3>
-                        <span className="inline-flex items-center gap-1 text-xs text-banana-700">
+                        <h3 className="font-display text-lg font-extrabold text-banana-800">Quiz {index + 1}</h3>
+                        <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-700">
                             <StatusIcon size={13} /> {status.label}
                         </span>
                     </div>
-                    <p className="mt-0.5 text-xs text-banana-800 tabular-nums">{responseTime}</p>
-                    <p className="text-xs text-banana-800">
+                    <p className="mt-0.5 text-xs font-semibold text-banana-800 tabular-nums">{responseTime}</p>
+                    <p className="text-xs font-semibold text-banana-800">
                         Your answer {quiz?.playerAnswer == null ? '—' : quiz.playerAnswer} · Correct{' '}
                         {quiz?.solution ?? '—'}
                     </p>
                 </div>
 
                 <div className="flex items-center justify-between gap-2 sm:flex-col sm:items-end">
-                    <span className="font-display text-lg text-banana-900 tabular-nums">
+                    <span className="font-display text-lg font-extrabold text-banana-900 tabular-nums">
                         {points > 0 ? '+' : ''}
                         {points} pts
                     </span>
@@ -367,7 +367,7 @@ function QuizResult({ quiz, index, defaultTime = 0 }) {
                         type="button"
                         onClick={toggleDetails}
                         aria-expanded={showDetails}
-                        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-banana-700 transition-colors hover:bg-banana-100"
+                        className="inline-flex items-center gap-1.5 rounded-full border-2 border-banana-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-banana-700 shadow-game-sm transition hover:bg-banana-100 active:translate-y-0.5"
                     >
                         Details
                         {showDetails ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
@@ -376,7 +376,7 @@ function QuizResult({ quiz, index, defaultTime = 0 }) {
             </div>
 
             {showDetails && (
-                <div className="border-t border-banana-200 bg-banana-50 p-3">
+                <div className="border-t-2 border-banana-200 bg-banana-50/70 p-3">
                     <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
                         <Detail label="Your answer" value={quiz?.playerAnswer == null ? '—' : quiz.playerAnswer} />
                         <Detail label="Correct answer" value={quiz?.solution ?? '—'} />
@@ -388,7 +388,7 @@ function QuizResult({ quiz, index, defaultTime = 0 }) {
                     {quiz?.id && (
                         <Link
                             to={`/history/${encodeURIComponent(quiz.id)}`}
-                            className="mt-3 inline-block text-sm font-semibold text-banana-700 hover:underline"
+                            className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-banana-700 hover:text-banana-900 hover:underline"
                         >
                             Open full answer page
                         </Link>
@@ -402,8 +402,8 @@ function QuizResult({ quiz, index, defaultTime = 0 }) {
 function Detail({ label, value }) {
     return (
         <div>
-            <dt className="text-xs text-banana-800">{label}</dt>
-            <dd className="mt-0.5 break-words font-semibold text-banana-900 tabular-nums">{value}</dd>
+            <dt className="text-[11px] font-bold uppercase tracking-wide text-banana-700">{label}</dt>
+            <dd className="mt-0.5 break-words font-extrabold text-banana-900 tabular-nums">{value}</dd>
         </div>
     );
 }

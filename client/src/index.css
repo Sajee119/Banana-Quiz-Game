@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap');
 @import 'tailwindcss';
 
 /* Game UI palette: warm playfield neutrals with a vivid banana accent and
@@ -15,7 +15,7 @@
   --color-banana-800: #5b3a12;
   --color-banana-900: #2e1f0d;
 
-  --font-display: 'Baloo 2', cursive;
+  --font-display: 'Fredoka', sans-serif;
   --font-body: 'Nunito', sans-serif;
 
   /* Shared chart/status palette so charts follow the active theme. */
@@ -323,7 +323,7 @@ body {
 }
 
 .font-display.font-extrabold {
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .border-2 {
